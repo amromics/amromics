@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03484 Acetolactate synthase isozyme 1 small subunit
+##SequenceLength 288bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03813 Acetolactate synthase isozyme 1 small subunit
+##SequenceLength 288bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03605 Acetolactate synthase isozyme 1 small subunit
+##SequenceLength 288bp
+#IntervalCount 1
+>1:0-287 + cluster1 :p1
+atgcaaaaacaatgtgataacgtcattctggaactcaccgtccgcaaccatcccggcgtcatgacccacgtgtgcgggct
+ttttgcccgtcgcgcgtttaacgtcgaaggcattctctgtctgccaattcagggcagcgaacacagccgcatctggctgc
+tggtaaatgatgaccagcgactggggcagatgattagccagattgaaaagctggaAgatgtcaccaaagtggcgcgtaac
+cagtccgatcccaccatgtttaacaaaattgcggtgttcttcgaatag
+>2:0-287 + cluster1 :p1
+atgcaaaaacaatgtgataacgtcattctggaactcaccgtccgcaaccatcccggcgtcatgacccacgtgtgcgggct
+ttttgcccgtcgcgcgtttaacgtcgaaggcattctctgtctgccaattcagggcagcgaacacagccgcatctggctgc
+tggtaaatgatgaccagcgactggggcagatgattagccagattgaaaagctggaGgatgtcaccaaagtggcgcgtaac
+cagtccgatcccaccatgtttaacaaaattgcggtgttcttcgaatag
+>3:0-287 + cluster1 :p1
+atgcaaaaacaatgtgataacgtcattctggaactcaccgtccgcaaccatcccggcgtcatgacccacgtgtgcgggct
+ttttgcccgtcgcgcgtttaacgtcgaaggcattctctgtctgccaattcagggcagcgaacacagccgcatctggctgc
+tggtaaatgatgaccagcgactggggcagatgattagccagattgaaaagctggaAgatgtcaccaaagtggcgcgtaac
+cagtccgatcccaccatgtttaacaaaattgcggtgttcttcgaatag
+=

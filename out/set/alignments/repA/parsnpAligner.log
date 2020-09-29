@@ -1,0 +1,38 @@
+Number of sequences analyzed:         2
+
+Sequence 1 : out/set/alignments/repA/573.12860.fasta.ref
+573.12860.fasta.ref
+Length:       876 bps
+ GC:     394.0
+ AT:     482.0
+Sequence 2 : out/temp/alignments/genes/repA/573.12859.fasta
+573.12859.fasta
+Length:       876 bps
+ GC:     395.0
+ AT:     481.0
+d value:   300
+q value:   30
+
+Mum anchor size:   10.0
+Number of MUM anchors found:   3 
+Number of MUMs found:   0 
+Total MUMs found((Anchors+MUMs)-filtered):   3 
+
+Random MUM length:   1 
+Minimum Cluster length:   21
+Number of MUMs filtered:   0 
+Number of Clusters filtered:   0 
+
+Number of clusters created:   1 
+Average number of MUMs per cluster:   3 
+Average cluster length:   867 bps
+Cluster coverage in sequence 1:   99.0%
+Cluster coverage in sequence 2:   99.0%
+Total coverage among all sequences:   99.0%
+
+ MUM anchor search elapsed time:   0.0s 
+ MUM coarsening elapsed time:   0.0s 
+ MUM filtering elapsed time:   0.0s 
+ MUM clustering elapsed time:   0.0s 
+ Inter-clustering elapsed time:   0.0s 
+ Total running time:   0.0s 

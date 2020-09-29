@@ -1,0 +1,24 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 2
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_04398 Arsenical resistance operon trans-acting repressor ArsD
+##SequenceLength 363bp
+##SequenceIndex 2
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04682 Arsenical resistance operon trans-acting repressor ArsD
+##SequenceLength 363bp
+#IntervalCount 1
+>1:0-362 + cluster1 :p1
+atgtcaaaaattgagatctttgaagccgcaggctgctgtgcgaccagcagcgtcgtggtcagcgatgaagccgtcaaatg
+gaacgccagcgccgaatgggcgaaaaagcatggtgtgaatattcagcgttacagcctggcaaagaacccgcagcagttcc
+tgaatacgcccgtcatcagggccttcctgaacacgtcaggaatggagtcccttcccgctaccctgcttgacggccagctg
+gtgatggcgggcaagctcccgtcccgggaagatatcgcccgctgggccggtatttccctcacgcaggactggaatgaaga
+cagcacgcagccgcgctgctgcagcattccccgtatgccttaa
+>2:0-362 + cluster1 :p1
+atgtcaaaaattgagatctttgaagccgcaggctgctgtgcgaccagcagcgtcgtggtcagcgatgaagccgtcaaatg
+gaacgccagcgccgaatgggcgaaaaagcatggtgtgaatattcagcgttacagcctggcaaagaacccgcagcagttcc
+tgaatacgcccgtcatcagggccttcctgaacacgtcaggaatggagtcccttcccgctaccctgcttgacggccagctg
+gtgatggcgggcaagctcccgtcccgggaagatatcgcccgctgggccggtatttccctcacgcaggactggaatgaaga
+cagcacgcagccgcgctgctgcagcattccccgtatgccttaa
+=

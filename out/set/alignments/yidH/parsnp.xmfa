@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03496 Inner membrane protein YidH
+##SequenceLength 348bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03825 Inner membrane protein YidH
+##SequenceLength 348bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03593 Inner membrane protein YidH
+##SequenceLength 348bp
+#IntervalCount 1
+>1:0-347 + cluster1 :p1
+atgaaaatctcccgcctcggcgaagcgccggattaccgcttttcgctggcTaacgaacgcacctttctggcatggatccg
+cacggcgctcggttttctcgccgccggcgtcggccttgaccagttagcgccggactttgccacgccgctgatccgtgaaa
+ttctcgccctgctgctgtgtctctttgccggcggcatggccatctatggctatctgcgctggctgaataacgagaaggcg
+atgcgTctcaagcaggaccttccctatacccgcacgctgctggtgattagcattctgctgctggcggtggtggccgcggt
+gatgctgctggtggtgtatggcggataa
+>2:0-347 + cluster1 :p1
+atgaaaatctcccgcctcggcgaagcgccggattaccgcttttcgctggcCaacgaacgcacctttctggcatggatccg
+cacggcgctcggttttctcgccgccggcgtcggccttgaccagttagcgccggactttgccacgccgctgatccgtgaaa
+ttctcgccctgctgctgtgtctctttgccggcggcatggccatctatggctatctgcgctggctgaataacgagaaggcg
+atgcgCctcaagcaggaccttccctatacccgcacgctgctggtgattagcattctgctgctggcggtggtggccgcggt
+gatgctgctggtggtgtatggcggataa
+>3:0-347 + cluster1 :p1
+atgaaaatctcccgcctcggcgaagcgccggattaccgcttttcgctggcTaacgaacgcacctttctggcatggatccg
+cacggcgctcggttttctcgccgccggcgtcggccttgaccagttagcgccggactttgccacgccgctgatccgtgaaa
+ttctcgccctgctgctgtgtctctttgccggcggcatggccatctatggctatctgcgctggctgaataacgagaaggcg
+atgcgTctcaagcaggaccttccctatacccgcacgctgctggtgattagcattctgctgctggcggtggtggccgcggt
+gatgctgctggtggtgtatggcggataa
+=

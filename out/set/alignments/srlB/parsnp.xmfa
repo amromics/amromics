@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02741 PTS system glucitol/sorbitol-specific EIIA component
+##SequenceLength 363bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03453 PTS system glucitol/sorbitol-specific EIIA component
+##SequenceLength 363bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04345 PTS system glucitol/sorbitol-specific EIIA component
+##SequenceLength 363bp
+#IntervalCount 1
+>1:0-362 + cluster1 :p1
+atgactgtgatttaccagaccaccattacgcacatcggcgcctgcgcgacgatggcgctggaagagcaaatgctgatcac
+cttccgcgagggcgccccggcggatatcgaagagtactgctttattcacaaccacggcAagcttgctggcacgctgcagc
+cgggggcagagctgcagcttggcgaacagcgctacccggtgaccgccgtcggcgaggtcgctgaacaaaacctgcgcgag
+ctgggccacatcaccctgcgctttgacggccatcgtgaagcggagttcccaggtaccgtccatgtggcgggcccggtgcc
+ggacgccatcgcgcccggctgcgtactgaagtttgttgcttaa
+>2:0-362 + cluster1 :p1
+atgactgtgatttaccagaccaccattacgcacatcggcgcctgcgcgacgatggcgctggaagagcaaatgctgatcac
+cttccgcgagggcgccccggcggatatcgaagagtactgctttattcacaaccacggcGagcttgctggcacgctgcagc
+cgggggcagagctgcagcttggcgaacagcgctacccggtgaccgccgtcggcgaggtcgctgaacaaaacctgcgcgag
+ctgggccacatcaccctgcgctttgacggccatcgtgaagcggagttcccaggtaccgtccatgtggcgggcccggtgcc
+ggacgccatcgcgcccggctgcgtactgaagtttgttgcttaa
+>3:0-362 + cluster1 :p1
+atgactgtgatttaccagaccaccattacgcacatcggcgcctgcgcgacgatggcgctggaagagcaaatgctgatcac
+cttccgcgagggcgccccggcggatatcgaagagtactgctttattcacaaccacggcAagcttgctggcacgctgcagc
+cgggggcagagctgcagcttggcgaacagcgctacccggtgaccgccgtcggcgaggtcgctgaacaaaacctgcgcgag
+ctgggccacatcaccctgcgctttgacggccatcgtgaagcggagttcccaggtaccgtccatgtggcgggcccggtgcc
+ggacgccatcgcgcccggctgcgtactgaagtttgttgcttaa
+=

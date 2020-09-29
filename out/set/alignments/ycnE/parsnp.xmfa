@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02904 Putative monooxygenase YcnE
+##SequenceLength 291bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_00298 Putative monooxygenase YcnE
+##SequenceLength 291bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02739 Putative monooxygenase YcnE
+##SequenceLength 291bp
+#IntervalCount 1
+>1:0-290 + cluster1 :p1
+atgatatcgcttatcgccgtgctcaaggcgaaaccgggccaaacggacgccctgcgTcaggccctgcaggcgctgctcct
+gccgacgagacaggagccgggcaacctcgactatgccctgtttcagctgcgcgacgcgccggacaccttctatatgcgcg
+aggcgtggcagggacaggacgccctcgatgcccatgtcgcgatgccctattttcaggcgtttatgacgcagatggagtct
+ctgctggctgagccgctgcggctggactttctgacgccggttgagccttag
+>2:0-290 + cluster1 :p1
+atgatatcgcttatcgccgtgctcaaggcgaaaccgggccaaacggacgccctgcgCcaggccctgcaggcgctgctcct
+gccgacgagacaggagccgggcaacctcgactatgccctgtttcagctgcgcgacgcgccggacaccttctatatgcgcg
+aggcgtggcagggacaggacgccctcgatgcccatgtcgcgatgccctattttcaggcgtttatgacgcagatggagtct
+ctgctggctgagccgctgcggctggactttctgacgccggttgagccttag
+>3:0-290 + cluster1 :p1
+atgatatcgcttatcgccgtgctcaaggcgaaaccgggccaaacggacgccctgcgTcaggccctgcaggcgctgctcct
+gccgacgagacaggagccgggcaacctcgactatgccctgtttcagctgcgcgacgcgccggacaccttctatatgcgcg
+aggcgtggcagggacaggacgccctcgatgcccatgtcgcgatgccctattttcaggcgtttatgacgcagatggagtct
+ctgctggctgagccgctgcggctggactttctgacgccggttgagccttag
+=

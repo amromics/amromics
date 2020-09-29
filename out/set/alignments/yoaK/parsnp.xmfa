@@ -1,0 +1,25 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_00720 putative membrane protein YoaK
+##SequenceLength 102bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02736 putative membrane protein YoaK
+##SequenceLength 102bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_00012 putative membrane protein YoaK
+##SequenceLength 102bp
+#IntervalCount 1
+>1:0-101 + cluster1 :p1
+atgaaattgggtattcttttcccggtggcgatctttatcatcgccgtcgtctttctcggctggttttttgtcggcggcta
+tgcggcgccgggtggggcataa
+>2:0-101 + cluster1 :p1
+atgaaattgggtattcttttcccggtggcgatctttatcatcgccgtcgtctttctcggctggttttttgtcggcggcta
+tgcggcgccgggtggggcataa
+>3:0-101 + cluster1 :p1
+atgaaattgggtattcttttcccggtggcgatctttatcatcgccgtcgtctttctcggctggttttttgtcggcggcta
+tgcggcgccgggtggggcataa
+=

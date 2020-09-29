@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01401 Succinate dehydrogenase hydrophobic membrane anchor subunit
+##SequenceLength 348bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02332 Succinate dehydrogenase hydrophobic membrane anchor subunit
+##SequenceLength 348bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02381 Succinate dehydrogenase hydrophobic membrane anchor subunit
+##SequenceLength 348bp
+#IntervalCount 1
+>1:0-347 + cluster1 :p1
+atggtaagcaacgcctcagcactgggacgcaacggcgtacatgactttatcctggtccgtgctaccgccatcgttctgac
+cctctacatcatctacatggttggcttcttcgccaccaccggtgaaatctcatgggaagtgtggaccggattctttgcct
+ccggcttcactaaAgtcttcactctgctggctctcgtttccattctcatccatgcctggatcgggatgtggcaggtgtta
+acagactacgttaaaccactggctctgcgcctggttctgcaactggctatcgttgtggcgctggtggcttacgttcttta
+tggatttgttgtggtgtggggtgtgtaa
+>2:0-347 + cluster1 :p1
+atggtaagcaacgcctcagcactgggacgcaacggcgtacatgactttatcctggtccgtgctaccgccatcgttctgac
+cctctacatcatctacatggttggcttcttcgccaccaccggtgaaatctcatgggaagtgtggaccggattctttgcct
+ccggcttcactaaGgtcttcactctgctggctctcgtttccattctcatccatgcctggatcgggatgtggcaggtgtta
+acagactacgttaaaccactggctctgcgcctggttctgcaactggctatcgttgtggcgctggtggcttacgttcttta
+tggatttgttgtggtgtggggtgtgtaa
+>3:0-347 + cluster1 :p1
+atggtaagcaacgcctcagcactgggacgcaacggcgtacatgactttatcctggtccgtgctaccgccatcgttctgac
+cctctacatcatctacatggttggcttcttcgccaccaccggtgaaatctcatgggaagtgtggaccggattctttgcct
+ccggcttcactaaAgtcttcactctgctggctctcgtttccattctcatccatgcctggatcgggatgtggcaggtgtta
+acagactacgttaaaccactggctctgcgcctggttctgcaactggctatcgttgtggcgctggtggcttacgttcttta
+tggatttgttgtggtgtggggtgtgtaa
+=

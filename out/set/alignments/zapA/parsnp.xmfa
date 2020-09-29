@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_00058 Cell division protein ZapA
+##SequenceLength 330bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_04955 Cell division protein ZapA
+##SequenceLength 330bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01443 Cell division protein ZapA
+##SequenceLength 330bp
+#IntervalCount 1
+>1:0-329 + cluster1 :p1
+atgtctgcacaacccgtagatctccaaattttcggccgttcactgcgagtgaattgcccgcctgaacaaagggatgccct
+gaatcaggcagctgaagaccttaatcagcggttgcaagatttaaaagaacgcactagagtcacaaatactgagcagctgg
+tcttcatcgcggcgttgaacatcagctatgagttgactcaggaaaaagcgaagacccgcgactacgcttccagcatggag
+cagcgcattcgcatgcttcagcagaccatcgaacaagcattgcttgagcaaggtcgcataagcgaaaagccagggtcgaa
+gtttgaataa
+>2:0-329 + cluster1 :p1
+atgtctgcacaacccgtagatctccaaattttcggccgttcactgcgagtgaattgcccgcctgaacaaagggatgccct
+gaatcaggcagctgaagaccttaatcagcggttgcaagatttaaaagaacgcactagagtcacaaatactgagcagctgg
+tcttcatcgcggcgttgaacatcagctatgagttgactcaggaaaaagcgaagacccgcgactacgcttccagcatggag
+cagcgcattcgcatgcttcagcagaccatcgaacaagcattgcttgagcaaggtcgcataagcgaaaagccagggtcgaa
+gtttgaataa
+>3:0-329 + cluster1 :p1
+atgtctgcacaacccgtagatctccaaattttcggccgttcactgcgagtgaattgcccgcctgaacaaagggatgccct
+gaatcaggcagctgaagaccttaatcagcggttgcaagatttaaaagaacgcactagagtcacaaatactgagcagctgg
+tcttcatcgcggcgttgaacatcagctatgagttgactcaggaaaaagcgaagacccgcgactacgcttccagcatggag
+cagcgcattcgcatgcttcagcagaccatcgaacaagcattgcttgagcaaggtcgcataagcgaaaagccagggtcgaa
+gtttgaataa
+=

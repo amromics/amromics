@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01958 Transcriptional repressor FrmR
+##SequenceLength 276bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01713 Transcriptional repressor FrmR
+##SequenceLength 276bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01232 Transcriptional repressor FrmR
+##SequenceLength 276bp
+#IntervalCount 1
+>1:0-275 + cluster1 :p1
+gtgccacattcacctgaagataaaaaacgggcgctcagccgCgtaagacgcatccgcggccaggtcgaagcccttgagcg
+cgcgctggagtccggcgagccctgtatgactattCtgcagcagatcgcctcgattcgcggggcggcgaacggcctgatgg
+gcgaaatggtggagatccacctgcaggacgagctggtcagcggcgacaccacccctgagcagcgggccgcgagaatggca
+gaggtcggtcatctgctacgatcctatttaaaataa
+>2:0-275 + cluster1 :p1
+gtgccacattcacctgaagataaaaaacgggcgctcagccgAgtaagacgcatccgcggccaggtcgaagcccttgagcg
+cgcgctggagtccggcgagccctgtatgactattTtgcagcagatcgcctcgattcgcggggcggcgaacggcctgatgg
+gcgaaatggtggagatccacctgcaggacgagctggtcagcggcgacaccacccctgagcagcgggccgcgagaatggca
+gaggtcggtcatctgctacgatcctatttaaaataa
+>3:0-275 + cluster1 :p1
+gtgccacattcacctgaagataaaaaacgggcgctcagccgCgtaagacgcatccgcggccaggtcgaagcccttgagcg
+cgcgctggagtccggcgagccctgtatgactattCtgcagcagatcgcctcgattcgcggggcggcgaacggcctgatgg
+gcgaaatggtggagatccacctgcaggacgagctggtcagcggcgacaccacccctgagcagcgggccgcgagaatggca
+gaggtcggtcatctgctacgatcctatttaaaataa
+=

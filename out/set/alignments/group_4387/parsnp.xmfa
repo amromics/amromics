@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03320 putative acyl-CoA thioester hydrolase
+##SequenceLength 366bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02663 putative acyl-CoA thioester hydrolase
+##SequenceLength 366bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02941 putative acyl-CoA thioester hydrolase
+##SequenceLength 366bp
+#IntervalCount 1
+>1:0-357 + cluster1 :p1
+atggttttacgcaccctggcaatgccggcggataccaatgccaacggggatatttttggcggctggctgatgtcgcagat
+ggatattggcggcgccattatggccaaagagatcgcccagggtcgcgtggtgaccgtgcgggtggatgggatgacctttt
+tacgcccggtcgccgttggcgacgtggtgtgctgctacgcccgctgcgtgaagcgcggcaacacctcggtgacaatCaat
+atcgaagtgtgggtgaaaaaagtTtcttcagaaccgattggccagcgctacaaggcgacggaagcgctgtttatctacgt
+tgccgttgataatcagggaaaaccacgtcctctgccag
+>2:0-357 + cluster1 :p1
+atggttttacgcaccctggcaatgccggcggataccaatgccaacggggatatttttggcggctggctgatgtcgcagat
+ggatattggcggcgccattatggccaaagagatcgcccagggtcgcgtggtgaccgtgcgggtggatgggatgacctttt
+tacgcccggtcgccgttggcgacgtggtgtgctgctacgcccgctgcgtgaagcgcggcaacacctcggtgacaatTaat
+atcgaagtgtgggtgaaaaaagtCtcttcagaaccgattggccagcgctacaaggcgacggaagcgctgtttatctacgt
+tgccgttgataatcagggaaaaccacgtcctctgccag
+>3:0-357 + cluster1 :p1
+atggttttacgcaccctggcaatgccggcggataccaatgccaacggggatatttttggcggctggctgatgtcgcagat
+ggatattggcggcgccattatggccaaagagatcgcccagggtcgcgtggtgaccgtgcgggtggatgggatgacctttt
+tacgcccggtcgccgttggcgacgtggtgtgctgctacgcccgctgcgtgaagcgcggcaacacctcggtgacaatCaat
+atcgaagtgtgggtgaaaaaagtTtcttcagaaccgattggccagcgctacaaggcgacggaagcgctgtttatctacgt
+tgccgttgataatcagggaaaaccacgtcctctgccag
+=

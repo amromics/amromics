@@ -1,0 +1,37 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01062 Long-chain acyl-CoA thioesterase FadM
+##SequenceLength 402bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01114 Long-chain acyl-CoA thioesterase FadM
+##SequenceLength 402bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_00723 Long-chain acyl-CoA thioesterase FadM
+##SequenceLength 402bp
+#IntervalCount 1
+>1:0-401 + cluster1 :p1
+atgcagacacaaattaaagttcgcggctatcatctggacgtctaccagcatgtgaacaacgctcgctacctggagttcct
+tgaggaagcccgctgggacggcctggaaaacagccccgcgtttcagtggatgatggagaaaaacatcgccttcgtggtgg
+tgaatatcaatattaactatcgtcgtccggcggtactgggcgatgTgctgacggtgagcagcaaactggagcaactcaac
+ggcaaaagcggcaccctaagccaggtggtcaccctcaaccccaatggcgaagtagtggccgatgcgctgattaccttcgt
+ttgtatcgatttgaaaacccagaaggcgctgccgctggaaggggaattgcgtgcgaaacttgaccagatgaacctgcgct
+ga
+>2:0-401 + cluster1 :p1
+atgcagacacaaattaaagttcgcggctatcatctggacgtctaccagcatgtgaacaacgctcgctacctggagttcct
+tgaggaagcccgctgggacggcctggaaaacagccccgcgtttcagtggatgatggagaaaaacatcgccttcgtggtgg
+tgaatatcaatattaactatcgtcgtccggcggtactgggcgatgCgctgacggtgagcagcaaactggagcaactcaac
+ggcaaaagcggcaccctaagccaggtggtcaccctcaaccccaatggcgaagtagtggccgatgcgctgattaccttcgt
+ttgtatcgatttgaaaacccagaaggcgctgccgctggaaggggaattgcgtgcgaaacttgaccagatgaacctgcgct
+ga
+>3:0-401 + cluster1 :p1
+atgcagacacaaattaaagttcgcggctatcatctggacgtctaccagcatgtgaacaacgctcgctacctggagttcct
+tgaggaagcccgctgggacggcctggaaaacagccccgcgtttcagtggatgatggagaaaaacatcgccttcgtggtgg
+tgaatatcaatattaactatcgtcgtccggcggtactgggcgatgTgctgacggtgagcagcaaactggagcaactcaac
+ggcaaaagcggcaccctaagccaggtggtcaccctcaaccccaatggcgaagtagtggccgatgcgctgattaccttcgt
+ttgtatcgatttgaaaacccagaaggcgctgccgctggaaggggaattgcgtgcgaaacttgaccagatgaacctgcgct
+ga
+=

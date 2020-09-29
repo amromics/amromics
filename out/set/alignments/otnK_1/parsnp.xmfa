@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_05104 3-oxo-tetronate kinase
+##SequenceLength 195bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02966 3-oxo-tetronate kinase
+##SequenceLength 258bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_05447 3-oxo-tetronate kinase
+##SequenceLength 195bp
+#IntervalCount 1
+>1:0-194 + cluster1 :p1
+gtggccggaggggaaacgtcgagcattgtggcgcagaccctgggggttgaggcgttccatattgggccgaccatctcccc
+tggcgtgccctgggtgcgtgacacccgccagccgctCTccctggcgctgaagtcaggtaacttcggcgatatccagttct
+ttgcccgtgcccagcaggagtttcgtcatgactga
+>2:63-257 + cluster1 s1:p63
+gtggccggaggggaaacgtcgagcattgtggcgcagaccctgggggttgaggcgttccatattgggccgaccatctcccc
+tggcgtgccctgggtgcgtgacacccgccagccgctGTccctggcgctgaagtcaggtaacttcggcgatatccagttct
+ttgcccgtgcccagcaggagtttcgtcatgactga
+>3:0-194 + cluster1 :p1
+gtggccggaggggaaacgtcgagcattgtggcgcagaccctgggggttgaggcgttccatattgggccgaccatctcccc
+tggcgtgccctgggtgcgtgacacccgccagccgctCTccctggcgctgaagtcaggtaacttcggcgatatccagttct
+ttgcccgtgcccagcaggagtttcgtcatgactga
+=

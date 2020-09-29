@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02323 Putative selenoprotein YdfZ
+##SequenceLength 204bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03063 Putative selenoprotein YdfZ
+##SequenceLength 204bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02668 Putative selenoprotein YdfZ
+##SequenceLength 204bp
+#IntervalCount 1
+>1:0-203 + cluster1 :p1
+atgaaaacctatgaccgtaatcgtaacgctattgctaccggcagcatggtaatgatcgccggtaacgggacgacgggcgt
+gattaaagctatccatggcgaggggaaaaccgctgagcagttgcgccgggcggactgcgttgaaatcgacgTctgcgagg
+gccgcttctgcccgttggatctgatccgtctcggcttccattaa
+>2:0-203 + cluster1 :p1
+atgaaaacctatgaccgtaatcgtaacgctattgctaccggcagcatggtaatgatcgccggtaacgggacgacgggcgt
+gattaaagctatccatggcgaggggaaaaccgctgagcagttgcgccgggcggactgcgttgaaatcgacgGctgcgagg
+gccgcttctgcccgttggatctgatccgtctcggcttccattaa
+>3:0-203 + cluster1 :p1
+atgaaaacctatgaccgtaatcgtaacgctattgctaccggcagcatggtaatgatcgccggtaacgggacgacgggcgt
+gattaaagctatccatggcgaggggaaaaccgctgagcagttgcgccgggcggactgcgttgaaatcgacgGctgcgagg
+gccgcttctgcccgttggatctgatccgtctcggcttccattaa
+=

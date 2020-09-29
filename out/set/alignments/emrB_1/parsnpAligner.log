@@ -1,0 +1,44 @@
+Number of sequences analyzed:         3
+
+Sequence 1 : out/set/alignments/emrB_1/573.12862.fasta.ref
+573.12862.fasta.ref
+Length:      1563 bps
+ GC:     967.0
+ AT:     596.0
+Sequence 2 : out/temp/alignments/genes/emrB_1/573.12859.fasta
+573.12859.fasta
+Length:      1563 bps
+ GC:     971.0
+ AT:     592.0
+Sequence 3 : out/temp/alignments/genes/emrB_1/573.12860.fasta
+573.12860.fasta
+Length:      1563 bps
+ GC:     967.0
+ AT:     596.0
+d value:   300
+q value:   30
+
+Mum anchor size:   11.0
+Number of MUM anchors found:   37
+Number of MUMs found:   0 
+Total MUMs found((Anchors+MUMs)-filtered):   37
+
+Random MUM length:   1 
+Minimum Cluster length:   21
+Number of MUMs filtered:   0 
+Number of Clusters filtered:   0 
+
+Number of clusters created:   1 
+Average number of MUMs per cluster:   37
+Average cluster length:   1552 bps
+Cluster coverage in sequence 1:   99.3%
+Cluster coverage in sequence 2:   99.3%
+Cluster coverage in sequence 3:   99.3%
+Total coverage among all sequences:   99.3%
+
+ MUM anchor search elapsed time:   0.0s 
+ MUM coarsening elapsed time:   0.0s 
+ MUM filtering elapsed time:   0.0s 
+ MUM clustering elapsed time:   0.0s 
+ Inter-clustering elapsed time:   0.0s 
+ Total running time:   0.0s 

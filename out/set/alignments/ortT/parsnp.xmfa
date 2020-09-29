@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01992 Orphan toxin OrtT
+##SequenceLength 174bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01747 Orphan toxin OrtT
+##SequenceLength 174bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01198 Orphan toxin OrtT
+##SequenceLength 174bp
+#IntervalCount 1
+>1:0-173 + cluster1 :p1
+atgacgttatatcaaaaaatgttggtgttttacgccattatgggcgtgatatgcgccgtgattagctggtttttaaccaa
+agagagccggatgatccgcctgctggcggccctgctgatcggcgccacctggccgttcagcttcccgatggcgctgctcg
+tctcgctgttttaa
+>2:0-173 + cluster1 :p1
+atgacgttatatcaaaaaatgttggtgttttacgccattatgggcgtgatatgcgccgtgattagctggtttttaaccaa
+agagagccggatgatccgcctgctggcggccctgctgatcggcgccacctggccgttcagcttcccgatggcgctgctcg
+tctcgctgttttaa
+>3:0-173 + cluster1 :p1
+atgacgttatatcaaaaaatgttggtgttttacgccattatgggcgtgatatgcgccgtgattagctggtttttaaccaa
+agagagccggatgatccgcctgctggcggccctgctgatcggcgccacctggccgttcagcttcccgatggcgctgctcg
+tctcgctgttttaa
+=

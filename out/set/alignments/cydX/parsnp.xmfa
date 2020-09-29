@@ -1,0 +1,25 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01410 Cytochrome bd-I ubiquinol oxidase subunit X
+##SequenceLength 117bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02341 Cytochrome bd-I ubiquinol oxidase subunit X
+##SequenceLength 117bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02390 Cytochrome bd-I ubiquinol oxidase subunit X
+##SequenceLength 117bp
+#IntervalCount 1
+>1:0-116 + cluster1 :p1
+atgtggtacttcgcatggattttgggaacgcttcttgcctgtgcttttggggtcattaccgcgctggcgcttgagcacgt
+ggaagccaccaaagccgggaagaaagaagaaatctga
+>2:0-116 + cluster1 :p1
+atgtggtacttcgcatggattttgggaacgcttcttgcctgtgcttttggggtcattaccgcgctggcgcttgagcacgt
+ggaagccaccaaagccgggaagaaagaagaaatctga
+>3:0-116 + cluster1 :p1
+atgtggtacttcgcatggattttgggaacgcttcttgcctgtgcttttggggtcattaccgcgctggcgcttgagcacgt
+ggaagccaccaaagccgggaagaaagaagaaatctga
+=

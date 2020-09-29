@@ -1,0 +1,11 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+573.12862_contigs.fasta	573.12862_C2	177671	178741	+	ompA	1-1041/1041	========/======	2/30	100.00	83.85	vfdb	AAF37887	(ompA) outer membrane protein A [OmpA (VF0236)] [Escherichia coli O18:K1:H7 str. RS218]	
+573.12862_contigs.fasta	573.12862_C3	5403	5983	+	ykgK/ecpR	11-591/591	===============	0/0	98.31	86.58	vfdb	NP_286011	(ykgK/ecpR) regulator protein EcpR [ECP (VF0404)] [Escherichia coli O157:H7 str. EDL933]	
+573.12862_contigs.fasta	573.12862_C3	6058	6641	+	yagZ/ecpA	1-584/588	===============	0/0	99.32	89.90	vfdb	NP_286010	(yagZ/ecpA) E. coli common pilus structural subunit EcpA [ECP (VF0404)] [Escherichia coli O157:H7 str. EDL933]	
+573.12862_contigs.fasta	573.12862_C3	6704	7372	+	yagY/ecpB	1-669/669	===============	0/0	100.00	86.40	vfdb	NP_286009	(yagY/ecpB) E. coli common pilus chaperone EcpB [ECP (VF0404)] [Escherichia coli O157:H7 str. EDL933]	
+573.12862_contigs.fasta	573.12862_C3	7398	9923	+	yagX/ecpC	1-2526/2526	========/======	2/2	99.96	87.65	vfdb	NP_286008	(yagX/ecpC) E. coli common pilus usher EcpC [ECP (VF0404)] [Escherichia coli O157:H7 str. EDL933]	
+573.12862_contigs.fasta	573.12862_C3	9913	11556	+	yagW/ecpD	1-1644/1644	===============	0/0	100.00	88.81	vfdb	NP_286007	(yagW/ecpD) polymerized tip adhesin of ECP fibers [ECP (VF0404)] [Escherichia coli O157:H7 str. EDL933]	
+573.12862_contigs.fasta	573.12862_C3	11482	12235	+	yagV/ecpE	3-756/756	===============	0/0	99.74	85.15	vfdb	NP_286006	(yagV/ecpE) E. coli common pilus chaperone EcpE [ECP (VF0404)] [Escherichia coli O157:H7 str. EDL933]	
+573.12862_contigs.fasta	573.12862_C4	87960	88731	-	fepC	17-788/816	===============	0/0	94.61	80.83	vfdb	NP_752606	(fepC) ferrienterobactin ABC transporter ATPase [Enterobactin (VF0228)] [Escherichia coli CFT073]	
+573.12862_contigs.fasta	573.12862_C4	96309	97160	+	entB	1-858/858	========/======	4/8	99.18	82.31	vfdb	NP_752613	(entB) isochorismatase [Enterobactin (VF0228)] [Escherichia coli CFT073]	
+573.12862_contigs.fasta	573.12862_C4	97170	97915	+	entA	2-747/747	========/======	5/8	99.33	80.40	vfdb	NP_752614	(entA) 23-dihydro-23-dihydroxybenzoate dehydrogenase [Enterobactin (VF0228)] [Escherichia coli CFT073]	

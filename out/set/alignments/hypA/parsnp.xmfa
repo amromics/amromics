@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02765 Hydrogenase maturation factor HypA
+##SequenceLength 345bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03429 Hydrogenase maturation factor HypA
+##SequenceLength 345bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04321 Hydrogenase maturation factor HypA
+##SequenceLength 345bp
+#IntervalCount 1
+>1:0-344 + cluster1 :p1
+atgcacgaaatcaccctcagccagcgggcgctggaaattattgaacaacaggcgcagcaggccggcgcgcggcgggttac
+cggcgtgtggctCaaggtcggcgcattttcctgcgtggaagccagcgccctgaccttctgctttgagctggtctgccgcg
+gcacgctggcggaggggtgcgaactgcatatcGccgaacaacaggctgaatgctggtgcgatcgctgtcagcagtacgtc
+catcttgtctcgcagcacgttcgccgctgcccgcactgcaataacgaccagctgcagatcgtggcggatgatggcttaca
+gattcagcgtttagaattggagtaa
+>2:0-344 + cluster1 :p1
+atgcacgaaatcaccctcagccagcgggcgctggaaattattgaacaacaggcgcagcaggccggcgcgcggcgggttac
+cggcgtgtggctTaaggtcggcgcattttcctgcgtggaagccagcgccctgaccttctgctttgagctggtctgccgcg
+gcacgctggcggaggggtgcgaactgcatatcAccgaacaacaggctgaatgctggtgcgatcgctgtcagcagtacgtc
+catcttgtctcgcagcacgttcgccgctgcccgcactgcaataacgaccagctgcagatcgtggcggatgatggcttaca
+gattcagcgtttagaattggagtaa
+>3:0-344 + cluster1 :p1
+atgcacgaaatcaccctcagccagcgggcgctggaaattattgaacaacaggcgcagcaggccggcgcgcggcgggttac
+cggcgtgtggctCaaggtcggcgcattttcctgcgtggaagccagcgccctgaccttctgctttgagctggtctgccgcg
+gcacgctggcggaggggtgcgaactgcatatcGccgaacaacaggctgaatgctggtgcgatcgctgtcagcagtacgtc
+catcttgtctcgcagcacgttcgccgctgcccgcactgcaataacgaccagctgcagatcgtggcggatgatggcttaca
+gattcagcgtttagaattggagtaa
+=

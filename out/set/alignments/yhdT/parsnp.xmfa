@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_00428 putative membrane protein YhdT
+##SequenceLength 243bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01579 putative membrane protein YhdT
+##SequenceLength 243bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01654 putative membrane protein YhdT
+##SequenceLength 243bp
+#IntervalCount 1
+>1:0-242 + cluster1 :p1
+atggacaaacgctttgttcaggcccacaaagaagcgcgctgggcgctgtggctgacccttctctaccttgccgcctggct
+ggccgccgcctatCtgccgggggtggctattggctttaccggcctgccacactggtttgaaatggcctgcctgctggtac
+cgctgctgttcattctgctgtgctgggcgatggtcaaactgattttccgcgatatttctctggaggacgatgatgcagtt
+tga
+>2:0-242 + cluster1 :p1
+atggacaaacgctttgttcaggcccacaaagaagcgcgctgggcgctgtggctgacccttctctaccttgccgcctggct
+ggccgccgcctatTtgccgggggtggctattggctttaccggcctgccacactggtttgaaatggcctgcctgctggtac
+cgctgctgttcattctgctgtgctgggcgatggtcaaactgattttccgcgatatttctctggaggacgatgatgcagtt
+tga
+>3:0-242 + cluster1 :p1
+atggacaaacgctttgttcaggcccacaaagaagcgcgctgggcgctgtggctgacccttctctaccttgccgcctggct
+ggccgccgcctatCtgccgggggtggctattggctttaccggcctgccacactggtttgaaatggcctgcctgctggtac
+cgctgctgttcattctgctgtgctgggcgatggtcaaactgattttccgcgatatttctctggaggacgatgatgcagtt
+tga
+=

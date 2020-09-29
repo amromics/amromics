@@ -1,0 +1,33 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 2
+##SequenceIndex 1
+##SequenceFile 573.12860.fasta.ref
+##SequenceHeader >573.12860_05148 Plasmid-derived single-stranded DNA-binding protein
+##SequenceLength 558bp
+##SequenceIndex 2
+##SequenceFile 573.12862.fasta
+##SequenceHeader >573.12862_05016 Plasmid-derived single-stranded DNA-binding protein
+##SequenceLength 543bp
+#IntervalCount 2
+>1:0-378 + cluster1 :p1
+atggcagcacgtggcgttaaTaaagtcattctggtCggacatctgggacaggacccggaCGTGCGTTATatgcccaacgg
+CggcgcagtggcAAGCctgacgctggccacgtcCgaaacatggcgtgaTaagcagacgggagagatgcgcgaaaacaccg
+aAtggcaccgtgttgtcatgttcggcaagctcgcggaagtggcgggAgaatacctgcgtaaaggcgcGCAGGTctacatc
+gagggccaGATGCGTACCCGTAGctggcaggacgatACCGGCGCcacgcgctacgtcaccgaggtgctggtcgggcagaG
+CGGCACCAtgcagatgctcggcggTCGTCGTGGAAATGGTGAgcctgagagcgccgcgc
+>2:0-378 + cluster1 :p1
+atggcagcacgtggcgttaaCaaagtcattctggtTggacatctgggacaggacccggaAGTGCGTTACatgcccaacgg
+GggcgcagtggcCAATctgacgctggccacgtcTgaaacatggcgtgaCaagcagacgggagagatgcgcgaaaacaccg
+aGtggcaccgtgttgtcatgttcggcaagctcgcggaagtggcgggCgaatacctgcgtaaaggcgcACAGGCctacatc
+gagggccaACTGCGCACCCGCAActggcaggacgatGCCGGAGTcacgcgctacgtcaccgaggtgctggtcgggcagaA
+CGGCACCCtgcagatgctcggcggCCGCCGTGAATCCGGAGTgcctgagagcgccgcgc
+=
+>1:394-557 + cluster2 s1:p394
+agccgcagaGTTCAGCCGCTccggcacaaTCTGCTGACGCTCCGgctaaatccccgaaagcgaagggcggtaaAaaaggc
+cgtcagAGCgccgccccgtctcagcTTCCTcctcagccGTTCCCGGATGATTACCCGCTGACCGATGACGATgcgccctt
+ttaa
+>2:379-542 + cluster2 s1:p379
+agccgcagaATCCTGCCACCccggcacaaCCTGCTCAGGCCGCAgctaaatccccgaaagcgaagggcggtaaGaaaggc
+cgtcagGATgccgccccgtctcagcAACCGcctcagccTCTCCCGAATGATTTCCCACCAATGGATGATGACgcgccctt
+ttaa
+=

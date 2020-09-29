@@ -1,0 +1,24 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 2
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03331 PTS system N,N'-diacetylchitobiose-specific EIIA component
+##SequenceLength 348bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02674 PTS system N,N'-diacetylchitobiose-specific EIIA component
+##SequenceLength 348bp
+#IntervalCount 1
+>1:0-347 + cluster1 :p1
+atgtttgatctggacaacatcAacgcggtagagaccccggaaaatgacctcgaagaggtagtgatggggctgattatcaa
+ctccggacaagcccgCagcctggcctatgCcgcgctgaagcaggcgaagcagggcgactttgccgcagcgaaagcgatga
+tggagcagtcgcgccaggcgctgagcgaggcgcatcgcgtgcagacccagcttatcgaaagcgaCgagggcgaagggaaa
+atgaaggtcagcctggtgctggtgcatgcccaggaccatctgatgacctccatgctggctcgtgagctggtggccgaatt
+gattgagctgcacgagaaggtacaatag
+>2:0-347 + cluster1 :p1
+atgtttgatctggacaacatcGacgcggtagagaccccggaaaatgacctcgaagaggtagtgatggggctgattatcaa
+ctccggacaagcccgTagcctggcctatgGcgcgctgaagcaggcgaagcagggcgactttgccgcagcgaaagcgatga
+tggagcagtcgcgccaggcgctgagcgaggcgcatcgcgtgcagacccagcttatcgaaagcgaTgagggcgaagggaaa
+atgaaggtcagcctggtgctggtgcatgcccaggaccatctgatgacctccatgctggctcgtgagctggtggccgaatt
+gattgagctgcacgagaaggtacaatag
+=

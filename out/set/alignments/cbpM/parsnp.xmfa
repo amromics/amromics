@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_05032 Chaperone modulatory protein CbpM
+##SequenceLength 306bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02352 Chaperone modulatory protein CbpM
+##SequenceLength 306bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_05356 Chaperone modulatory protein CbpM
+##SequenceLength 306bp
+#IntervalCount 1
+>1:0-305 + cluster1 :p1
+atggctacagtaacagtgacgtttaccattaccgaattgtgcctgcgtaccggggtgtcggaagaggagctgacggagat
+cgtcggcttagggatgattgagccacaccagccgcaggcggacacctggctgttcgacgacagcgcggtgacGatcgtgc
+atcgcgcggtacgcctgcgtaacgagctggagctggactggccgggaattgcggtggcgctgaccctgctggatgagaac
+gcgcggctgacccgcgaaaatcgcctgctgcagcagcgcctggcgcgcttcctcgcccacggatag
+>2:0-305 + cluster1 :p1
+atggctacagtaacagtgacgtttaccattaccgaattgtgcctgcgtaccggggtgtcggaagaggagctgacggagat
+cgtcggcttagggatgattgagccacaccagccgcaggcggacacctggctgttcgacgacagcgcggtgacAatcgtgc
+atcgcgcggtacgcctgcgtaacgagctggagctggactggccgggaattgcggtggcgctgaccctgctggatgagaac
+gcgcggctgacccgcgaaaatcgcctgctgcagcagcgcctggcgcgcttcctcgcccacggatag
+>3:0-305 + cluster1 :p1
+atggctacagtaacagtgacgtttaccattaccgaattgtgcctgcgtaccggggtgtcggaagaggagctgacggagat
+cgtcggcttagggatgattgagccacaccagccgcaggcggacacctggctgttcgacgacagcgcggtgacGatcgtgc
+atcgcgcggtacgcctgcgtaacgagctggagctggactggccgggaattgcggtggcgctgaccctgctggatgagaac
+gcgcggctgacccgcgaaaatcgcctgctgcagcagcgcctggcgcgcttcctcgcccacggatag
+=

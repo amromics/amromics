@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03658 Ascorbate-specific PTS system EIIB component
+##SequenceLength 267bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03998 Ascorbate-specific PTS system EIIB component
+##SequenceLength 267bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04105 Ascorbate-specific PTS system EIIB component
+##SequenceLength 267bp
+#IntervalCount 1
+>1:0-266 + cluster1 :p1
+atgaaaaaagtgcttatcgtgtgcggtaatggtttaggcagcagcttcatcgttgaaatgaatgtcaaaaagatccttgc
+cgaaatGaataaagaagctgaagtcgcacataccgatctgacgtcggcaaaaagcgaaaAtgccgatcttattctcagcg
+cGaaagacattgcagaacatcttagcagtcactctgcaaaggtcgttggattaagtaatttacttgataacaataaaatt
+aaagaaattttagcagaaaacatttaa
+>2:0-266 + cluster1 :p1
+atgaaaaaagtgcttatcgtgtgcggtaatggtttaggcagcagcttcatcgttgaaatgaatgtcaaaaagatccttgc
+cgaaatAaataaagaagctgaagtcgcacataccgatctgacgtcggcaaaaagcgaaaCtgccgatcttattctcagcg
+cCaaagacattgcagaacatcttagcagtcactctgcaaaggtcgttggattaagtaatttacttgataacaataaaatt
+aaagaaattttagcagaaaacatttaa
+>3:0-266 + cluster1 :p1
+atgaaaaaagtgcttatcgtgtgcggtaatggtttaggcagcagcttcatcgttgaaatgaatgtcaaaaagatccttgc
+cgaaatGaataaagaagctgaagtcgcacataccgatctgacgtcggcaaaaagcgaaaAtgccgatcttattctcagcg
+cGaaagacattgcagaacatcttagcagtcactctgcaaaggtcgttggattaagtaatttacttgataacaataaaatt
+aaagaaattttagcagaaaacatttaa
+=

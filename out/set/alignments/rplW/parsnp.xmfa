@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_04797 50S ribosomal protein L23
+##SequenceLength 303bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_04863 50S ribosomal protein L23
+##SequenceLength 303bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_05058 50S ribosomal protein L23
+##SequenceLength 303bp
+#IntervalCount 1
+>1:0-302 + cluster1 :p1
+atgattcgtgaagaacgtctgctgaaggtgctgcgcgcaccgcacgtttctgaaaaagcgtctactgcgatggaaaaaac
+aaacaccatcgttctcaaagttgctaaagacgcgaccaaagcagaaatcaaagctgctgtgcagaaactgtttgaagtcg
+aagtcgaagtcgttaacaccctggttgttaaagggaaagttaaacgtcacggacagcgtatcggtcgtcgtagcgactgg
+aaaaaagcttacgtcaccctgaaagaaggccagaatctggacttcgttggcggcgctgagtaa
+>2:0-302 + cluster1 :p1
+atgattcgtgaagaacgtctgctgaaggtgctgcgcgcaccgcacgtttctgaaaaagcgtctactgcgatggaaaaaac
+aaacaccatcgttctcaaagttgctaaagacgcgaccaaagcagaaatcaaagctgctgtgcagaaactgtttgaagtcg
+aagtcgaagtcgttaacaccctggttgttaaagggaaagttaaacgtcacggacagcgtatcggtcgtcgtagcgactgg
+aaaaaagcttacgtcaccctgaaagaaggccagaatctggacttcgttggcggcgctgagtaa
+>3:0-302 + cluster1 :p1
+atgattcgtgaagaacgtctgctgaaggtgctgcgcgcaccgcacgtttctgaaaaagcgtctactgcgatggaaaaaac
+aaacaccatcgttctcaaagttgctaaagacgcgaccaaagcagaaatcaaagctgctgtgcagaaactgtttgaagtcg
+aagtcgaagtcgttaacaccctggttgttaaagggaaagttaaacgtcacggacagcgtatcggtcgtcgtagcgactgg
+aaaaaagcttacgtcaccctgaaagaaggccagaatctggacttcgttggcggcgctgagtaa
+=

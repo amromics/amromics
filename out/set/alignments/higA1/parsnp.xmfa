@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_05130 Antitoxin HigA1
+##SequenceLength 279bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_04571 Antitoxin HigA1
+##SequenceLength 279bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_05002 Antitoxin HigA1
+##SequenceLength 279bp
+#IntervalCount 1
+>1:0-278 + cluster1 :p1
+atgaaatataaaacccttagccaggttcataccgaagcaatgaacgatcatgagtacagcgcggcattcgaGgcagaaga
+agcctcggagctacttcgggaaaccttagcaacatggagaaaagaagcgggtttgacgtcggcacaggttgcagaacgta
+tgggcatcaaagcgcctactatctcacgtatggagaagaacgcttcgcgaatgagtattcagacGctggttcggtacgcc
+agagcctgcggtgttaactttaaaattcagcaggtttga
+>2:0-278 + cluster1 :p1
+atgaaatataaaacccttagccaggttcataccgaagcaatgaacgatcatgagtacagcgcggcattcgaGgcagaaga
+agcctcggagctacttcgggaaaccttagcaacatggagaaaagaagcgggtttgacgtcggcacaggttgcagaacgta
+tgggcatcaaagcgcctactatctcacgtatggagaagaacgcttcgcgaatgagtattcagacActggttcggtacgcc
+agagcctgcggtgttaactttaaaattcagcaggtttga
+>3:0-278 + cluster1 :p1
+atgaaatataaaacccttagccaggttcataccgaagcaatgaacgatcatgagtacagcgcggcattcgaAgcagaaga
+agcctcggagctacttcgggaaaccttagcaacatggagaaaagaagcgggtttgacgtcggcacaggttgcagaacgta
+tgggcatcaaagcgcctactatctcacgtatggagaagaacgcttcgcgaatgagtattcagacGctggttcggtacgcc
+agagcctgcggtgttaactttaaaattcagcaggtttga
+=

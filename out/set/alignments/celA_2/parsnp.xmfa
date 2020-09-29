@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_04294 PTS system cellobiose-specific EIIB component
+##SequenceLength 309bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02487 PTS system cellobiose-specific EIIB component
+##SequenceLength 309bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04567 PTS system cellobiose-specific EIIB component
+##SequenceLength 309bp
+#IntervalCount 1
+>1:0-308 + cluster1 :p1
+atgccacgaatcgtactctgttgtgccgcaggcatgtcgaccagcatgctggtgaacaaaatgaaagcagaagcccagca
+gcgtgcgctggcgctggaaatctatgcggtggcggtggcggaatttgaacgcgaattgccacacgccgacgtcatcctgc
+tcgggccgcaggttaaatatgaagccggacggctaaccgcgctggccgcgccgcagggcaaggcggtggcggtgatcgat
+atggctgactacggcatgatgcgcggcGctgcggtgttggataaagcgctagccctgctcgaacactaa
+>2:0-308 + cluster1 :p1
+atgccacgaatcgtactctgttgtgccgcaggcatgtcgaccagcatgctggtgaacaaaatgaaagcagaagcccagca
+gcgtgcgctggcgctggaaatctatgcggtggcggtggcggaatttgaacgcgaattgccacacgccgacgtcatcctgc
+tcgggccgcaggttaaatatgaagccggacggctaaccgcgctggccgcgccgcagggcaaggcggtggcggtgatcgat
+atggctgactacggcatgatgcgcggcTctgcggtgttggataaagcgctagccctgctcgaacactaa
+>3:0-308 + cluster1 :p1
+atgccacgaatcgtactctgttgtgccgcaggcatgtcgaccagcatgctggtgaacaaaatgaaagcagaagcccagca
+gcgtgcgctggcgctggaaatctatgcggtggcggtggcggaatttgaacgcgaattgccacacgccgacgtcatcctgc
+tcgggccgcaggttaaatatgaagccggacggctaaccgcgctggccgcgccgcagggcaaggcggtggcggtgatcgat
+atggctgactacggcatgatgcgcggcGctgcggtgttggataaagcgctagccctgctcgaacactaa
+=

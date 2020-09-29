@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_00233 Urease subunit gamma
+##SequenceLength 303bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01396 Urease subunit gamma
+##SequenceLength 303bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01618 Urease subunit gamma
+##SequenceLength 303bp
+#IntervalCount 1
+>1:0-302 + cluster1 :p1
+atggaactgaccccccgagaaaaagacaagctgttgctgtttaccgccgcgctggtggcggagcgtcgcctggcccgcgg
+cctgaagctcaactatccggagtccgtggccctgatcagcgcctttattatggaaggcgctcgggacggcaaaagCgtgg
+cctcgctgatggaggaaggccgtcaTgtcctgacccgcgagcaggtgatggagggcgtcccggaaatgatcccggatatc
+caggtcgaagccaccttcccggacggctcgaagctggtcaccgttcacaacccgattatctga
+>2:0-302 + cluster1 :p1
+atggaactgaccccccgagaaaaagacaagctgttgctgtttaccgccgcgctggtggcggagcgtcgcctggcccgcgg
+cctgaagctcaactatccggagtccgtggccctgatcagcgcctttattatggaaggcgctcgggacggcaaaagTgtgg
+cctcgctgatggaggaaggccgtcaCgtcctgacccgcgagcaggtgatggagggcgtcccggaaatgatcccggatatc
+caggtcgaagccaccttcccggacggctcgaagctggtcaccgttcacaacccgattatctga
+>3:0-302 + cluster1 :p1
+atggaactgaccccccgagaaaaagacaagctgttgctgtttaccgccgcgctggtggcggagcgtcgcctggcccgcgg
+cctgaagctcaactatccggagtccgtggccctgatcagcgcctttattatggaaggcgctcgggacggcaaaagCgtgg
+cctcgctgatggaggaaggccgtcaTgtcctgacccgcgagcaggtgatggagggcgtcccggaaatgatcccggatatc
+caggtcgaagccaccttcccggacggctcgaagctggtcaccgttcacaacccgattatctga
+=

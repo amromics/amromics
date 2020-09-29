@@ -1,0 +1,24 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 2
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_00119 Antirestriction protein KlcA
+##SequenceLength 399bp
+##SequenceIndex 2
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01504 Antirestriction protein KlcA
+##SequenceLength 399bp
+#IntervalCount 1
+>1:0-398 + cluster1 :p1
+atgacagatttcactatcacacaggtcgattttgatcgcctgctcgatcagaacgatgaagaacaggcggtacgtctgtt
+ttgttttgaacaattactttaccgctgggcagaccggctaagctgcgagtatcagggcgggctttggctggggatgaagt
+tatccaacggcggcttttatgcttatccggccacgtctcagaactggagcatatcggcggaaaattactatcagggcacg
+atggactccgacacgtttggtattacggcttcgctttacgctctctgcgagctggcgaaccgtactgaagccgatgagga
+catcgaaacctattatgcgttgcgcaattacgccttaatgcattcatgtactaacgccattatggcggccattgactaa
+>2:0-398 + cluster1 :p1
+atgacagatttcactatcacacaggtcgattttgatcgcctgctcgatcagaacgatgaagaacaggcggtacgtctgtt
+ttgttttgaacaattactttaccgctgggcagaccggctaagctgcgagtatcagggcgggctttggctggggatgaagt
+tatccaacggcggcttttatgcttatccggccacgtctcagaactggagcatatcggcggaaaattactatcagggcacg
+atggactccgacacgtttggtattacggcttcgctttacgctctctgcgagctggcgaaccgtactgaagccgatgagga
+catcgaaacctattatgcgttgcgcaattacgccttaatgcattcatgtactaacgccattatggcggccattgactaa
+=

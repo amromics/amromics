@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01949 Transcription modulator YdgT
+##SequenceLength 216bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01704 Transcription modulator YdgT
+##SequenceLength 216bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01241 Transcription modulator YdgT
+##SequenceLength 216bp
+#IntervalCount 1
+>1:0-215 + cluster1 :p1
+atgaccgtgctggactacttattaaaatttcgcaaaatcagttcgctggaaagccttgaaaaactatttgatcaccttaa
+ctactccctgactgacacccaggagatcgtgaatatgtatcgcgccgccgatcatcgtcgcgcagagctggtctccggtg
+gtaaattgttcgatgtgggccaggttcctaaatccgtttggcgattcgtgcagtaa
+>2:0-215 + cluster1 :p1
+atgaccgtgctggactacttattaaaatttcgcaaaatcagttcgctggaaagccttgaaaaactatttgatcaccttaa
+ctactccctgactgacacccaggagatcgtgaatatgtatcgcgccgccgatcatcgtcgcgcagagctggtctccggtg
+gtaaattgttcgatgtgggccaggttcctaaatccgtttggcgattcgtgcagtaa
+>3:0-215 + cluster1 :p1
+atgaccgtgctggactacttattaaaatttcgcaaaatcagttcgctggaaagccttgaaaaactatttgatcaccttaa
+ctactccctgactgacacccaggagatcgtgaatatgtatcgcgccgccgatcatcgtcgcgcagagctggtctccggtg
+gtaaattgttcgatgtgggccaggttcctaaatccgtttggcgattcgtgcagtaa
+=

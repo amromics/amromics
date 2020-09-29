@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02930 DNA-directed RNA polymerase subunit omega
+##SequenceLength 276bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_00272 DNA-directed RNA polymerase subunit omega
+##SequenceLength 276bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02765 DNA-directed RNA polymerase subunit omega
+##SequenceLength 276bp
+#IntervalCount 1
+>1:0-275 + cluster1 :p1
+atggcacgcgtaactgttcaggacgctgtagagaaaattggtaaccgttttgacctggtactggtcgccgcgcgtcgcgc
+tcgtcagatgcaggttggcggaaaggatccgctggtaccggaagaaaacgataaaaccaccgttatcgcactgcgcgaaa
+tcgaagaaggtctgatcaacaaccagatcctcgacgtacgtgagcgccaggaacagcaagagcaggaagccgctgaatta
+caagccgttaccgcgattgctgaaggtcgtcgttaa
+>2:0-275 + cluster1 :p1
+atggcacgcgtaactgttcaggacgctgtagagaaaattggtaaccgttttgacctggtactggtcgccgcgcgtcgcgc
+tcgtcagatgcaggttggcggaaaggatccgctggtaccggaagaaaacgataaaaccaccgttatcgcactgcgcgaaa
+tcgaagaaggtctgatcaacaaccagatcctcgacgtacgtgagcgccaggaacagcaagagcaggaagccgctgaatta
+caagccgttaccgcgattgctgaaggtcgtcgttaa
+>3:0-275 + cluster1 :p1
+atggcacgcgtaactgttcaggacgctgtagagaaaattggtaaccgttttgacctggtactggtcgccgcgcgtcgcgc
+tcgtcagatgcaggttggcggaaaggatccgctggtaccggaagaaaacgataaaaccaccgttatcgcactgcgcgaaa
+tcgaagaaggtctgatcaacaaccagatcctcgacgtacgtgagcgccaggaacagcaagagcaggaagccgctgaatta
+caagccgttaccgcgattgctgaaggtcgtcgttaa
+=

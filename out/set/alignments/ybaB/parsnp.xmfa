@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01110 Nucleoid-associated protein YbaB
+##SequenceLength 333bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01066 Nucleoid-associated protein YbaB
+##SequenceLength 333bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_00675 Nucleoid-associated protein YbaB
+##SequenceLength 333bp
+#IntervalCount 1
+>1:0-332 + cluster1 :p1
+atgtttggtggaaaaggcggcctgggtaacctgatgaagcaggcccagcagatgcaagagaaaatgcagaagatgcagga
+agagatcgctcagctggaagtaaccggcgaatccggcgcgggtctggtgaaagtgaccattaacggcgcgcacaactgcc
+gccgtgtggagatcgacccaagcctgctggaagacgacaaagagatgctcgaagatctggtggctgccgcgttcaacgac
+gccgcgcgccgtatcgaagagacccagaaagagaagatggcttccgtttctgccggtatgcaactgccgccaggcttcaa
+gatgccgttctga
+>2:0-332 + cluster1 :p1
+atgtttggtggaaaaggcggcctgggtaacctgatgaagcaggcccagcagatgcaagagaaaatgcagaagatgcagga
+agagatcgctcagctggaagtaaccggcgaatccggcgcgggtctggtgaaagtgaccattaacggcgcgcacaactgcc
+gccgtgtggagatcgacccaagcctgctggaagacgacaaagagatgctcgaagatctggtggctgccgcgttcaacgac
+gccgcgcgccgtatcgaagagacccagaaagagaagatggcttccgtttctgccggtatgcaactgccgccaggcttcaa
+gatgccgttctga
+>3:0-332 + cluster1 :p1
+atgtttggtggaaaaggcggcctgggtaacctgatgaagcaggcccagcagatgcaagagaaaatgcagaagatgcagga
+agagatcgctcagctggaagtaaccggcgaatccggcgcgggtctggtgaaagtgaccattaacggcgcgcacaactgcc
+gccgtgtggagatcgacccaagcctgctggaagacgacaaagagatgctcgaagatctggtggctgccgcgttcaacgac
+gccgcgcgccgtatcgaagagacccagaaagagaagatggcttccgtttctgccggtatgcaactgccgccaggcttcaa
+gatgccgttctga
+=

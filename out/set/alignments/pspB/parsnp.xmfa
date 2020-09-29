@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03260 Phage shock protein B
+##SequenceLength 225bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02600 Phage shock protein B
+##SequenceLength 225bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04431 Phage shock protein B
+##SequenceLength 225bp
+#IntervalCount 1
+>1:0-224 + cluster1 :p1
+atgagcatgctttttctcgccattccgctgacgctgtttgtgctgtttgttctgccggtctggctgtggctgcactacaa
+caatcgcggcgccaacggcagtctgacgcaaaatgagcagcaacggctgctgcagttgaccgatgacgcgaagcggatgc
+gcgaacgcattcaggcgctggaagcgatcctggaTgccgaacatccgaactggagggacaaataa
+>2:0-224 + cluster1 :p1
+atgagcatgctttttctcgccattccgctgacgctgtttgtgctgtttgttctgccggtctggctgtggctgcactacaa
+caatcgcggcgccaacggcagtctgacgcaaaatgagcagcaacggctgctgcagttgaccgatgacgcgaagcggatgc
+gcgaacgcattcaggcgctggaagcgatcctggaCgccgaacatccgaactggagggacaaataa
+>3:0-224 + cluster1 :p1
+atgagcatgctttttctcgccattccgctgacgctgtttgtgctgtttgttctgccggtctggctgtggctgcactacaa
+caatcgcggcgccaacggcagtctgacgcaaaatgagcagcaacggctgctgcagttgaccgatgacgcgaagcggatgc
+gcgaacgcattcaggcgctggaagcgatcctggaTgccgaacatccgaactggagggacaaataa
+=

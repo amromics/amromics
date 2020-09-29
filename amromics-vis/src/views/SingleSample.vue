@@ -1,0 +1,219 @@
+
+<style scoped>
+  .wrapper{
+    margin-left:20px;
+    margin-right:20px;
+  }
+  .container{
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    margin: 20px;
+    padding:20px;
+
+  }
+</style>
+<template>
+<div class="wrapper">
+
+<div v-if="loaded" class="container">
+<ContigLengthChart  :list_contig="assemblyData.contigs"/>
+</div>
+<div v-if="loaded" class="container" >
+<GenomeCircosBrowser :contigs="assemblyData.contigs" :amr_genes= "resistomeData.hits" :virulome_genes= "virulomeData.hits" :skew="assemblyData.skew"/>
+</div>
+<div class="container" v-if="assemblyData"  >
+<table id='assembly_table'>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Length</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="item in assemblyData.contigs" :key="item.name">
+      <td>{{item.name}}</td>
+      <td>{{item.length}}</td>
+
+    </tr>
+  </tbody>
+</table>
+</div>
+<div v-if="loaded" class="container" >
+<GenomeBrowser :list_contig="assemblyData.contigs" :knowngene= "annotationData.genes" :GC_skew= "assemblyData.skew" :GC_content="assemblyData.content.array"/>
+</div>
+<div  class="container">
+<table id='amr_table'>
+  <thead>
+    <tr>
+      <th>Sequence</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Gene</th>
+      <th>Coverage</th>
+      <th>Identity</th>
+      <th>Database</th>
+      <th>Accession</th>
+      <th>Product</th>
+      <th>Resistance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="item in resistomeData.hits" :key="item.name">
+      <td>{{item.sequence}}</td>
+      <td>{{item.start}}</td>
+      <td>{{item.end}}</td>
+      <td>{{item.gene}}</td>
+      <td>{{item.coverage}}</td>
+      <td>{{item.identity}}</td>
+      <td>{{item.db}}</td>
+      <td>{{item.accession}}</td>
+      <td>{{item.product}}</td>
+      <td>{{item.resistance}}</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div v-if="loaded" class="container">
+<table id='virulome_table' >
+  <thead>
+    <tr>
+      <th>Sequence</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Gene</th>
+      <th>Coverage</th>
+      <th>Identity</th>
+      <th>Database</th>
+      <th>Accession</th>
+      <th>Product</th>
+      <th>Resistance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="item in virulomeData.hits" :key="item.name">
+      <td>{{item.sequence}}</td>
+      <td>{{item.start}}</td>
+      <td>{{item.end}}</td>
+      <td>{{item.gene}}</td>
+      <td>{{item.coverage}}</td>
+      <td>{{item.identity}}</td>
+      <td>{{item.db}}</td>
+      <td>{{item.accession}}</td>
+      <td>{{item.product}}</td>
+      <td>{{item.resistance}}</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</template>
+<script>
+/* eslint-disable */
+import ContigLengthChart from "@/components/ContigLengthChart"
+import GenomeBrowser from "@/components/GenomeBrowser"
+import GenomeCircosBrowser from "@/components/GenomeCircosBrowser"
+import SampleAPI from '@/api/SampleAPI'
+import dt from 'datatables.net';
+import Chart from 'chart.js';
+
+import ('datatables.net-dt')
+export default {
+  name: 'SingleSample',
+  components: {
+    ContigLengthChart,
+    GenomeBrowser,
+    GenomeCircosBrowser
+  },
+  data() {
+    return {
+
+      activeNames: ['1'],
+      sample_info: undefined,
+      antibiotics_tags: [],
+      plasmid_tags: [],
+      virulome_tags: [],
+      speciesData: undefined,
+      mlstData: undefined,
+      pmlstData: undefined,
+      plasmidData: undefined,
+      resistomeData: undefined,
+      virulomeData: undefined,
+      assemblyData: undefined,
+      pointData: undefined,
+      skewData: undefined,
+      contentData: undefined,
+      annotationData: undefined,
+      loaded:false
+
+    };
+  },
+  computed: {
+    sampleId() {
+      return this.$route.params.id
+        ? JSON.parse(this.$route.params.id)
+        : undefined;
+    }
+  },
+  mounted:{
+    
+  },
+  method: {
+    loadtable(){
+      var $ = require('jquery');
+    
+      $('#assembly_table').DataTable();  
+      $('#amr_table').DataTable();
+      $('#virulome_table').DataTable();
+    }
+  },
+    async created() {
+      const ret = await SampleAPI.fetchResult(this.sampleId);
+    
+      for (var i = 0; i < ret.data.execution.result.length; i++) {
+        if (ret.data.execution.result[i].group.localeCompare("MLST") == 0) {
+          this.mlstData = ret.data.execution.result[i].data;
+        } else if (ret.data.execution.result[i].group == 'PLASMID') {
+          this.plasmidData = ret.data.execution.result[i].data;
+
+        } else if (ret.data.execution.result[i].group == 'AMR') {
+          this.resistomeData = ret.data.execution.result[i].data;
+
+        } else if (ret.data.execution.result[i].group == 'VIR') {
+          this.virulomeData = ret.data.execution.result[i].data;
+
+        } else if (ret.data.execution.result[i].group == 'CONTIG') {
+          this.assemblyData = ret.data.execution.result[i].data;
+          this.assemblyData.GC = Math.trunc(this.assemblyData.GC) + ' %';
+
+
+        } else if (ret.data.execution.result[i].group == 'SPECIES') {
+          this.speciesData = ret.data.execution.result[i].data;
+
+        } else if (ret.data.execution.result[i].group == 'POINT') {
+          this.pointData = ret.data.execution.result[i].data;
+
+        } else if (ret.data.execution.result[i].group == 'PMLST') {
+          this.pmlstData = ret.data.execution.result[i].data;
+
+        } else if (ret.data.execution.result[i].group == 'ANNOTATION') {
+          this.annotationData = ret.data.execution.result[i].data;
+
+        }
+
+      }
+    
+      this.loaded=true;
+      this.loadtable();
+        //if (this.$route.params.id) {
+        //  this.$route.meta.title = `Sample: ${decodeURIComponent(
+        //    this.$route.params.id
+        //  )}`;
+        //this.$route.meta.title = 'Sample: ' + this.sample_name
+
+    }
+  
+};
+
+</script>

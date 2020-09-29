@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_04112 Iron-sulfur cluster assembly protein CyaY
+##SequenceLength 321bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_04105 Iron-sulfur cluster assembly protein CyaY
+##SequenceLength 321bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04254 Iron-sulfur cluster assembly protein CyaY
+##SequenceLength 321bp
+#IntervalCount 1
+>1:0-320 + cluster1 :p1
+atgaacgacagtgaattccatcgcctggccgatagcctgtggatgaccatcgaagaacgtctggacgactgggacggcga
+tagcgacatcgactgcgaaatcaacggcggcgtgctgaccatcagctttgaaaacggcagcaaaatcattattaaccgtc
+aggagccgctgcaccaggtgtggctggccaccaaacagggcggctatcacttcgatctcaaaggcgacgagtggatctgc
+gatcgcagcggcgaaaccttctgggatctgctggagcaggcggcgagccagcaggccggtgagacggtgaaattccgtta
+a
+>2:0-320 + cluster1 :p1
+atgaacgacagtgaattccatcgcctggccgatagcctgtggatgaccatcgaagaacgtctggacgactgggacggcga
+tagcgacatcgactgcgaaatcaacggcggcgtgctgaccatcagctttgaaaacggcagcaaaatcattattaaccgtc
+aggagccgctgcaccaggtgtggctggccaccaaacagggcggctatcacttcgatctcaaaggcgacgagtggatctgc
+gatcgcagcggcgaaaccttctgggatctgctggagcaggcggcgagccagcaggccggtgagacggtgaaattccgtta
+a
+>3:0-320 + cluster1 :p1
+atgaacgacagtgaattccatcgcctggccgatagcctgtggatgaccatcgaagaacgtctggacgactgggacggcga
+tagcgacatcgactgcgaaatcaacggcggcgtgctgaccatcagctttgaaaacggcagcaaaatcattattaaccgtc
+aggagccgctgcaccaggtgtggctggccaccaaacagggcggctatcacttcgatctcaaaggcgacgagtggatctgc
+gatcgcagcggcgaaaccttctgggatctgctggagcaggcggcgagccagcaggccggtgagacggtgaaattccgtta
+a
+=

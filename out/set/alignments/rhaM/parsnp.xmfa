@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03614 L-rhamnose mutarotase
+##SequenceLength 315bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03745 L-rhamnose mutarotase
+##SequenceLength 315bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03663 L-rhamnose mutarotase
+##SequenceLength 315bp
+#IntervalCount 1
+>1:0-312 + cluster1 :p1
+atgatccgtaaagccttcgtcatgcaggtgaaccccgacgcgcacgaggagtaccagcgccgccataaccccatctggcc
+ggagctggaggcagtgttgaaggatcacggcgcgcaccaCtacgccatttatctcgataaagaacgccatctcctgttcg
+cgacggtggagattgaatcggaagcccgctgggaagcggtcgccagcacggaagtatgccagcgttggtggaaatacatg
+cgcgaggtgatgcccagcaacccggacaacagcccgctgagcgcggagctcaaagaagtgttttatctggcgt
+>2:0-312 + cluster1 :p1
+atgatccgtaaagccttcgtcatgcaggtgaaccccgacgcgcacgaggagtaccagcgccgccataaccccatctggcc
+ggagctggaggcagtgttgaaggatcacggcgcgcaccaTtacgccatttatctcgataaagaacgccatctcctgttcg
+cgacggtggagattgaatcggaagcccgctgggaagcggtcgccagcacggaagtatgccagcgttggtggaaatacatg
+cgcgaggtgatgcccagcaacccggacaacagcccgctgagcgcggagctcaaagaagtgttttatctggcgt
+>3:0-312 + cluster1 :p1
+atgatccgtaaagccttcgtcatgcaggtgaaccccgacgcgcacgaggagtaccagcgccgccataaccccatctggcc
+ggagctggaggcagtgttgaaggatcacggcgcgcaccaCtacgccatttatctcgataaagaacgccatctcctgttcg
+cgacggtggagattgaatcggaagcccgctgggaagcggtcgccagcacggaagtatgccagcgttggtggaaatacatg
+cgcgaggtgatgcccagcaacccggacaacagcccgctgagcgcggagctcaaagaagtgttttatctggcgt
+=

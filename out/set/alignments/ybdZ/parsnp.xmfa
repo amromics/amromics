@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01274 Enterobactin biosynthesis protein YbdZ
+##SequenceLength 204bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02201 Enterobactin biosynthesis protein YbdZ
+##SequenceLength 204bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02257 Enterobactin biosynthesis protein YbdZ
+##SequenceLength 204bp
+#IntervalCount 1
+>1:0-203 + cluster1 :p1
+atgcaattcagtaaccccttcgacaatccgcaagggcagttttacattctgcgcaatgatcaacagcagtacagcctgtg
+gccggcgcactgcgacctgcctgccggctggacggtggCgtgccccccgcagtcggccgaggcctgcaacgcctggctgg
+cggccaactggtcAACCctgacccccgcccatcatgcgtcataa
+>2:0-203 + cluster1 :p1
+atgcaattcagtaaccccttcgacaatccgcaagggcagttttacattctgcgcaatgatcaacagcagtacagcctgtg
+gccggcgcactgcgacctgcctgccggctggacggtggTgtgccccccgcagtcggccgaggcctgcaacgcctggctgg
+cggccaactggtcGACActgacccccgcccatcatgcgtcataa
+>3:0-203 + cluster1 :p1
+atgcaattcagtaaccccttcgacaatccgcaagggcagttttacattctgcgcaatgatcaacagcagtacagcctgtg
+gccggcgcactgcgacctgcctgccggctggacggtggCgtgccccccgcagtcggccgaggcctgcaacgcctggctgg
+cggccaactggtcAACCctgacccccgcccatcatgcgtcataa
+=

@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02456 Ethanolamine utilization protein EutM
+##SequenceLength 291bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03287 Ethanolamine utilization protein EutM
+##SequenceLength 291bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02441 Ethanolamine utilization protein EutM
+##SequenceLength 291bp
+#IntervalCount 1
+>1:0-290 + cluster1 :p1
+atggaagcattaggaatgattgaaacccggggcctggttgcactgattgaggcctccgacgccatggtcaaagcggcccg
+cgtcaagctggtgggagtgaaacagatcggcgggggcctggtgaccgccatggtgcgcggcgatgtcgcggcgtgcaaag
+ccgcgacggatgccggggcggcggcggctcagcgtatcggtgagctggtctctgtacatgtcatcccgcgcccgcatggc
+gatctggaagaggtcttcccgattagcttcaagggcgacagTaacatctaa
+>2:0-290 + cluster1 :p1
+atggaagcattaggaatgattgaaacccggggcctggttgcactgattgaggcctccgacgccatggtcaaagcggcccg
+cgtcaagctggtgggagtgaaacagatcggcgggggcctggtgaccgccatggtgcgcggcgatgtcgcggcgtgcaaag
+ccgcgacggatgccggggcggcggcggctcagcgtatcggtgagctggtctctgtacatgtcatcccgcgcccgcatggc
+gatctggaagaggtcttcccgattagcttcaagggcgacagCaacatctaa
+>3:0-290 + cluster1 :p1
+atggaagcattaggaatgattgaaacccggggcctggttgcactgattgaggcctccgacgccatggtcaaagcggcccg
+cgtcaagctggtgggagtgaaacagatcggcgggggcctggtgaccgccatggtgcgcggcgatgtcgcggcgtgcaaag
+ccgcgacggatgccggggcggcggcggctcagcgtatcggtgagctggtctctgtacatgtcatcccgcgcccgcatggc
+gatctggaagaggtcttcccgattagcttcaagggcgacagTaacatctaa
+=

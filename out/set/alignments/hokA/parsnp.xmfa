@@ -1,0 +1,22 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_04876 Protein HokA
+##SequenceLength 153bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_00197 hypothetical protein
+##SequenceLength 126bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_05128 Protein HokA
+##SequenceLength 153bp
+#IntervalCount 1
+>1:0-63 + cluster1 :p1
+atgccgcaaaagtatctgttgtttggcttagtagtgatttgcttcactattttattattgacct
+>2:60-123 + cluster1 s1:p60
+atgccgcaaaagtatctgttgtttggcttagtagtgatttgcttcactattttattattgacct
+>3:0-63 + cluster1 :p1
+atgccgcaaaagtatctgttgtttggcttagtagtgatttgcttcactattttattattgacct
+=

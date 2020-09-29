@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_00984 Phosphate starvation-inducible protein PsiF
+##SequenceLength 318bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01192 Phosphate starvation-inducible protein PsiF
+##SequenceLength 318bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_00801 Phosphate starvation-inducible protein PsiF
+##SequenceLength 318bp
+#IntervalCount 1
+>1:0-317 + cluster1 :p1
+atgaaaataactttattgatgaccctactgtttggcttgatctttatcagcgcggttggcgcggcagaaaaaacgcccac
+tcctcagcagcaaaggatgacggactgcaatcagcaagcgtcagccaaaatgctgaaaggtgaggagcgcaaaaccttta
+tgagccagtgtctgaaaaaagagaccacgacctcgcagggaaaggcgctcacccctcagcagcagaaaatgagcgactgc
+agcaaagcggccacggcgaaatcactgaagggcgatgaacgcagtaccttcatgagtagctgcctgaagaaagcctga
+>2:0-317 + cluster1 :p1
+atgaaaataactttattgatgaccctactgtttggcttgatctttatcagcgcggttggcgcggcagaaaaaacgcccac
+tcctcagcagcaaaggatgacggactgcaatcagcaagcgtcagccaaaatgctgaaaggtgaggagcgcaaaaccttta
+tgagccagtgtctgaaaaaagagaccacgacctcgcagggaaaggcgctcacccctcagcagcagaaaatgagcgactgc
+agcaaagcggccacggcgaaatcactgaagggcgatgaacgcagtaccttcatgagtagctgcctgaagaaagcctga
+>3:0-317 + cluster1 :p1
+atgaaaataactttattgatgaccctactgtttggcttgatctttatcagcgcggttggcgcggcagaaaaaacgcccac
+tcctcagcagcaaaggatgacggactgcaatcagcaagcgtcagccaaaatgctgaaaggtgaggagcgcaaaaccttta
+tgagccagtgtctgaaaaaagagaccacgacctcgcagggaaaggcgctcacccctcagcagcagaaaatgagcgactgc
+agcaaagcggccacggcgaaatcactgaagggcgatgaacgcagtaccttcatgagtagctgcctgaagaaagcctga
+=

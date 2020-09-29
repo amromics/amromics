@@ -1,0 +1,31 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_04680 DNA-binding protein HU-alpha
+##SequenceLength 273bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_04760 DNA-binding protein HU-alpha
+##SequenceLength 273bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_04906 DNA-binding protein HU-alpha
+##SequenceLength 273bp
+#IntervalCount 1
+>1:0-272 + cluster1 :p1
+atgaacaagactcaactgattgatgtaattgcggacaaagctgacctgtccaaagcacaggctaaagctgccctggaatc
+taccctggctgcaattactgagtctctgaaagaaggtgatgctgttcaactggttggtttcggtaccttcaaagtgaacc
+accgcgctgagcgtactggccgcaacccgcagaccggtaaagagatcaaaatcgctgcagctaacgtgccggcatttgtt
+tctggcaaagcactgaaagacgcagttaagtaa
+>2:0-272 + cluster1 :p1
+atgaacaagactcaactgattgatgtaattgcggacaaagctgacctgtccaaagcacaggctaaagctgccctggaatc
+taccctggctgcaattactgagtctctgaaagaaggtgatgctgttcaactggttggtttcggtaccttcaaagtgaacc
+accgcgctgagcgtactggccgcaacccgcagaccggtaaagagatcaaaatcgctgcagctaacgtgccggcatttgtt
+tctggcaaagcactgaaagacgcagttaagtaa
+>3:0-272 + cluster1 :p1
+atgaacaagactcaactgattgatgtaattgcggacaaagctgacctgtccaaagcacaggctaaagctgccctggaatc
+taccctggctgcaattactgagtctctgaaagaaggtgatgctgttcaactggttggtttcggtaccttcaaagtgaacc
+accgcgctgagcgtactggccgcaacccgcagaccggtaaagagatcaaaatcgctgcagctaacgtgccggcatttgtt
+tctggcaaagcactgaaagacgcagttaagtaa
+=

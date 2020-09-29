@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01015 Sec translocon accessory complex subunit YajC
+##SequenceLength 333bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01161 Sec translocon accessory complex subunit YajC
+##SequenceLength 333bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_00770 Sec translocon accessory complex subunit YajC
+##SequenceLength 333bp
+#IntervalCount 1
+>1:0-332 + cluster1 :p1
+atgagcttttttatttctgatgcggtagcggcaacgggtgcaccggcgcagggcagcccgatgtctctgattctgatgct
+ggtggtgttcggtctgattttttacttcatgatcctAcgtccacagcagaagcgcaccaaggaacataagaacctgatga
+actccatcgccaaaggtgatgaagtgctgaccaacggcggtctggtcggtcgcgtgaccaaagtagcggaaactggctac
+attgctatcgcgctgaacgataccactgaagtggttatcaaacgtgacttcgttgctgccgttctgccgaaaggcaccat
+gaaggcgctgtaa
+>2:0-332 + cluster1 :p1
+atgagcttttttatttctgatgcggtagcggcaacgggtgcaccggcgcagggcagcccgatgtctctgattctgatgct
+ggtggtgttcggtctgattttttacttcatgatcctGcgtccacagcagaagcgcaccaaggaacataagaacctgatga
+actccatcgccaaaggtgatgaagtgctgaccaacggcggtctggtcggtcgcgtgaccaaagtagcggaaactggctac
+attgctatcgcgctgaacgataccactgaagtggttatcaaacgtgacttcgttgctgccgttctgccgaaaggcaccat
+gaaggcgctgtaa
+>3:0-332 + cluster1 :p1
+atgagcttttttatttctgatgcggtagcggcaacgggtgcaccggcgcagggcagcccgatgtctctgattctgatgct
+ggtggtgttcggtctgattttttacttcatgatcctAcgtccacagcagaagcgcaccaaggaacataagaacctgatga
+actccatcgccaaaggtgatgaagtgctgaccaacggcggtctggtcggtcgcgtgaccaaagtagcggaaactggctac
+attgctatcgcgctgaacgataccactgaagtggttatcaaacgtgacttcgttgctgccgttctgccgaaaggcaccat
+gaaggcgctgtaa
+=

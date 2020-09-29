@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02143 Thiosulfate sulfurtransferase GlpE
+##SequenceLength 330bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_00067 Thiosulfate sulfurtransferase GlpE
+##SequenceLength 330bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03388 Thiosulfate sulfurtransferase GlpE
+##SequenceLength 330bp
+#IntervalCount 1
+>1:0-329 + cluster1 :p1
+atggaacagtttgaatgcatcaatgttgaagaagcgcaccagaaactgcatcagcagacggcggtactggtcgatatccg
+cgatccgcaaagctatgcgatgggtcatacgccgggcgcgtttcatctgaccaacgatacgctgggcgcgtttatgcgtg
+acaacgactttgacacggcggtgatggtgatgtgctatcacggcaacagcagcaagggcgccgcgcagtatctgctgcag
+caggggtttgataaggtctatagcgttgacggcgggttcgacgcctggcatcgccatttcccggcggaagtggcgcgcgg
+gacgttttaa
+>2:0-329 + cluster1 :p1
+atggaacagtttgaatgcatcaatgttgaagaagcgcaccagaaactgcatcagcagacggcggtactggtcgatatccg
+cgatccgcaaagctatgcgatgggtcatacgccgggcgcgtttcatctgaccaacgatacgctgggcgcgtttatgcgtg
+acaacgactttgacacggcggtgatggtgatgtgctatcacggcaacagcagcaagggcgccgcgcagtatctgctgcag
+caggggtttgataaggtctatagcgttgacggcgggttcgacgcctggcatcgccatttcccggcggaagtggcgcgcgg
+gacgttttaa
+>3:0-329 + cluster1 :p1
+atggaacagtttgaatgcatcaatgttgaagaagcgcaccagaaactgcatcagcagacggcggtactggtcgatatccg
+cgatccgcaaagctatgcgatgggtcatacgccgggcgcgtttcatctgaccaacgatacgctgggcgcgtttatgcgtg
+acaacgactttgacacggcggtgatggtgatgtgctatcacggcaacagcagcaagggcgccgcgcagtatctgctgcag
+caggggtttgataaggtctatagcgttgacggcgggttcgacgcctggcatcgccatttcccggcggaagtggcgcgcgg
+gacgttttaa
+=

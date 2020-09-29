@@ -1,0 +1,24 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 2
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02146 Putative toxin HigB2
+##SequenceLength 348bp
+##SequenceIndex 2
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03391 Putative toxin HigB2
+##SequenceLength 348bp
+#IntervalCount 1
+>1:0-347 + cluster1 :p1
+atgtgggatgtagaaacgacggatacgtttgatgcctggttcgaattacaaagtagagctttaaaagaggatatgttggc
+cacgatgctcatcctgtctgagtttgctccgcagcttgggcgcccgtatgttgatacggtgaaagattcaacgtttcaga
+atatgaaagaactgcgggttcagcatcatgggctccccatccgcgcctgttttgcttttgatcctctgcggaaagctatc
+gttttatgtgtgggcaataaggatggcatgaatgagaaacgtttttacaaagagatgattactctggctgacagagaatt
+cagccaacacctgactaaggagcgataa
+>2:0-347 + cluster1 :p1
+atgtgggatgtagaaacgacggatacgtttgatgcctggttcgaattacaaagtagagctttaaaagaggatatgttggc
+cacgatgctcatcctgtctgagtttgctccgcagcttgggcgcccgtatgttgatacggtgaaagattcaacgtttcaga
+atatgaaagaactgcgggttcagcatcatgggctccccatccgcgcctgttttgcttttgatcctctgcggaaagctatc
+gttttatgtgtgggcaataaggatggcatgaatgagaaacgtttttacaaagagatgattactctggctgacagagaatt
+cagccaacacctgactaaggagcgataa
+=

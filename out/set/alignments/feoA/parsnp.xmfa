@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02130 Fe(2+) transport protein A
+##SequenceLength 228bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_00054 Fe(2+) transport protein A
+##SequenceLength 228bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03375 Fe(2+) transport protein A
+##SequenceLength 228bp
+#IntervalCount 1
+>1:0-227 + cluster1 :p1
+atgcaattcacacctgatagtgcgtggaaaattaccggtttttctcgcgatattagcccagcataccgtcagaaactgct
+ctccctcggcatgctgcccggttcctcttttcatgtggttcgcgtggcgccgctcggcgatcctgttcatattgaaaccc
+gacgcgtcagtctggtattacgcaaaaaagatctcgccttaatcgaactggaagcggttgcacaataa
+>2:0-227 + cluster1 :p1
+atgcaattcacacctgatagtgcgtggaaaattaccggtttttctcgcgatattagcccagcataccgtcagaaactgct
+ctccctcggcatgctgcccggttcctcttttcatgtggttcgcgtggcgccgctcggcgatcctgttcatattgaaaccc
+gacgcgtcagtctggtattacgcaaaaaagatctcgccttaatcgaactggaagcggttgcacaataa
+>3:0-227 + cluster1 :p1
+atgcaattcacacctgatagtgcgtggaaaattaccggtttttctcgcgatattagcccagcataccgtcagaaactgct
+ctccctcggcatgctgcccggttcctcttttcatgtggttcgcgtggcgccgctcggcgatcctgttcatattgaaaccc
+gacgcgtcagtctggtattacgcaaaaaagatctcgccttaatcgaactggaagcggttgcacaataa
+=

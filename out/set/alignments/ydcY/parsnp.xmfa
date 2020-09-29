@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_01996 putative protein YdcY
+##SequenceLength 234bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_01751 putative protein YdcY
+##SequenceLength 234bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_01194 putative protein YdcY
+##SequenceLength 234bp
+#IntervalCount 1
+>1:0-233 + cluster1 :p1
+atggcacatctggatgaggttatcgtcaaagtcgatgacaccctggccgagggcgttatcgcgcatatgaatgagctgct
+aatcgccctgagtgatgatgcgcaactcagtcgtgaggaacgctatatccaacagcagcgtctgcgcaccgccatcgccc
+atcatgggcgacagcatcaggaagagcaggacgcgcgccgcgagcagttgaccaaaggcggcgcgatcctctga
+>2:0-233 + cluster1 :p1
+atggcacatctggatgaggttatcgtcaaagtcgatgacaccctggccgagggcgttatcgcgcatatgaatgagctgct
+aatcgccctgagtgatgatgcgcaactcagtcgtgaggaacgctatatccaacagcagcgtctgcgcaccgccatcgccc
+atcatgggcgacagcatcaggaagagcaggacgcgcgccgcgagcagttgaccaaaggcggcgcgatcctctga
+>3:0-233 + cluster1 :p1
+atggcacatctggatgaggttatcgtcaaagtcgatgacaccctggccgagggcgttatcgcgcatatgaatgagctgct
+aatcgccctgagtgatgatgcgcaactcagtcgtgaggaacgctatatccaacagcagcgtctgcgcaccgccatcgccc
+atcatgggcgacagcatcaggaagagcaggacgcgcgccgcgagcagttgaccaaaggcggcgcgatcctctga
+=

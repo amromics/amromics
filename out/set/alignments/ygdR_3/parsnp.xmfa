@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02864 putative lipoprotein YgdR
+##SequenceLength 231bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03332 putative lipoprotein YgdR
+##SequenceLength 231bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_02160 putative lipoprotein YgdR
+##SequenceLength 231bp
+#IntervalCount 1
+>1:0-230 + cluster1 :p1
+atgaaaatgactaaggccgctgcgattatctctgcctgtatgctgactttaggcctgagcgcctgttcctctaactatgt
+gatgcataccaaCgatgggcggaccatcgttaccgacgggaaaccgcaaaccgataatgacactggcatgatctcgtata
+aagacgcgtggggcaacaaacagcagatcaatcgctctgacgtgaaacaactgggtgaactggacgagtaa
+>2:0-230 + cluster1 :p1
+atgaaaatgactaaggccgctgcgattatctctgcctgtatgctgactttaggcctgagcgcctgttcctctaactatgt
+gatgcataccaaTgatgggcggaccatcgttaccgacgggaaaccgcaaaccgataatgacactggcatgatctcgtata
+aagacgcgtggggcaacaaacagcagatcaatcgctctgacgtgaaacaactgggtgaactggacgagtaa
+>3:0-230 + cluster1 :p1
+atgaaaatgactaaggccgctgcgattatctctgcctgtatgctgactttaggcctgagcgcctgttcctctaactatgt
+gatgcataccaaCgatgggcggaccatcgttaccgacgggaaaccgcaaaccgataatgacactggcatgatctcgtata
+aagacgcgtggggcaacaaacagcagatcaatcgctctgacgtgaaacaactgggtgaactggacgagtaa
+=

@@ -1,0 +1,20 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 2
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_05138 hypothetical protein
+##SequenceLength 198bp
+##SequenceIndex 2
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_05485 hypothetical protein
+##SequenceLength 198bp
+#IntervalCount 1
+>1:0-197 + cluster1 :p1
+atggcaggaaattatgcggtcattgaaaacgggatagtcatcaatataattattgcagaaaatggttatgagtacgctgg
+tgcagaccttgtggaatatcaagaaaacatattttgccagccaggaatgttttataacaaagatgatggtttattctatg
+acgacaaagagttctcaaaaataaataacatcatctaa
+>2:0-197 + cluster1 :p1
+atggcaggaaattatgcggtcattgaaaacgggatagtcatcaatataattattgcagaaaatggttatgagtacgctgg
+tgcagaccttgtggaatatcaagaaaacatattttgccagccaggaatgttttataacaaagatgatggtttattctatg
+acgacaaagagttctcaaaaataaataacatcatctaa
+=

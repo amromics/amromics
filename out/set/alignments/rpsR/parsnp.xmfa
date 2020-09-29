@@ -1,0 +1,28 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03980 30S ribosomal protein S18
+##SequenceLength 228bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_02435 30S ribosomal protein S18
+##SequenceLength 228bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03977 30S ribosomal protein S18
+##SequenceLength 228bp
+#IntervalCount 1
+>1:0-227 + cluster1 :p1
+atggcacgttatttccgtcgtcgcaagttctgccgtttcaccgcggaaggcgttcaagagatcgactataaagatatcgc
+tacgctgaaaaactacatcaccgaaagcggtaagattgtcccgagccgtatcaccggtacccgtgcaaaataccagcgtc
+agctggctcgcgctatcaaacgcgctcgctacctgtccctgctgccgtacactgatcgtcatcagtaa
+>2:0-227 + cluster1 :p1
+atggcacgttatttccgtcgtcgcaagttctgccgtttcaccgcggaaggcgttcaagagatcgactataaagatatcgc
+tacgctgaaaaactacatcaccgaaagcggtaagattgtcccgagccgtatcaccggtacccgtgcaaaataccagcgtc
+agctggctcgcgctatcaaacgcgctcgctacctgtccctgctgccgtacactgatcgtcatcagtaa
+>3:0-227 + cluster1 :p1
+atggcacgttatttccgtcgtcgcaagttctgccgtttcaccgcggaaggcgttcaagagatcgactataaagatatcgc
+tacgctgaaaaactacatcaccgaaagcggtaagattgtcccgagccgtatcaccggtacccgtgcaaaataccagcgtc
+agctggctcgcgctatcaaacgcgctcgctacctgtccctgctgccgtacactgatcgtcatcagtaa
+=

@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_02194 putative 4-amino-4-deoxy-L-arabinose-phosphoundecaprenol flippase subunit ArnE
+##SequenceLength 339bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_00118 putative 4-amino-4-deoxy-L-arabinose-phosphoundecaprenol flippase subunit ArnE
+##SequenceLength 339bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03819 putative 4-amino-4-deoxy-L-arabinose-phosphoundecaprenol flippase subunit ArnE
+##SequenceLength 339bp
+#IntervalCount 1
+>1:0-338 + cluster1 :p1
+atgagcgtctggatctgtctggtgtgcgccagcctgctgagctgcgccggacagctctgccagaaacaggcgacccgccc
+gtcccgtcgcggacggcggagtcgccatatactcttctggttggggatggcgctgttatgtctgggctgcggcatgctgc
+tgtggctgagcgtcctgcagtctattccggtcagcatcgcctatccgatgctgagtctgaatttcgtctgggttaccctc
+gcgggctggggcatctggcatgagccggtcgcccgtcgccactggcttggcgtcgggttgatcgtcgtgggcattgtcat
+tctggggaccagcgtctga
+>2:0-338 + cluster1 :p1
+atgagcgtctggatctgtctggtgtgcgccagcctgctgagctgcgccggacagctctgccagaaacaggcgacccgccc
+gtcccgtcgcggacggcggagtcgccatatactcttctggttggggatggcgctgttatgtctgggctgcggcatgctgc
+tgtggctgagcgtcctgcagtctattccggtcagcatcgcctatccgatgctgagtctgaatttcgtctgggttaccctc
+gcgggctggggcatctggcatgagccggtcgcccgtcgccactggcttggcgtcgggttgatcgtcgtgggcattgtcat
+tctggggaccagcgtctga
+>3:0-338 + cluster1 :p1
+atgagcgtctggatctgtctggtgtgcgccagcctgctgagctgcgccggacagctctgccagaaacaggcgacccgccc
+gtcccgtcgcggacggcggagtcgccatatactcttctggttggggatggcgctgttatgtctgggctgcggcatgctgc
+tgtggctgagcgtcctgcagtctattccggtcagcatcgcctatccgatgctgagtctgaatttcgtctgggttaccctc
+gcgggctggggcatctggcatgagccggtcgcccgtcgccactggcttggcgtcgggttgatcgtcgtgggcattgtcat
+tctggggaccagcgtctga
+=

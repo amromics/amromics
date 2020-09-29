@@ -1,0 +1,34 @@
+#FormatVersion Parsnp v1.1
+#SequenceCount 3
+##SequenceIndex 1
+##SequenceFile 573.12862.fasta.ref
+##SequenceHeader >573.12862_03187 Regulatory protein SoxS
+##SequenceLength 369bp
+##SequenceIndex 2
+##SequenceFile 573.12859.fasta
+##SequenceHeader >573.12859_03922 Regulatory protein SoxS
+##SequenceLength 369bp
+##SequenceIndex 3
+##SequenceFile 573.12860.fasta
+##SequenceHeader >573.12860_03160 Regulatory protein SoxS
+##SequenceLength 369bp
+#IntervalCount 1
+>1:0-368 + cluster1 :p1
+atgggattggccgcaattatgcgtagcaaaacgctccagcaatcggtAttaagcgacctgctcttgtggatcgataataa
+tctggataagaaactgaccgtcgacgatctgagcgatatctctggttattccccctggcatttgtttcggctcttccgtc
+attattttgatcgttcgccaatggaatatatccgccagcagcgcatgtcgctgtgtTgccgtttattActgacaacgcct
+ggttaccgaatcgtcgatatttgtatgatggtcggttatgacgatctcagtgcgtttaatcgtaccttcaaaaaatatca
+tgcgctcacgcccactcagtatcgctatcagatcacgcggcaaaaataa
+>2:0-368 + cluster1 :p1
+atgggattggccgcaattatgcgtagcaaaacgctccagcaatcggtCttaagcgacctgctcttgtggatcgataataa
+tctggataagaaactgaccgtcgacgatctgagcgatatctctggttattccccctggcatttgtttcggctcttccgtc
+attattttgatcgttcgccaatggaatatatccgccagcagcgcatgtcgctgtgtCgccgtttattGctgacaacgcct
+ggttaccgaatcgtcgatatttgtatgatggtcggttatgacgatctcagtgcgtttaatcgtaccttcaaaaaatatca
+tgcgctcacgcccactcagtatcgctatcagatcacgcggcaaaaataa
+>3:0-368 + cluster1 :p1
+atgggattggccgcaattatgcgtagcaaaacgctccagcaatcggtAttaagcgacctgctcttgtggatcgataataa
+tctggataagaaactgaccgtcgacgatctgagcgatatctctggttattccccctggcatttgtttcggctcttccgtc
+attattttgatcgttcgccaatggaatatatccgccagcagcgcatgtcgctgtgtTgccgtttattActgacaacgcct
+ggttaccgaatcgtcgatatttgtatgatggtcggttatgacgatctcagtgcgtttaatcgtaccttcaaaaaatatca
+tgcgctcacgcccactcagtatcgctatcagatcacgcggcaaaaataa
+=

@@ -1,0 +1,38 @@
+Number of sequences analyzed:         2
+
+Sequence 1 : out/set/alignments/yhdJ/573.12859.fasta.ref
+573.12859.fasta.ref
+Length:       702 bps
+ GC:     425.0
+ AT:     277.0
+Sequence 2 : out/temp/alignments/genes/yhdJ/573.12860.fasta
+573.12860.fasta
+Length:       702 bps
+ GC:     430.0
+ AT:     272.0
+d value:   300
+q value:   30
+
+Mum anchor size:   10.0
+Number of MUM anchors found:   18
+Number of MUMs found:   6 
+Total MUMs found((Anchors+MUMs)-filtered):   23
+
+Random MUM length:   1 
+Minimum Cluster length:   21
+Number of MUMs filtered:   1 
+Number of Clusters filtered:   1 
+
+Number of clusters created:   1 
+Average number of MUMs per cluster:   23
+Average cluster length:   694 bps
+Cluster coverage in sequence 1:   98.9%
+Cluster coverage in sequence 2:   98.9%
+Total coverage among all sequences:   98.9%
+
+ MUM anchor search elapsed time:   0.0s 
+ MUM coarsening elapsed time:   0.0s 
+ MUM filtering elapsed time:   0.0s 
+ MUM clustering elapsed time:   0.0s 
+ Inter-clustering elapsed time:   0.0s 
+ Total running time:   0.0s 
