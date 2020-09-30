@@ -1,49 +1,91 @@
 
 <style scoped>
   .wrapper{
-    margin-left:20px;
-    margin-right:20px;
+  
+    
+    width:1600px;
+    
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 8px;
+    padding-right: 8px;
+  
   }
   .container{
+    clear:both;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
     margin: 20px;
     padding:20px;
 
   }
+  .bold {
+    font-weight: bold;
+  }
+  .mar10{
+    margin:10px;
+  }
+  .marR20{
+    float:left;
+    margin-right: 20px;
+  }
 </style>
 <template>
 <div class="wrapper">
 
-<div v-if="loaded" class="container">
-<ContigLengthChart  :list_contig="assemblyData.contigs"/>
+<div v-if="loaded" class="container" style="height:550px" >
+<div>
+<h1>Assembly Stats</h1>
 </div>
-<div v-if="loaded" class="container" >
-<GenomeCircosBrowser :contigs="assemblyData.contigs" :amr_genes= "resistomeData.hits" :virulome_genes= "virulomeData.hits" :skew="assemblyData.skew"/>
+<div style="float:left;width:100%">
+                  <div class="marR20">Genome length <span class='bold mar10'>{{assemblyData.genome_length}}</span></div>
+                  <div class="marR20">Number of contigs <span class='bold mar10'>{{assemblyData.n_contig}}</span></div>
+                  <div class="marR20">Min length <span class='bold mar10'>{{assemblyData.min_length}}</span></div>
+                  <div class="marR20">Max length <span class='bold mar10'>{{assemblyData.max_length}}</span></div>
 </div>
-<div class="container" v-if="assemblyData"  >
-<table id='assembly_table'>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Length</th>
+  <div style="float:left;width:50%">
+    <ContigLengthChart  :list_contig="assemblyData.contigs"/>
+  </div>
+  <div style="float:left;width:50%">
+    
+    <table id='assembly_table'>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Length</th>
 
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="item in assemblyData.contigs" :key="item.name">
-      <td>{{item.name}}</td>
-      <td>{{item.length}}</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in assemblyData.contigs" :key="item.name">
+          <td>{{item.name}}</td>
+          <td>{{item.length}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-    </tr>
-  </tbody>
-</table>
 </div>
-<div v-if="loaded" class="container" >
-<GenomeBrowser :list_contig="assemblyData.contigs" :knowngene= "annotationData.genes" :GC_skew= "assemblyData.skew" :GC_content="assemblyData.content.array"/>
+<div v-if="loaded" style="height: 650px;float:left"  class="container" >
+<div>
+<h1>
+  Genome Browser
+</h1>
 </div>
+  <div style="width:500px;height: 500px;float:left">
+    <GenomeCircosBrowser :contigs="assemblyData.contigs" :amr_genes= "resistomeData.hits" :virulome_genes= "virulomeData.hits" :skew="assemblyData.skew"/>
+  </div>
+  <div style="margin-left: 520px;height: 500px;">
+    <GenomeBrowser :list_contig="assemblyData.contigs" :knowngene= "annotationData.genes" :GC_skew= "assemblyData.skew" :GC_content="assemblyData.content.array"/>
+
+  </div>
+</div>
+
 <div  class="container">
-<table id='amr_table'>
+<h1>
+Antibiotics Microbial Resistance
+</h1>
+<table id='amr_table' v-if="resistomeData">
   <thead>
     <tr>
       <th>Sequence</th>
@@ -54,8 +96,9 @@
       <th>Identity</th>
       <th>Database</th>
       <th>Accession</th>
-      <th>Product</th>
+      
       <th>Resistance</th>
+      <th>Product</th>
     </tr>
   </thead>
   <tbody>
@@ -68,14 +111,16 @@
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
       <td>{{item.accession}}</td>
-      <td>{{item.product}}</td>
+    
       <td>{{item.resistance}}</td>
+        <td>{{item.product}}</td>
     </tr>
   </tbody>
 </table>
 </div>
 <div v-if="loaded" class="container">
-<table id='virulome_table' >
+<h1>Virulome</h1>
+<table id='virulome_table' v-if="virulomeData" >
   <thead>
     <tr>
       <th>Sequence</th>
@@ -86,8 +131,9 @@
       <th>Identity</th>
       <th>Database</th>
       <th>Accession</th>
-      <th>Product</th>
+      
       <th>Resistance</th>
+      <th>Product</th>
     </tr>
   </thead>
   <tbody>
@@ -100,8 +146,9 @@
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
       <td>{{item.accession}}</td>
-      <td>{{item.product}}</td>
+    
       <td>{{item.resistance}}</td>
+        <td>{{item.product}}</td>
     </tr>
   </tbody>
 </table>
@@ -156,21 +203,29 @@ export default {
         : undefined;
     }
   },
-  mounted:{
-    
+  async created() {
+
+    this.loading = true
+      await Promise.all([
+
+        this.fetchData()
+      ]);
+    this.loadTable();
+
+
+
   },
-  method: {
-    loadtable(){
+  methods: {
+    loadTable(){
       var $ = require('jquery');
-    
+      
       $('#assembly_table').DataTable();  
       $('#amr_table').DataTable();
       $('#virulome_table').DataTable();
-    }
-  },
-    async created() {
+    },
+    async fetchData(){
       const ret = await SampleAPI.fetchResult(this.sampleId);
-    
+      //const ret = await SampleAPI.fetchResult("573.12859");
       for (var i = 0; i < ret.data.execution.result.length; i++) {
         if (ret.data.execution.result[i].group.localeCompare("MLST") == 0) {
           this.mlstData = ret.data.execution.result[i].data;
@@ -201,19 +256,15 @@ export default {
           this.annotationData = ret.data.execution.result[i].data;
 
         }
-
+      
+        
+          this.loaded=true;
+          
       }
-    
-      this.loaded=true;
-      this.loadtable();
-        //if (this.$route.params.id) {
-        //  this.$route.meta.title = `Sample: ${decodeURIComponent(
-        //    this.$route.params.id
-        //  )}`;
-        //this.$route.meta.title = 'Sample: ' + this.sample_name
-
     }
-  
+  }
+
+
 };
 
 </script>

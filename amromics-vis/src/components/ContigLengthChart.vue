@@ -23,7 +23,7 @@ export default {
       //console.log(this.list_contig);
       var n50chart = new N50Chart(ctx);
       n50chart.load(this.list_contig);
-      n50chart.setOptions({width:1200,height:400});
+      n50chart.setOptions({width:1200,height:550});
       n50chart.draw();
       this.loading = false;
     },

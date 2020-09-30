@@ -23,6 +23,11 @@ export class Browser {
     };
     this.scale = 0.1;
     //create UI
+    this.genUI();
+
+
+  }
+  genUI(){
     this.container.innerHTML = "";
 
     this.track_div = document.createElement('div');
@@ -72,7 +77,7 @@ export class Browser {
     content_div.style.height = "500px";
     content_div.style.padding = "0px";
     content_div.style.margin = "0px";
-    content_div.style.clear = "both";
+    //content_div.style.clear = "both";
     content_div.appendChild(this.track_div);
     var wrap_div = document.createElement('div');
     wrap_div.style.width = (this.props.width) + "px";
@@ -81,8 +86,6 @@ export class Browser {
     wrap_div.appendChild(control_div);
     wrap_div.appendChild(content_div);
     this.container.appendChild(wrap_div);
-
-
   }
   load(contigs, genes, skew, content) {
     this.contigs = contigs;
@@ -109,7 +112,7 @@ export class Browser {
       this.props.highlight = options.highlight
     if (options.color != undefined)
       this.props.color = options.color
-
+    this.genUI();
   }
 
   draw() {

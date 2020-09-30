@@ -13,7 +13,8 @@ export class ContigCircos {
   }
   load(contig,amr_genes, virulome_genes, skew) {
     this.contigs=contig;
-    console.log(amr_genes);
+    //console.log("skew");
+    //console.log(skew);
     var set_highlight_contigs = new Set();
     this.amr_data = [];
     for (var i = 0; i < amr_genes.length; i++) {
@@ -38,15 +39,15 @@ export class ContigCircos {
     this.skew_data = [];
 
     for (var i = 0; i < skew.length; i++) {
-      for (var j = 0; j < skew[i].GC.length; j++) {
-        this.skew_data.push({
-          block_id: skew[i].contig.split(' ')[0],
-          position: j * 100 + 1000,
-          value: skew[i].GC[j]
-        });
+      if (set_highlight_contigs.has(skew[i].contig.split(' ')[0])){
+        for (var j = 0; j < skew[i].GC.length; j++) {
+          this.skew_data.push({
+            block_id: skew[i].contig.split(' ')[0],
+            position: j * 100 + 1000,
+            value: skew[i].GC[j]
+          });
+        }
       }
-
-
     }
 
     this._contig = [];
@@ -73,9 +74,10 @@ export class ContigCircos {
       width: this.props.width,
       height: this.props.height,
     });
+    var unit=this.props.width/100;
     var configuration = {
-      innerRadius: 280,
-      outerRadius: 300,
+      innerRadius: unit*40,
+      outerRadius: unit*45,
       cornerRadius: 0,
       gap: 0.04, // in radian
       labels: {
@@ -117,7 +119,7 @@ export class ContigCircos {
       strokeColor: '#fd6a62',
       strokeWidth: 1,
       direction: 'out',
-      thickness: 100,
+      thickness: unit*10,
       radialMargin: 2,
       margin: 2,
       opacity: 1,
@@ -136,7 +138,7 @@ export class ContigCircos {
       strokeColor: '#bebada',
       strokeWidth: 1,
       direction: 'out',
-      thickness: 100,
+      thickness: unit*10,
       radialMargin: 2,
       margin: 2,
       opacity: 1,

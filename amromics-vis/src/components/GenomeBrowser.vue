@@ -32,6 +32,7 @@ export default {
     //console.log(this.GC_content);
     var browser = new Browser(ctx);
     browser.load(this.list_contig,this.knowngene,this.GC_skew,this.GC_content);
+    browser.setOptions({width:1000});
     browser.draw();
     this.loading = false;
   },

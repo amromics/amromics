@@ -1,14 +1,19 @@
 <style scoped>
-  .wrapper{
-    margin-left:20px;
-    margin-right:20px;
-    
-  }
+.wrapper{
+
+  
+  width:1600px;
+  
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 8px;
+  padding-right: 8px;
+
+}
   .container{
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
-  
-
+    padding: 20px;
   }
   .margin20{
     margin-top:20px;
@@ -16,22 +21,32 @@
 </style>
 <template>
 <div class="wrapper">
-<div v-if="coreData" class="container" style="float:left;width:50%;">
-<PangenomePieChart  :core_data="coreData.group"  />
+
+<div  class="container" style="height:500px" >
+<h1>Core and  Accesory Genes</h1>
+<div v-if="coreData" style="float:left;width:50%;" >
+  <PangenomePieChart  :core_data="coreData.group"  />
 </div>
-<div v-if="geneClusterData" class="container"  style="float:left;width:50%;">
+
+
+<div v-if="geneClusterData"   style="float:left;width:50%;">
 <GeneDistributionChart  :cluster_data="geneClusterData.genes"  />
 </div>
+</div>
 <div style="clear:both" class="container margin20"  v-if="phylogenyData">
+<h1>Phylogeny tree</h1>
 <PhylogenyBrowser  :newitck_tree="phylogenyData"  />
 </div>
 <div class="container margin20"   style="clear:both;margin-bottom:30px;min-height:500px"  v-if="phylogenyData">
+<h1>Heatmap</h1>
 <Heatmap  :newitck_tree="phylogenyData" :heatmap="phyloHeatmap" />
 </div>
 <div class="container margin20"   style="clear:both;min-height:300px" v-if="alignmentData">
+<h1>Genes Alignment</h1>
 <AlignmentComp  :alignmentData="alignmentData"  />
 </div>
 <div class="container margin20"   v-if="list_sample" >
+<h1>Samples</h1>
 <table id='samples_table' class="display">
   <thead>
     <tr>

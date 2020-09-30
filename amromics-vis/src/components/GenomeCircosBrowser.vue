@@ -23,10 +23,10 @@ export default {
     mounted() {
       this.loading = true;
       var ctx=document.getElementById('circos')
-      console.log(this.contigs);
+      //console.log(this.contigs);
       var circos = new ContigCircos(ctx);
       circos.load(this.contigs,this.amr_genes,this.virulome_genes,this.skew);
-      circos.setOptions({width:800,height:800});
+      circos.setOptions({width:500,height:500});
       circos.draw();
       this.loading = false;
     },
