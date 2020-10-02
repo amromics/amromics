@@ -1,15 +1,10 @@
-
 <style scoped>
   .wrapper{
-  
-    
     width:1600px;
-    
     margin-right: auto;
     margin-left: auto;
     padding-left: 8px;
     padding-right: 8px;
-  
   }
   .container{
     clear:both;
@@ -17,7 +12,6 @@
     transition: 0.3s;
     margin: 20px;
     padding:20px;
-
   }
   .bold {
     font-weight: bold;
@@ -32,7 +26,6 @@
 </style>
 <template>
 <div class="wrapper">
-
 <div v-if="loaded" class="container" style="height:550px" >
 <div>
 <h1>Assembly Stats</h1>
@@ -47,13 +40,11 @@
     <ContigLengthChart  :list_contig="assemblyData.contigs"/>
   </div>
   <div style="float:left;width:50%">
-    
     <table id='assembly_table'>
       <thead>
         <tr>
           <th>Name</th>
           <th>Length</th>
-
         </tr>
       </thead>
       <tbody>
@@ -96,7 +87,6 @@ Antibiotics Microbial Resistance
       <th>Identity</th>
       <th>Database</th>
       <th>Accession</th>
-      
       <th>Resistance</th>
       <th>Product</th>
     </tr>
@@ -111,7 +101,6 @@ Antibiotics Microbial Resistance
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
       <td>{{item.accession}}</td>
-    
       <td>{{item.resistance}}</td>
         <td>{{item.product}}</td>
     </tr>
@@ -120,7 +109,7 @@ Antibiotics Microbial Resistance
 </div>
 <div v-if="loaded" class="container">
 <h1>Virulome</h1>
-<table id='virulome_table' v-if="virulomeData" >
+<table id ='virulome_table' v-if="virulomeData">
   <thead>
     <tr>
       <th>Sequence</th>
@@ -131,7 +120,6 @@ Antibiotics Microbial Resistance
       <th>Identity</th>
       <th>Database</th>
       <th>Accession</th>
-      
       <th>Resistance</th>
       <th>Product</th>
     </tr>
@@ -146,7 +134,6 @@ Antibiotics Microbial Resistance
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
       <td>{{item.accession}}</td>
-    
       <td>{{item.resistance}}</td>
         <td>{{item.product}}</td>
     </tr>
@@ -154,7 +141,6 @@ Antibiotics Microbial Resistance
 </table>
 </div>
 </div>
-
 </template>
 <script>
 /* eslint-disable */

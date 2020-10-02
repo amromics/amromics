@@ -1,14 +1,10 @@
 <style scoped>
 .wrapper{
-
-  
   width:1600px;
-  
   margin-right: auto;
   margin-left: auto;
   padding-left: 8px;
   padding-right: 8px;
-
 }
   .container{
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
@@ -21,17 +17,29 @@
 </style>
 <template>
 <div class="wrapper">
-
 <div  class="container" style="height:500px" >
 <h1>Core and  Accesory Genes</h1>
 <div v-if="coreData" style="float:left;width:50%;" >
   <PangenomePieChart  :core_data="coreData.group"  />
 </div>
-
-
 <div v-if="geneClusterData"   style="float:left;width:50%;">
 <GeneDistributionChart  :cluster_data="geneClusterData.genes"  />
 </div>
+</div>
+<div class="container margin20"   v-if="geneClusterData" >
+<h1>Gene clusters</h1>
+<table id='cluster_table'>
+  <thead>
+    <tr>
+      <th>Gene</th>
+      <th>Annotation</th>
+      <th>Number of Isolate</th>
+      <th>Number of sequences</th>
+      <th>Avg Length</th>
+    </tr>
+  </thead>
+
+  </table>
 </div>
 <div style="clear:both" class="container margin20"  v-if="phylogenyData">
 <h1>Phylogeny tree</h1>
@@ -59,14 +67,11 @@
       <th>Input type</th>
       <th>Files</th>
       <th>Metadata</th>
-
     </tr>
   </thead>
-
 </table>
 </div>
 </div>
-
 </template>
 <script>
 /* eslint-disable */
@@ -80,6 +85,7 @@ import dt from 'datatables.net';
 import Chart from 'chart.js';
 
 import ('datatables.net-dt')
+import EventBus from '@/event-bus.js';
 export default {
   name: 'Collection',
   components: {
@@ -88,7 +94,6 @@ export default {
     PhylogenyBrowser,
     Heatmap,
     AlignmentComp
-
   },
   data() {
     return {
@@ -108,14 +113,66 @@ export default {
 
 },
   async created() {
-    // const value = await CollectionResult.fetchResult()
-    // console.log("below is samle id")
-    // console.log(this.sampleId)
+    this.loading = true
+      await Promise.all([
 
-    const value = await SampleAPI.fetchSetResult();
-    //console.log(result)
-    var result=value.data.results;
-    this.list_sample=value.data.samples;
+        this.fetchData()
+      ]);
+    this.loadData();
+  }
+
+,
+  methods: {
+    async fetchData(){
+      // const value = await CollectionResult.fetchResult()
+      // console.log("below is samle id")
+      // console.log(this.sampleId)
+
+      const value = await SampleAPI.fetchSetResult();
+      //console.log(result)
+      var result=value.data.results;
+      this.list_sample=value.data.samples;
+
+
+      let isReady=false
+
+    for (var i =0;i<result.length;i++){
+
+      if(result[i].group=='phylogeny_tree'){
+        //console.log(atob(result[i].data))
+        this.phylogenyData=atob(result[i].data);
+
+      }
+      if(result[i].group=='pan_sum'){
+
+        // this.coreData=JSON.parse(atob(result.execution_results[i].data));
+        this.coreData=result[i].data;
+
+      }
+      if(result[i].group=='pan_cluster'){
+        // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
+        this.geneClusterData=result[i].data;
+      }
+      if(result[i].group=='phylo_heatmap'){
+        // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
+        this.phyloHeatmap=result[i].data;
+      }
+      if(result[i].group=='gene_alignments'){
+        // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
+        this.alignmentData=result[i].data;
+      }
+    }
+    // sort geneClusterData
+    //console.log(this.geneClusterData)
+    this.geneClusterData.genes.sort(function(a, b){return b.noisolates - a.noisolates})
+    for (var i =0;i<this.geneClusterData.genes.length;i++){
+      this.geneClusterData.genes[i]['id']=i+1
+    }
+
+    this.isLoading=false;
+
+  },
+  loadData(){
     var datasource=[];
     for (var i=0;i<this.list_sample.length;i++){
       var data=[this.list_sample[i].id,
@@ -138,82 +195,29 @@ export default {
       var data = table.row( $(this)).data();
         window.open('/sample/'+data[0], "_blank");
 
-} );
-  let isReady=false
-  // const result = cloneDeep(
-  //   Object.assign(
-  //     {
-  //       info:{
-  //         c_id:value.collection_id,
-  // 
-  //         c_name:value.collection_name,
-  //         c_group:value.collection_group,
-  //         c_created:value.collection_created
-  // 
-  //       },
-  //       status:value.last_execution.execution_status,
-  //       execution_results:value.last_execution.execution_results
-  // 
-  // 
-  //     }
-  // 
-  //   )
-  // )
+    } );
+    var datasource_gene_clusters=[];
+    for (var i=0;i<this.geneClusterData.genes.length;i++){
+      var data=[this.geneClusterData.genes[i].gene,
+      this.geneClusterData.genes[i].annotation,
+      this.geneClusterData.genes[i].noisolates,
+      this.geneClusterData.genes[i].nosequences,
+      this.geneClusterData.genes[i].length
 
-
-  // var  result={
-  // 
-  //       execution_results:value.data.last_execution.execution_results
-  // 
-  // 
-  //     };
-  // if (result.status!='SUCCEEDED'){
-  //   // not ready to visualize
-  //   this.isLoading=false;
-  //   this.isReady=false
-  //   return
-  // }
-  // else{
-  //   this.isReady=true
-  // }
-  for (var i =0;i<result.length;i++){
-
-    if(result[i].group=='phylogeny_tree'){
-      console.log(atob(result[i].data))
-      this.phylogenyData=atob(result[i].data);
-
+    ];
+      datasource_gene_clusters.push(data);
     }
-    if(result[i].group=='pan_sum'){
+    //console.log(datasource_gene_clusters);
+    var table_clusters=$('#cluster_table').DataTable({
+      data:datasource_gene_clusters
+    });
+    $('#cluster_table tbody').on('click', 'tr', function () {
+      var data = table_clusters.row( $(this)).data();
+        
+        EventBus.$emit('gene_id_emited', data[0]);
 
-      // this.coreData=JSON.parse(atob(result.execution_results[i].data));
-      this.coreData=result[i].data;
-
-    }
-    if(result[i].group=='pan_cluster'){
-      // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
-      this.geneClusterData=result[i].data;
-    }
-    if(result[i].group=='phylo_heatmap'){
-      // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
-      this.phyloHeatmap=result[i].data;
-    }
-    if(result[i].group=='gene_alignments'){
-      // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
-      this.alignmentData=result[i].data;
-    }
+    } );
   }
-  // sort geneClusterData
-  console.log(this.geneClusterData)
-  this.geneClusterData.genes.sort(function(a, b){return b.noisolates - a.noisolates})
-  for (var i =0;i<this.geneClusterData.genes.length;i++){
-    this.geneClusterData.genes[i]['id']=i+1
-  }
-
-  this.isLoading=false;
-  }
-
-,
-  method: {
 
   }
 };
