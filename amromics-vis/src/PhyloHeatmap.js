@@ -23,12 +23,12 @@ export class PhyloHeatmap {
     heatmapview.style.position="relative";
     this.container.appendChild(treeview);
     this.container.appendChild(heatmapview);
-
+    this.active_names=[];
 
   }
-  load(phylotree, heatmap) {
-    this.heatmap = heatmap;
-
+  load(phylotree, hits,list_class) {
+    this.hits = hits;
+    this.list_class=list_class;
 
     var margin = {
       top: 30,
@@ -77,7 +77,7 @@ export class PhyloHeatmap {
         if (n.depth > max_depth) max_depth = n.depth;
         this.node_leaf.push(n);
         this.arr_sample_from_tree.push(
-          n.data.name.replace("'", "").replace("'", "")
+          n.data.name.replace(/\'/g, "")
         );
         num_leaf++;
       }
@@ -131,35 +131,29 @@ export class PhyloHeatmap {
 
     //split amr and vir:
 
-    this.vir_genes = [];
-    this.amr_genes = [];
-    for (var i = 0; i < heatmap.hits.length; i++) {
-      if (heatmap.hits[i].type == "amr") {
-
-        //add vir gene to list gene (need remove when result got list vir genes)
-        if (!this.amr_genes.includes(this.heatmap.hits[i].gene)) {
-          this.amr_genes.push(this.heatmap.hits[i].gene);
-        }
-      }
-      if (heatmap.hits[i].type == "vir") {
-
-        //add vir gene to list gene (need remove when result got list vir genes)
-        if (!this.vir_genes.includes(this.heatmap.hits[i].gene)) {
-          this.vir_genes.push(this.heatmap.hits[i].gene);
-        }
-      }
-
-    }
     this.genes = [];
-    this.genes = this.genes.concat(this.vir_genes).concat(this.amr_genes);
-    this.data = heatmap.hits;
+
+    for (var i = 0; i < this.hits.length; i++) {
+
+        if (!this.genes.includes(this.hits[i].gene)) {
+          this.genes.push(this.hits[i].gene);
+        }
+      }
+
+
   }
   setOptions(options) {
     this.props.width = options.width;
     this.props.height = options.height;
 
   }
+  setActiveNames(names){
+    this.active_names=names;
+    this.draw();
+  }
   draw() {
+    document.getElementById("ph_treeview").innerHTML = "";
+    document.getElementById("ph_heatmapview").innerHTML = "";
     var margin = {
       top: 30,
       right: 30,
@@ -211,6 +205,9 @@ export class PhyloHeatmap {
       });
 
     // adds each node as a group
+    var active_names=this.active_names;
+
+    //console.log(active_names);
     const node = g
       .selectAll(".node")
       .data(this.fnodes.descendants())
@@ -218,17 +215,24 @@ export class PhyloHeatmap {
       .append("g")
       .attr(
         "class",
-        d => "node" + (d.children ? " node--internal" : " node--leaf")
+        d => "node" + (d.children ? " node--internal" : " node--leaf") +(active_names.includes(d.data.name.replace(/\'/g,''))?" node--active":"")
       )
       .attr("transform", d => "translate(" + d.ay + "," + d.ax + ")");
 
     // adds the circle to the node
+
     const leftnode = g
       .selectAll(".node--leaf")
       .append("circle")
       .attr("r", 2)
       .style("stroke", "black")
       .style("fill", "black");
+    const leftnode_active = g
+      .selectAll(".node--active")
+      .append("circle")
+      .attr("r", 5)
+      .style("stroke", "blue")
+      .style("fill", "none");
     //add connectors  in case draw phylogeny by length
     const connectors = g
       .selectAll(".connector")
@@ -243,7 +247,7 @@ export class PhyloHeatmap {
         );
       });
     // append the svg object to the body of the page
-    width = 800 - margin.left - margin.right;
+    width = this.props.width - margin.left - margin.right;
     var svg = d3
       .select("#ph_heatmapview")
       .append("svg")
@@ -267,16 +271,18 @@ export class PhyloHeatmap {
       .attr("dy", ".25em")
       .attr("transform", "rotate(-65)");;
 
+    var y_data=this.arr_sample_from_tree.slice();
+    y_data.reverse();
     // Build X scales and axis:
     var y = d3
       .scaleBand()
       .range([height, 0])
-      .domain(this.arr_sample_from_tree)
+      .domain(y_data)
       .padding(0.01);
     svg.append("g").call(d3.axisLeft(y));
     var amrColor = d3
       .scaleOrdinal()
-      .domain(this.heatmap.list_class)
+      .domain(this.list_class)
       .range([
         "gold",
         "peru",
@@ -351,12 +357,12 @@ export class PhyloHeatmap {
     };
 
     // add the squares
-    console.log(this.amr_genes);
-    var _amr_genes=this.amr_genes;
-    var _data=this.data;
+
+
+    var _data=this.hits;
     svg
       .selectAll()
-      .data(this.data, function(d) {
+      .data(this.hits, function(d) {
         return d.sample + ":" + d.gene;
       })
       .enter()
@@ -371,23 +377,10 @@ export class PhyloHeatmap {
       .attr("height", y.bandwidth())
 
       .style("fill", function(d) {
-        if (d.type == "amr" || _amr_genes.includes(d.gene)) {
-          if (d.type == "amr")
             return amrColor(d.class);
-          else {
-            //find class for amr gene
-            for (var i = 0; i < _data.length; i++) {
-              if (_data[i].gene == d.gene && _data[i].type == "amr") {
-                return amrColor(_data[i].class);
-              }
-            }
-          }
-        } else {
-
-          return "lime";
         }
 
-      })
+      )
       .style("stroke", "white")
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)

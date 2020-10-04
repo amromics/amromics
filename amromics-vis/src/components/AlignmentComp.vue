@@ -45,6 +45,11 @@ export default {
         }
         
       });
+      EventBus.$on('samples_emited', arr_ids => {
+        console.log('sample_emited '+arr_ids);
+        alignmentview.setActiveNames(arr_ids);
+        
+      });
       this.loading = false;
     },
     async created() {

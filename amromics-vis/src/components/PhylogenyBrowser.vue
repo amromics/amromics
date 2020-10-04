@@ -7,6 +7,7 @@
 <script>
 /* eslint-disable */
 import {Phylogeny} from "@/amromicsjs";
+import EventBus from '@/event-bus.js';
 // import SampleIGV from "@/components/Visualization/IGV";
 export default {
     name: 'PhylogenyBrowser',
@@ -28,6 +29,19 @@ export default {
       tree.load(tree_data);
       
       tree.draw();
+      tree.tree.on('updated', ({
+        property,
+        nodeIds
+      }) => {
+        if (property === 'selected') {
+          var arr_ids=[];
+          for (var i=0;i<nodeIds.length;i++){
+            arr_ids.push(nodeIds[i].replace(/\'/g,''));
+          }
+          console.log(arr_ids);
+          EventBus.$emit('samples_emited',arr_ids);
+        }
+      });
       this.loading = false;
     },
     async created() {

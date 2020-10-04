@@ -3,14 +3,14 @@ import Phylocanvas from "phylocanvas";
 import * as d3 from "d3";
 export class Phylogeny {
   constructor(element) {
-    console.log(element);
+
     this.container = element;
     this.props = {
       width: 800,
       height: 400,
-      color:"#000"
+      color: "#000"
     };
-  
+
   }
   load(newick_tree) {
     this.newick_tree = newick_tree;
@@ -34,6 +34,8 @@ export class Phylogeny {
     this.tree.lineWidth = 1;
     this.tree.setTreeType('rectangular');
     this.tree.load(this.newick_tree);
+
+
   }
 }
 export default Phylogeny
