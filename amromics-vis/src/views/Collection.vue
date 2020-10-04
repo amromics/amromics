@@ -41,17 +41,17 @@
 
   </table>
 </div>
-<div style="clear:both" class="container margin20"  v-if="phylogenyData">
-<h1>Phylogeny tree</h1>
-<PhylogenyBrowser  :newitck_tree="phylogenyData"  />
+<div class="container margin20"   style="clear:both;min-height:300px" v-if="alignmentData">
+<h1>Genes Alignment</h1>
+<AlignmentComp  :alignmentData="alignmentData"  />
 </div>
 <div class="container margin20"   style="clear:both;margin-bottom:30px;min-height:500px"  v-if="phylogenyData">
 <h1>Heatmap</h1>
 <Heatmap  :newitck_tree="phylogenyData" :heatmap="phyloHeatmap" />
 </div>
-<div class="container margin20"   style="clear:both;min-height:300px" v-if="alignmentData">
-<h1>Genes Alignment</h1>
-<AlignmentComp  :alignmentData="alignmentData"  />
+<div style="clear:both" class="container margin20"  v-if="phylogenyData">
+<h1>Phylogeny tree</h1>
+<PhylogenyBrowser  :newitck_tree="phylogenyData"  />
 </div>
 <div class="container margin20"   v-if="list_sample" >
 <h1>Samples</h1>
@@ -213,8 +213,15 @@ export default {
     });
     $('#cluster_table tbody').on('click', 'tr', function () {
       var data = table_clusters.row( $(this)).data();
-        
+         
         EventBus.$emit('gene_id_emited', data[0]);
+        if ( $(this).hasClass('selected') ) {
+            $(this).removeClass('selected');
+        }
+        else {
+            table_clusters.$('tr.selected').removeClass('selected');
+            $(this).addClass('selected');
+        }
 
     } );
   }
