@@ -7,6 +7,7 @@
 <script>
 /* eslint-disable */
 import {Browser} from "@/amromicsjs";
+import EventBus from '@/event-bus.js';
 // import SampleIGV from "@/components/Visualization/IGV";
 export default {
   name: 'GenomeBrowser',
@@ -34,6 +35,10 @@ export default {
     browser.load(this.list_contig,this.knowngene,this.GC_skew,this.GC_content);
     browser.setOptions({width:1000});
     browser.draw();
+    EventBus.$on('contig_emited', contig_id => {
+      
+      browser.changeContig(contig_id);
+    });
     this.loading = false;
   },
   async created() {
