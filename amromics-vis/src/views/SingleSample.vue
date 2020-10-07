@@ -150,7 +150,7 @@ import GenomeCircosBrowser from "@/components/GenomeCircosBrowser"
 import SampleAPI from '@/api/SampleAPI'
 import dt from 'datatables.net';
 import Chart from 'chart.js';
-
+import EventBus from '@/event-bus.js';
 import ('datatables.net-dt')
 export default {
   name: 'SingleSample',
@@ -184,9 +184,8 @@ export default {
   },
   computed: {
     sampleId() {
-      return this.$route.params.id
-        ? JSON.parse(this.$route.params.id)
-        : undefined;
+      return this.$route.params.id;
+      ;
     }
   },
   async created() {
@@ -205,9 +204,22 @@ export default {
     loadTable(){
       var $ = require('jquery');
       
-      $('#assembly_table').DataTable();  
+      var table_assembly=$('#assembly_table').DataTable();  
       $('#amr_table').DataTable();
       $('#virulome_table').DataTable();
+      $('#assembly_table tbody').on('click', 'tr', function () {
+        var data = table_assembly.row( $(this)).data();
+           
+          EventBus.$emit('contig_emited', data[0]);
+          if ( $(this).hasClass('selected') ) {
+              $(this).removeClass('selected');
+          }
+          else {
+              table_assembly.$('tr.selected').removeClass('selected');
+              $(this).addClass('selected');
+          }
+
+      } );
     },
     async fetchData(){
       const ret = await SampleAPI.fetchResult(this.sampleId);

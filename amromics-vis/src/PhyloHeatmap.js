@@ -147,12 +147,109 @@ export class PhyloHeatmap {
     this.props.height = options.height;
 
   }
+  drawTree(){
+    var active_names=this.active_names;
+
+    document.getElementById("ph_treeview").innerHTML = "";
+    var margin = {
+      top: 30,
+      right: 30,
+      bottom: 60,
+      left: 30
+    };
+    var width = 200 - margin.left - margin.right;
+    var height = 400 - margin.top - margin.bottom;
+    var height_rect = height / this.node_leaf.length / 2;
+    var svg2 = d3
+      .select("#ph_treeview")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom);
+    var g = svg2
+      .append("g")
+      .attr(
+        "transform",
+        "translate(" + margin.left + "," + (margin.top + height_rect) + ")"
+      );
+
+    // adds the links between the nodes
+    this.graphic_tree=g;
+    const link = g
+      .selectAll(".link")
+      .data(this.fnodes.descendants().slice(1))
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .style("stroke", "black")
+    .style("fill", "none")
+
+      .attr("d", d => {
+        return (
+          "M" +
+          d.ay +
+          "," +
+          d.ax +
+          "L" +
+          d.parent.ay +
+          "," +
+          d.ax +
+          " " +
+          d.parent.ay +
+          "," +
+          d.parent.ax
+        );
+      });
+
+    // adds each node as a group
+    var active_names=this.active_names;
+
+    //console.log(active_names);
+    const node = g
+      .selectAll(".node")
+      .data(this.fnodes.descendants())
+      .enter()
+      .append("g")
+      .attr(
+        "class",
+        d => "node" + (d.children ? " node--internal" : " node--leaf") +(active_names.includes(d.data.name.replace(/\'/g,''))?" node--active":"")
+      )
+      .attr("transform", d => "translate(" + d.ay + "," + d.ax + ")");
+
+    // adds the circle to the node
+
+    const leftnode = g
+      .selectAll(".node--leaf")
+      .append("circle")
+      .attr("r", 2)
+      .style("stroke", "black")
+      .style("fill", "black");
+    const leftnode_active = g
+      .selectAll(".node--active")
+      .append("circle")
+      .attr("r", 5)
+      .style("stroke", "blue")
+      .style("fill", "none");
+    //add connectors  in case draw phylogeny by length
+    const connectors = g
+      .selectAll(".connector")
+      .data(this.node_leaf)
+      .enter()
+      .append("path")
+      .attr("class", "connector")
+
+      .attr("d", d => {
+        return (
+          "M" + d.ay + "," + d.ax + "L" + (width + margin.right) + "," + d.ax
+        );
+      });
+  }
   setActiveNames(names){
     this.active_names=names;
-    this.draw();
+    this.drawTree();
   }
+  
   draw() {
-    document.getElementById("ph_treeview").innerHTML = "";
+    
     document.getElementById("ph_heatmapview").innerHTML = "";
     var margin = {
       top: 30,
@@ -177,7 +274,7 @@ export class PhyloHeatmap {
       );
 
     // adds the links between the nodes
-
+    this.graphic_tree=g;
     const link = g
       .selectAll(".link")
       .data(this.fnodes.descendants().slice(1))

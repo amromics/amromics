@@ -263,8 +263,9 @@ export class AlignmentViewer {
   }
   setActiveNames(names){
     this.active_names=names;
-    this.draw();
+    this.drawHighlighTree();
   }
+
   draw() {
     var cell_w = 20;
     var cell_h = 30;
@@ -289,6 +290,7 @@ export class AlignmentViewer {
     this.alignmentview.innerHTML = "";
     this.alignmentview.style.height = (height + 20) + "px";
     this.treeview.style.height = (height + 20) + "px";
+    this.container.style.height= (height + 80) + "px";
     document.getElementById(this.treeview.id).innerHTML = "";
     var svg2 = d3
       .select("#" + this.treeview.id)
@@ -307,7 +309,7 @@ export class AlignmentViewer {
       );
 
     // adds the links between the nodes
-
+    this.graphic_tree=g;
     const link = g
       .selectAll(".link")
       .data(this.fnodes.descendants().slice(1))
@@ -496,6 +498,106 @@ export class AlignmentViewer {
         .style("color", "black")
         .text(d => d.value);
     }
+  }
+  drawHighlighTree(){
+    var margin = {
+      top: 30,
+      right: 30,
+      bottom: 30,
+      left: 30
+    };
+    var cell_h = 30;
+    document.getElementById(this.treeview.id).innerHTML = "";
+    var svg2 = d3
+      .select("#" + this.treeview.id)
+      .append("svg")
+      .attr("width", this.props.width / 5)
+      .attr("height", cell_h * this.node_leaf.length + margin.top + margin.bottom);
+    var g = svg2
+      .append("g")
+      .attr(
+        "transform",
+        "translate(" +
+        margin.left +
+        "," +
+        (margin.top + cell_h / 2) +
+        ")"
+      );
+
+    // adds the links between the nodes
+    this.graphic_tree=g;
+    const link = g
+      .selectAll(".link")
+      .data(this.fnodes.descendants().slice(1))
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .style("stroke", "black")
+      .style("fill", "none")
+      .attr("d", d => {
+        return (
+          "M" +
+          d.ay +
+          "," +
+          d.ax +
+          "L" +
+          d.parent.ay +
+          "," +
+          d.ax +
+          " " +
+          d.parent.ay +
+          "," +
+          d.parent.ax
+        );
+      });
+
+    // adds each node as a group
+    var active_names=this.active_names;
+    const node = g
+      .selectAll(".node")
+      .data(this.fnodes.descendants())
+      .enter()
+      .append("g")
+      .attr(
+        "class",
+          d => "node" + (d.children ? " node--internal" : " node--leaf") +(active_names.includes(d.data.name.replace(/\'/g,''))?" node--active":"")
+      )
+      .attr("transform", d => "translate(" + d.ay + "," + d.ax + ")");
+
+    // adds the circle to the node
+
+    const leftnode = g
+      .selectAll(".node--leaf")
+      .append("circle")
+      .attr("r", 2)
+      .style("stroke", "black")
+      .style("fill", "black");
+    const leftnode_active = g
+      .selectAll(".node--active")
+      .append("circle")
+      .attr("r", 5)
+      .style("stroke", "blue")
+      .style("fill", "none");
+    var y_data=this.arr_sample_from_tree.slice();
+    y_data.reverse();
+    var y = d3
+        .scaleBand()
+        .range([cell_h * this.arr_sample_from_tree.length, 0])
+        .domain(y_data)
+        .padding(0.01);
+      // create a tooltip
+  
+    svg2
+        .append("g")
+        .attr(
+          "transform",
+          "translate(" +
+          (this.props.width / 5) +
+          "," +
+          margin.top +
+          ")"
+        )
+        .call(d3.axisLeft(y));
   }
   zoomIn() {
 

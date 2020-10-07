@@ -64,6 +64,7 @@ export class Browser {
     control_select.style.margin = "10px";
     control_select.style.float = "left";
     this.contig_select = document.createElement('select');
+    this.contig_select.id="contig_select";
     this.contig_select.addEventListener("change", this.changeContig.bind(this));
     //Event.observe(this.contig_select, 'change', changeContig.bind(this));
     control_select.appendChild(this.contig_select);
@@ -95,12 +96,14 @@ export class Browser {
     this.gc_content = content;
     //this.gc_content_window=content.window;
     //this.gc_content_step=content.step;
+
     for (var i = 0; i < this.contigs.length; i++) {
 
       var opt = document.createElement('option');
       opt.appendChild(document.createTextNode(this.contigs[i].name));
       opt.value = this.contigs[i].name;
-      this.contig_select.appendChild(opt);
+      document.getElementById("contig_select").appendChild(opt);
+      console.log(this.contigs[i].name);
     }
     this.current_contig = this.contigs[0];
 
@@ -508,6 +511,13 @@ export class Browser {
       }
       this.drawAgain();
     }
+  }
+  changeContig(contig) {
+
+    this.current_contig = contig;
+    console.log(this.current_contig);
+    this.drawAgain();
+
   }
   zoomIn() {
     console.log(this.zoomOut);
