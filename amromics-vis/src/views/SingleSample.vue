@@ -101,7 +101,7 @@ Antibiotics Microbial Resistance
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
       <td>{{item.accession}}</td>
-      <td>{{item.resistance}}</td>
+      <td>{{item.resistance.replace(/\//g,' ')}}</td>
         <td>{{item.product}}</td>
     </tr>
   </tbody>

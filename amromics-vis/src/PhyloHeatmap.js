@@ -7,44 +7,47 @@ export class PhyloHeatmap {
   constructor(element) {
     this.container = element;
     this.props = {
-      width: 800,
-      height: 400
+      width: 1200,
+      height: 400,
+      
     };
     var treeview = document.createElement("div");
     treeview.id = "ph_treeview";
     treeview.style.width = this.props.width / 5 + "px";
-    treeview.style.height = this.props.height + "px";
+    //treeview.style.height = this.props.height + "px";
     treeview.style.float="left";
     var heatmapview = document.createElement("div");
     heatmapview.id = "ph_heatmapview";
     heatmapview.style.width = (this.props.width-this.props.width / 5) + "px";
-    heatmapview.style.height = this.props.height + "px";
+    //heatmapview.style.height = this.props.height + "px";
     heatmapview.style.float="left";
+    heatmapview.style.overflowX = "scroll";
     heatmapview.style.position="relative";
     this.container.appendChild(treeview);
     this.container.appendChild(heatmapview);
     this.active_names=[];
-
+    this.cell_size=20;
   }
   load(phylotree, hits,list_class) {
     this.hits = hits;
     this.list_class=list_class;
-
+   
+    
     var margin = {
       top: 30,
       right: 30,
       bottom: 60,
       left: 30
     };
-    var width = 200 - margin.left - margin.right;
-    var height = 400 - margin.top - margin.bottom;
+    var width = this.props.width / 5 - margin.left - margin.right;
+    //var height = 400 - margin.top - margin.bottom;
 
 
     var newick = NewickTools.parse(phylotree);
 
     //console.log(newick);
     // declares a tree layout and assigns the size
-    const treemap = d3.tree().size([height, width]);
+    
 
     //  assigns the data to a hierarchy using parent-child relationships
     let nodes = d3.hierarchy(newick, d => d.branchset);
@@ -82,9 +85,9 @@ export class PhyloHeatmap {
         num_leaf++;
       }
     }
-
+    var height=num_leaf*this.cell_size-margin.top - margin.bottom;
     var distance_per_depth = width / max_depth;
-    var unit_distance = width / max_heigth;
+   
     stack = [];
     stack.push(nodes);
     count = 0;
@@ -125,7 +128,7 @@ export class PhyloHeatmap {
     }
     //console.log(nodes);
     //travel again, alter position of nodes
-
+    const treemap = d3.tree().size([height, width]);
     //
     this.fnodes = treemap(nodes);
 
@@ -149,7 +152,7 @@ export class PhyloHeatmap {
   }
   drawTree(){
     var active_names=this.active_names;
-
+   
     document.getElementById("ph_treeview").innerHTML = "";
     var margin = {
       top: 30,
@@ -157,19 +160,19 @@ export class PhyloHeatmap {
       bottom: 60,
       left: 30
     };
-    var width = 200 - margin.left - margin.right;
-    var height = 400 - margin.top - margin.bottom;
-    var height_rect = height / this.node_leaf.length / 2;
+    var width = this.props.width / 5 ;
+    //var height = 400 - margin.top - margin.bottom;
+    var height_rect =this.cell_size;
     var svg2 = d3
       .select("#ph_treeview")
       .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom);
+      .attr("width", width + margin.left +margin.right)
+      .attr("height", this.cell_size*this.node_leaf.length + margin.top + margin.bottom);
     var g = svg2
       .append("g")
       .attr(
         "transform",
-        "translate(" + margin.left + "," + (margin.top + height_rect) + ")"
+        "translate(" + margin.left + "," + (margin.top + height_rect/2) + ")"
       );
 
     // adds the links between the nodes
@@ -257,9 +260,10 @@ export class PhyloHeatmap {
       bottom: 60,
       left: 30
     };
-    var width = 200 - margin.left - margin.right;
-    var height = 400 - margin.top - margin.bottom;
-    var height_rect = height / this.node_leaf.length / 2;
+    var width = this.props.width / 5 ;
+    var height = this.node_leaf.length*this.cell_size- margin.top - margin.bottom;
+    this.container.style.height=(height+margin.top + margin.bottom)+"px";
+    var height_rect = this.cell_size;
 
     var svg2 = d3
       .select("#ph_treeview")
@@ -270,7 +274,7 @@ export class PhyloHeatmap {
       .append("g")
       .attr(
         "transform",
-        "translate(" + margin.left + "," + (margin.top + height_rect) + ")"
+        "translate(" + margin.left + "," + (margin.top + height_rect/2) + ")"
       );
 
     // adds the links between the nodes
@@ -344,7 +348,7 @@ export class PhyloHeatmap {
         );
       });
     // append the svg object to the body of the page
-    width = this.props.width - margin.left - margin.right;
+    width = this.list_class.length*this.cell_size - margin.left - margin.right;
     var svg = d3
       .select("#ph_heatmapview")
       .append("svg")
@@ -355,7 +359,7 @@ export class PhyloHeatmap {
 
     var x = d3
       .scaleBand()
-      .range([0, width])
+      .range([0, this.list_class.length*this.cell_size])
       .domain(this.genes)
       .padding(0.01);
     svg
