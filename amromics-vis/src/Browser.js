@@ -64,8 +64,9 @@ export class Browser {
     control_select.style.margin = "10px";
     control_select.style.float = "left";
     this.contig_select = document.createElement('select');
-    this.contig_select.id="contig_select";
-    this.contig_select.addEventListener("change", this.changeContig.bind(this));
+    this.contig_select.id="select_contig";
+    this.contig_select.addEventListener("change", this.changeContigSelect.bind(this));
+   
     //Event.observe(this.contig_select, 'change', changeContig.bind(this));
     control_select.appendChild(this.contig_select);
     control_zoom.appendChild(control_zoom_out);
@@ -96,15 +97,17 @@ export class Browser {
     this.gc_content = content;
     //this.gc_content_window=content.window;
     //this.gc_content_step=content.step;
-
+    console.log(contigs)
     for (var i = 0; i < this.contigs.length; i++) {
 
       var opt = document.createElement('option');
       opt.appendChild(document.createTextNode(this.contigs[i].name));
       opt.value = this.contigs[i].name;
-      document.getElementById("contig_select").appendChild(opt);
-      console.log(this.contigs[i].name);
+      document.getElementById("select_contig").add(opt);
+     
     }
+    
+   
     this.current_contig = this.contigs[0];
 
   }
@@ -116,6 +119,7 @@ export class Browser {
     if (options.color != undefined)
       this.props.color = options.color
     this.genUI();
+    this.load(this.contigs,this.knowngenes,this.gc_skew,this.gc_content);
   }
 
   draw() {
@@ -312,7 +316,7 @@ export class Browser {
   }
   drawSkew() {
     var data = [];
-    //console.log(this.gc_skew);
+    console.log(this.current_contig.name);
     for (var i = 0; i < this.gc_skew.length; i++) {
       if (this.gc_skew[i].contig.split(' ')[0] == this.current_contig.name)
         for (var j = 0; j < this.gc_skew[i].GC.length; j++) {
@@ -498,8 +502,8 @@ export class Browser {
     this.drawContent();
   }
   //var _this=this;
-  changeContig() {
-    console.log(this.contigs);
+  changeContigSelect() {
+    
     if (this.contigs != undefined) {
       for (var i = 0; i < this.contigs.length; i++) {
 
@@ -509,13 +513,23 @@ export class Browser {
           break;
         }
       }
+      console.log(this.current_contig);
       this.drawAgain();
     }
   }
   changeContig(contig) {
+    for (var i = 0; i < this.contigs.length; i++) {
 
-    this.current_contig = contig;
+      if (this.contigs[i].name == contig) {
+
+        this.current_contig = this.contigs[i];
+        break;
+      }
+    }
+
+    //this.current_contig = contig;
     console.log(this.current_contig);
+    this.contig_select.value=contig;
     this.drawAgain();
 
   }

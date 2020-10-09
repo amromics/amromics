@@ -3,6 +3,7 @@ import Circos from 'circos';
 export class ContigCircos {
   constructor(element) {
     this.container = element;
+    this.container_id=this.container.id;
     this.props = {
       width: 300,
       height: 300
@@ -68,7 +69,7 @@ export class ContigCircos {
     this.props.height = options.height
   }
   draw() {
-
+    var container=this.container;
     this._circos = new Circos({
       container: '#' + this.container.id,
       width: this.props.width,
@@ -108,7 +109,13 @@ export class ContigCircos {
       tooltipContent: function(d) {
         return `${d.label}`
       },
-      events: {}
+      events: {
+        'click.alert': function (datum, index, nodes, event) {
+            container.dispatchEvent(new CustomEvent("contig_select", {
+            detail: datum.id
+          }));
+        }
+      }
     }
     var amr_configuration = {
       innerRadius: 0.70,
