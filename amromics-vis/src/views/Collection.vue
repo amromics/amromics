@@ -14,10 +14,42 @@
   .margin20{
     margin-top:20px;
   }
+  td.details-control {
+    /* background: url('static/expand.png') no-repeat center center; */
+    cursor: pointer;
+}
+tr.shown td.details-control {
+    /* background: url('static/expand.png') no-repeat center center; */
+}
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.center{
+  text-align: center;
+}
 </style>
 <template>
 <div class="wrapper">
-<div  class="container" style="height:500px" >
+  <div class="center" v-if="isLoading" >
+    <div class="loader"></div>
+    <div>Data loading...</div>
+  </div>
+   <div>
+    <h1>Demo pangenome analysis</h1>
+    <h3>Hsuan-Lin Her, Yu-Wei Wu, A pan-genome-based machine learning approach for predicting antimicrobial resistance activities of the Escherichia coli strains, Bioinformatics, Volume 34, Issue 13, 01 July 2018, Pages i89–i95, https://doi.org/10.1093/bioinformatics/bty276</h3>
+  </div>
+<div  class="container" style="height:500px"  v-if="isReady">
 <h1>Core and  Accesory Genes</h1>
 <div v-if="coreData" style="float:left;width:50%;" >
   <PangenomePieChart  :core_data="coreData.group"  />
@@ -51,12 +83,12 @@
 </div>
 <div style="clear:both" class="container margin20"  v-if="phylogenyData">
 <h1>Phylogeny tree</h1>
-<PhylogenyBrowser  :newitck_tree="phylogenyData"  />
+<PhylogenyBrowser  :newitck_tree="phylogenyData" :samples="list_sample"  />
 </div>
 <div class="container margin20"   v-if="list_sample" >
 <h1>Samples</h1>
 <table id='samples_table' class="display">
-  <thead>
+  <!-- <thead>
     <tr>
       <th>Sample ID</th>
       <th>Name</th>
@@ -68,7 +100,7 @@
       <th>Files</th>
       <th>Metadata</th>
     </tr>
-  </thead>
+  </thead> -->
 </table>
 </div>
 </div>
@@ -127,14 +159,14 @@ export default {
       // const value = await CollectionResult.fetchResult()
       // console.log("below is samle id")
       // console.log(this.sampleId)
-
+      this.isReady=false
       const value = await SampleAPI.fetchSetResult();
       //console.log(result)
       var result=value.data.results;
       this.list_sample=value.data.samples;
 
 
-      let isReady=false
+      
 
     for (var i =0;i<result.length;i++){
 
@@ -170,6 +202,7 @@ export default {
     }
 
     this.isLoading=false;
+    this.isReady=true;
 
   },
   loadData(){
@@ -187,9 +220,31 @@ export default {
     ];
       datasource.push(data);
     }
+    //datasource["data"]=this.list_sample;
+    //console.log(datasource);
     var $ = require('jquery');
     var table=$('#samples_table').DataTable({
-      "data": datasource
+      "data": datasource,
+      "columns": [
+           
+            { title: "Sample ID" },
+            { title: "Name" },
+            { title: "Genus" },
+            { title: "Species" },
+            { title: "Strain" },
+            { title: "Gram" },
+            { title: "Types" },
+            { title: "Files" },
+            
+            {
+              title: "Metadata",
+                "className":      'details-control',
+                "orderable":      false,
+                "data":           null,
+                "defaultContent": '+'
+            }
+
+        ]
     });
     $('#samples_table tbody').on('click', 'tr', function () {
       var data = table.row( $(this)).data();
@@ -211,7 +266,7 @@ export default {
     var table_clusters=$('#cluster_table').DataTable({
       data:datasource_gene_clusters
     });
-    $('#cluster_table tbody').on('click', 'tr', function () {
+    $('#cluster_table tbody').on('click', 'td.sorting_1', function () {
       var data = table_clusters.row( $(this)).data();
          
         EventBus.$emit('gene_id_emited', data[0]);
@@ -224,6 +279,34 @@ export default {
         }
 
     } );
+    $('#cluster_table tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = table_clusters.row( tr );
+ 
+        if ( row.child.isShown() ) {
+            // This row is already open - close it
+            row.child.hide();
+            tr.removeClass('shown');
+        }
+        else {
+            // Open this row
+            row.child( format(row.data()) ).show();
+            tr.addClass('shown');
+        }
+    } );
+  },
+   format ( d ) {
+    // `d` is the original data object for the row
+    console.log(d);
+    var html='<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
+    for(var key in d){
+      html+=
+        '<tr>'+
+            '<td>'+key+'</td>'+
+            '<td>'+d.key+'</td>'+
+        '</tr>';
+    }
+    html+='</table>';
   }
 
   }

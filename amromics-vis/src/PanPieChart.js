@@ -15,7 +15,7 @@ export class PanPieChart {
 
   }
   load(groups) {
-    console.log(groups);
+    //console.log(groups);
     var list_numb=[]
       var list_label=[]
 
@@ -66,7 +66,7 @@ export class PanPieChart {
   }
   draw() {
     var context=document.getElementById('pie_canvas');
-    console.log(this.data);
+    //console.log(this.data);
     var myPieChart = new Chart(context, {
         type: 'pie',
         data: this.data,

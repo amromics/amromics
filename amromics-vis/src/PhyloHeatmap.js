@@ -28,9 +28,9 @@ export class PhyloHeatmap {
     this.active_names=[];
     this.cell_size=20;
   }
-  load(phylotree, hits,list_class) {
+  load(phylotree, hits) {
     this.hits = hits;
-    this.list_class=list_class;
+    //this.list_class=list_class;
    
     
     var margin = {
@@ -39,9 +39,9 @@ export class PhyloHeatmap {
       bottom: 60,
       left: 30
     };
-    var width = this.props.width / 5 - margin.left - margin.right;
+    //var width = this.props.width / 5 - margin.left - margin.right;
     //var height = 400 - margin.top - margin.bottom;
-
+    var width_tree = 200 - margin.left - margin.right;
 
     var newick = NewickTools.parse(phylotree);
 
@@ -86,7 +86,7 @@ export class PhyloHeatmap {
       }
     }
     var height=num_leaf*this.cell_size-margin.top - margin.bottom;
-    var distance_per_depth = width / max_depth;
+    var distance_per_depth = width_tree / max_depth;
    
     stack = [];
     stack.push(nodes);
@@ -128,7 +128,7 @@ export class PhyloHeatmap {
     }
     //console.log(nodes);
     //travel again, alter position of nodes
-    const treemap = d3.tree().size([height, width]);
+    const treemap = d3.tree().size([height, width_tree]);
     //
     this.fnodes = treemap(nodes);
 
@@ -162,6 +162,7 @@ export class PhyloHeatmap {
     };
     var width = this.props.width / 5 ;
     //var height = 400 - margin.top - margin.bottom;
+    var height = this.node_leaf.length*this.cell_size- margin.top - margin.bottom;
     var height_rect =this.cell_size;
     var svg2 = d3
       .select("#ph_treeview")
@@ -245,10 +246,30 @@ export class PhyloHeatmap {
           "M" + d.ay + "," + d.ax + "L" + (width + margin.right) + "," + d.ax
         );
       });
+      var y_data=this.arr_sample_from_tree.slice();
+      y_data.reverse();
+      // Build X scales and axis:
+      var y = d3
+        .scaleBand()
+        .range([height, 0])
+        .domain(y_data)
+        .padding(0.01);
+      svg2
+      .append("g")
+      .attr(
+        "transform",
+        "translate(" +
+        (this.props.width / 5+50) +
+        "," +
+        margin.top +
+        ")"
+      )
+      .call(d3.axisLeft(y));
   }
   setActiveNames(names){
     this.active_names=names;
     this.drawTree();
+    this.drawHeatmap();
   }
   
   draw() {
@@ -264,7 +285,7 @@ export class PhyloHeatmap {
     var height = this.node_leaf.length*this.cell_size- margin.top - margin.bottom;
     this.container.style.height=(height+margin.top + margin.bottom)+"px";
     var height_rect = this.cell_size;
-
+    document.getElementById("ph_treeview").innerHTML = "";
     var svg2 = d3
       .select("#ph_treeview")
       .append("svg")
@@ -348,18 +369,18 @@ export class PhyloHeatmap {
         );
       });
     // append the svg object to the body of the page
-    width = this.list_class.length*this.cell_size - margin.left - margin.right;
+    width = this.genes.length*this.cell_size - margin.left - margin.right;
     var svg = d3
       .select("#ph_heatmapview")
       .append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
-      .attr("transform", "translate(" + (margin.left + 50) + "," + margin.top + ")");
+      .attr("transform", "translate(" + (margin.left) + "," + margin.top + ")");
 
     var x = d3
       .scaleBand()
-      .range([0, this.list_class.length*this.cell_size])
+      .range([0, this.genes.length*this.cell_size])
       .domain(this.genes)
       .padding(0.01);
     svg
@@ -380,40 +401,51 @@ export class PhyloHeatmap {
       .range([height, 0])
       .domain(y_data)
       .padding(0.01);
-    svg.append("g").call(d3.axisLeft(y));
-    var amrColor = d3
-      .scaleOrdinal()
-      .domain(this.list_class)
-      .range([
-        "gold",
-        "peru",
-        "chocolate",
-        "yellow",
-        "red",
-        "pink",
-        "#C83200",
-        "#CD3700",
-        "#FF6103",
-        "#CC7722",
-        "#FD6302",
-        "#883000",
-        "#FFBF00",
-        "#CF9812A",
-        "coral",
-        "pumpkin",
-        "tomato",
-        "brown",
-        "vermilion",
-        "orange red",
-        "orange",
-        "crimson",
-        "dark red",
-        "hot pink",
-        "smitten",
-        "magenta",
-        "indigo",
-        "blue violet"
-      ]);
+    svg2
+      .append("g")
+      .attr(
+        "transform",
+        "translate(" +
+        (this.props.width / 5+50) +
+        "," +
+        margin.top +
+        ")"
+      )
+      .call(d3.axisLeft(y));
+   // svg.append("g").call(d3.axisLeft(y));
+    // var amrColor = d3
+    //   .scaleOrdinal()
+    //   .domain(this.list_class)
+    //   .range([
+    //     "gold",
+    //     "peru",
+    //     "chocolate",
+    //     "yellow",
+    //     "red",
+    //     "pink",
+    //     "#C83200",
+    //     "#CD3700",
+    //     "#FF6103",
+    //     "#CC7722",
+    //     "#FD6302",
+    //     "#883000",
+    //     "#FFBF00",
+    //     "#CF9812A",
+    //     "coral",
+    //     "pumpkin",
+    //     "tomato",
+    //     "brown",
+    //     "vermilion",
+    //     "orange red",
+    //     "orange",
+    //     "crimson",
+    //     "dark red",
+    //     "hot pink",
+    //     "smitten",
+    //     "magenta",
+    //     "indigo",
+    //     "blue violet"
+    //   ]);
 
     // create a tooltip
     var tooltip = d3
@@ -478,7 +510,8 @@ export class PhyloHeatmap {
       .attr("height", y.bandwidth())
 
       .style("fill", function(d) {
-            return amrColor(d.class);
+            //return amrColor(d.class);
+            return "#DD2429";
         }
 
       )
@@ -486,6 +519,98 @@ export class PhyloHeatmap {
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave);
+  }
+  drawHeatmap(){
+    var margin = {
+      top: 30,
+      right: 30,
+      bottom: 60,
+      left: 30
+    };
+    var height = this.node_leaf.length*this.cell_size- margin.top - margin.bottom;
+    var width = this.genes.length*this.cell_size - margin.left - margin.right;
+    document.getElementById("ph_heatmapview").innerHTML = "";
+    var svg = d3
+      .select("#ph_heatmapview")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + (margin.left ) + "," + margin.top + ")");
+    var x = d3
+      .scaleBand()
+      .range([0, this.genes.length*this.cell_size])
+      .domain(this.genes)
+      .padding(0.01);
+    var selected_samples=this.active_names;  
+    var highlight_genes=new Set();
+    for (var i=0;i<this.hits.length;i++){
+      //console.log(this.hits[i].sample);
+      if (selected_samples.includes(this.hits[i].sample)){
+        highlight_genes.add(this.hits[i].gene);
+      }
+    }
+    //console.log(highlight_genes);
+    var tick_x=svg
+      .append("g")
+      .attr("transform", "translate(" + 0 + "," + height + ") ")
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".25em")
+      .attr("transform", "rotate(-65)")
+      .style("font-weight", function(d) {
+        //console.log(d);
+        if(highlight_genes.has(d)){
+         
+          return "bold";
+        }
+        else{
+          //console.log("no bold"+d);
+          return "normal";
+        }
+        
+      })
+     ;
+    var selected_samples=this.active_names;
+    var y_data=this.arr_sample_from_tree.slice();
+    y_data.reverse();
+    // Build X scales and axis:
+    var y = d3
+      .scaleBand()
+      .range([height, 0])
+      .domain(y_data)
+      .padding(0.01);
+    // svg.append("g").call(d3.axisLeft(y));
+    
+    svg
+      .selectAll()
+      .data(this.hits, function(d) {
+       
+          return d.sample + ":" + d.gene;
+      })
+      .enter()
+      .append("rect")
+      .attr("x", function(d) {
+        return x(d.gene);
+      })
+      .attr("y", function(d) {
+        return y(d.sample);
+      })
+      .attr("width", x.bandwidth())
+      .attr("height", y.bandwidth())
+
+      .style("fill", function(d) {
+            //return amrColor(d.class);
+          if(selected_samples.includes(d.sample) )
+            return "#6E1214";
+          else
+          return "#DD2429";
+        }
+
+      )
+     .style("stroke", "white");
   }
 }
 export default PhyloHeatmap
