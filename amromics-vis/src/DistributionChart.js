@@ -15,7 +15,7 @@ export class DistributionChart {
 
   }
   load(clusters) {
-    console.log(clusters);
+    //console.log(clusters);
     var list_data=[];
         var list_label=[];
 
@@ -56,7 +56,7 @@ export class DistributionChart {
   }
   draw() {
     var context=document.getElementById('distribution_canvas');
-    console.log(this.data);
+    //console.log(this.data);
     var myLineChart = new Chart(context, {
           type: 'line',
           data: this.data,

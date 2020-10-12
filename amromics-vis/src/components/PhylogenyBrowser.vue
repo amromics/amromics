@@ -11,7 +11,7 @@ import EventBus from '@/event-bus.js';
 // import SampleIGV from "@/components/Visualization/IGV";
 export default {
     name: 'PhylogenyBrowser',
-    props: ['newitck_tree'],
+    props: ['newitck_tree','samples'],
     data() {
         return {
             loading: false,
@@ -26,7 +26,15 @@ export default {
       var tree = new Phylogeny(ctx);
       var tree_data=this.newitck_tree.replace(/.ref/g,"");  
       tree_data=tree_data.replace(/_contigs.fasta/g,'');      
-      tree.load(tree_data);
+      var metadata={};
+     
+      for (var i =0 ;i<this.samples.length;i++){
+        //console.log(this.samples[i].metadata);
+        
+        metadata[this.samples[i].id]=this.samples[i].metadata;
+      }
+      // console.log(metadata);
+      tree.load(tree_data,metadata);
       
       tree.draw();
       tree.tree.on('updated', ({
@@ -43,6 +51,7 @@ export default {
         }
       });
       this.loading = false;
+      
     },
     async created() {
 

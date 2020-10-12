@@ -20,7 +20,7 @@ export default {
     mounted() {
       this.loading = true;
       var ctx=document.getElementById('piechart');
-    console.log(this.core_data);
+    //console.log(this.core_data);
       var pie = new PanPieChart(ctx);
       pie.load(this.core_data);
       

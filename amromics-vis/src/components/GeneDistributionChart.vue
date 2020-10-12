@@ -20,7 +20,7 @@ export default {
   mounted() {
     this.loading = true;
     var ctx=document.getElementById('dischart');
-    console.log(this.core_data);
+    //console.log(this.core_data);
     var dischart = new DistributionChart(ctx);
     dischart.load(this.cluster_data);
 

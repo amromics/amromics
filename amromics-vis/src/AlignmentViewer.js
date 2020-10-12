@@ -422,8 +422,8 @@ export class AlignmentViewer {
     // Build X scales and axis:
 
     //svg.append("g").call(d3.axisLeft(y));
-    console.log(this.arr_sample_from_tree);
-      console.log(this.phylotree);
+    //console.log(this.arr_sample_from_tree);
+      //console.log(this.phylotree);
 
     // var y = d3
     //   .scaleBand()

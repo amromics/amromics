@@ -60,7 +60,7 @@ export default {
     this.tree_data=this.tree_data.replace(/_contigs.fasta/g,'');  
     //console.log(this.list_amr_hits);
     //console.log(this.list_amr_class);
-    this.heatmapview.load(this.tree_data,this.list_amr_hits,this.list_amr_class);
+    this.heatmapview.load(this.tree_data,this.list_amr_hits);
     this.heatmapview.setOptions({width:900,height:400});
     this.heatmapview.draw();
     EventBus.$on('samples_emited', arr_ids => {
@@ -80,9 +80,9 @@ export default {
               //get currrent contigs
               console.log(this.selected_data);
               if (this.selected_data=="amr")
-                this.heatmapview.load(this.tree_data,this.list_amr_hits,this.list_amr_class);
+                this.heatmapview.load(this.tree_data,this.list_amr_hits);
               if (this.selected_data=="vir")
-                  this.heatmapview.load(this.tree_data,this.list_vir_hits,this.list_vir_class);
+                  this.heatmapview.load(this.tree_data,this.list_vir_hits);
               this.heatmapview.draw();
           }
   }
