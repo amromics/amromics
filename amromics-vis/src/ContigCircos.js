@@ -8,9 +8,36 @@ export class ContigCircos {
       width: 300,
       height: 300
     };
-
-
-
+    var legend_container = document.createElement('div');
+    var list_legend=[{label:"AMR gene",color:"#fd6a62"},
+                    {label:"Virulome gene",color:"#bebada"},
+                    {label:"GC skew",color:"black"}
+    ]
+    for(var v in list_legend){
+      var box = document.createElement('div');
+      box.style.width="20px";
+      box.style.height="20px";
+      box.style.float="left";
+      box.style.marginRight="3px";
+      box.style.backgroundColor=list_legend[v].color;
+      var text = document.createElement('div');
+      text.innerHTML=list_legend[v].label;
+      text.style.float="left";
+      var legend=document.createElement('div');
+      legend.style.float="left";
+      legend.style.marginRight="20px";
+      legend.style.marginTop="10px";
+      legend.appendChild(box);
+      legend.appendChild(text);
+      legend_container.appendChild(legend);
+    }
+    
+    
+    
+    this.circos_container=document.createElement('div');
+    this.circos_container.id="circos_view";
+    this.container.appendChild(this.circos_container);
+    this.container.appendChild(legend_container);
   }
   load(contig,amr_genes, virulome_genes, skew) {
     this.contigs=contig;
@@ -71,7 +98,7 @@ export class ContigCircos {
   draw() {
     var container=this.container;
     this._circos = new Circos({
-      container: '#' + this.container.id,
+      container: '#' + this.circos_container.id,
       width: this.props.width,
       height: this.props.height,
     });
