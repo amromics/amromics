@@ -1,5 +1,6 @@
 /* eslint-disable */
 import Chart from 'chart.js';
+import * as ChartAnnotation from 'chartjs-plugin-annotation';
 export class N50Chart{
   constructor(element) {
     this.container=element;
@@ -13,11 +14,11 @@ export class N50Chart{
     this.list_data = []
     this.list_labels = []
 
-    let sum = 0
+    this.sum = 0
 
     for (var i = 0; i < this.input.length; i++) {
-        sum = sum + this.input[i].length
-        this.list_data.push(sum)
+        this.sum = this.sum + this.input[i].length;
+        this.list_data.push(this.sum);
         this.list_labels.push(i + 1)
                         //console.log(sum)
     }
@@ -83,6 +84,22 @@ export class N50Chart{
                       labelString: this.props.y_label
                   }
                 }]
+            },
+            annotation: {
+              annotations: [
+                {
+                  type: "line",
+                  mode: 'horizontal',
+                  scaleID: 'y-axis-0',
+                  borderColor: "red",
+                  value:this.sum/2,
+                  label: {
+                    content: this.sum/2,
+                    enabled: true,
+                    
+                  }
+                }
+              ]
             }
         }
     });

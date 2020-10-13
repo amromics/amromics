@@ -58,6 +58,7 @@
         <div >Genus:{{sample_info.genus}}</div><div>Species:{{sample_info.species}}</div><div>Strain:{{sample_info.strain}}</div><div>Gram:{{sample_info.gram}}</div>
         <div>Input Files:{{sample_info.files}}</div>
       </div>
+      <h3>Metadata</h3>
       <table id='metadata_table'>
       <thead>
         <tr>
@@ -65,7 +66,6 @@
           <th>Value</th>
         </tr>
       </thead>
-      
     </table>
     </div>
 <div v-if="loaded" class="container" style="height:550px" >
