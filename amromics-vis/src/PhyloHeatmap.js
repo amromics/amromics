@@ -583,7 +583,47 @@ export class PhyloHeatmap {
       .domain(y_data)
       .padding(0.01);
     // svg.append("g").call(d3.axisLeft(y));
-    
+     // create a tooltip
+     var tooltip = d3
+     .select("#ph_heatmapview")
+     .append("div")
+     .style("opacity", 0)
+     .attr("class", "tooltip")
+     .style("position","absolute")
+     .style("background-color", "white")
+     .style("border", "solid")
+     .style("border-width", "2px")
+     .style("border-radius", "5px")
+     .style("padding", "5px");
+
+   // Three function that change the tooltip when user hover / move / leave a cell
+   var mouseover = function(d) {
+     tooltip.style("opacity", 1);
+
+     d3.select(this)
+       .style("stroke", "black")
+       .style("opacity", 1);
+
+   };
+   var mousemove = function(d) {
+     tooltip
+       .html(
+         d.gene +
+         " in " +
+         d.sample +
+         "<br>" +
+         "Identity: " +
+         d.identity +
+         "<br>" + (d.type == "amr" ? d.class : d.product)
+
+       )
+       .style("left", d3.mouse(this)[0] + 70 + "px")
+       .style("top", d3.mouse(this)[1] + "px");
+   };
+   var mouseleave = function(d) {
+     tooltip.style("opacity", 0);
+     d3.select(this).style("stroke", "white");
+   };
     svg
       .selectAll()
       .data(this.hits, function(d) {
@@ -610,7 +650,10 @@ export class PhyloHeatmap {
         }
 
       )
-     .style("stroke", "white");
+     .style("stroke", "white")
+     .on("mouseover", mouseover)
+     .on("mousemove", mousemove)
+     .on("mouseleave", mouseleave);
   }
 }
 export default PhyloHeatmap
