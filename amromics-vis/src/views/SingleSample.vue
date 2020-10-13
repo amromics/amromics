@@ -23,9 +23,51 @@
     float:left;
     margin-right: 20px;
   }
+  .loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.center {
+  text-align: center;
+}
 </style>
 <template>
 <div class="wrapper">
+  <div class="center" v-if="!loaded">
+      <div class="loader"></div>
+      <div>Data loading...</div>
+    </div>
+   <div class="container" v-if="loaded">
+      <h1>{{sampleId}}</h1>
+      <div>
+        <div>Sample name:{{sample_info.name}}</div>
+        <div >Genus:{{sample_info.genus}}</div><div>Species:{{sample_info.species}}</div><div>Strain:{{sample_info.strain}}</div><div>Gram:{{sample_info.gram}}</div>
+        <div>Input Files:{{sample_info.files}}</div>
+      </div>
+      <table id='metadata_table'>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      
+    </table>
+    </div>
 <div v-if="loaded" class="container" style="height:550px" >
 <div>
 <h1>Assembly Stats</h1>
@@ -178,6 +220,7 @@ export default {
       skewData: undefined,
       contentData: undefined,
       annotationData: undefined,
+      sample_info:undefined,
       loaded:false
 
     };
@@ -220,6 +263,17 @@ export default {
           }
 
       } );
+      var datasource = [];
+      for (var key in this.sample_info.metadata) {
+        var data = [
+          key,
+          this.sample_info.metadata[key]
+        ];
+        datasource.push(data);
+      }
+      var table_assembly=$('#metadata_table').DataTable({
+        data: datasource,
+      });  
     },
     async fetchData(){
       const ret = await SampleAPI.fetchResult(this.sampleId);
@@ -253,12 +307,14 @@ export default {
         } else if (ret.data.execution.result[i].group == 'ANNOTATION') {
           this.annotationData = ret.data.execution.result[i].data;
 
-        }
-      
-        
-          this.loaded=true;
+        }       
+          
           
       }
+      this.sample_info={name:ret.data.name,genus:ret.data.genus,species:ret.data.species,strain:ret.data.strain,gram:ret.data.gram,files:ret.data.files,metadata:ret.data.metadata};
+      
+      this.loaded=true;
+
     }
   }
 

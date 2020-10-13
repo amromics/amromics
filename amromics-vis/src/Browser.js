@@ -97,7 +97,7 @@ export class Browser {
     this.gc_content = content;
     //this.gc_content_window=content.window;
     //this.gc_content_step=content.step;
-    console.log(contigs)
+    //console.log(contigs)
     for (var i = 0; i < this.contigs.length; i++) {
 
       var opt = document.createElement('option');
@@ -513,7 +513,7 @@ export class Browser {
           break;
         }
       }
-      console.log(this.current_contig);
+      //console.log(this.current_contig);
       this.drawAgain();
     }
   }
@@ -528,13 +528,13 @@ export class Browser {
     }
 
     //this.current_contig = contig;
-    console.log(this.current_contig);
+    //console.log(this.current_contig);
     this.contig_select.value=contig;
     this.drawAgain();
 
   }
   zoomIn() {
-    console.log(this.zoomOut);
+    //console.log(this.zoomOut);
     //console.log("event zoom in");
     if (this.scale < 1)
       this.scale = this.scale + 0.01;

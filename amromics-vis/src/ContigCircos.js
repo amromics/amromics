@@ -114,6 +114,9 @@ export class ContigCircos {
             container.dispatchEvent(new CustomEvent("contig_select", {
             detail: datum.id
           }));
+        },
+        'mouseover':function (datum, index, nodes, event) {
+          nodes.style.border="solid 1px";
         }
       }
     }
