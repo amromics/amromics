@@ -7,7 +7,7 @@ export class AlignmentViewer {
   constructor(element) {
     this.container = element;
     this.props = {
-      width: 1200,
+      width: this.container.clientWidth,
       height: 400
     };
     this.treeview = document.createElement("div");
@@ -158,7 +158,7 @@ export class AlignmentViewer {
 
     //console.log("after rename");
     //console.log(newick_raw);
-    var width_tree = 200 - margin.left - margin.right;
+    var width_tree = this.props.width / 5 - margin.left - margin.right-50;
     var newick = NewickTools.parse(newick_raw);
 
     //console.log(newick);

@@ -8,7 +8,7 @@
   }
   .container{
     clear:both;
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
     margin: 20px;
     padding:20px;
@@ -59,7 +59,7 @@
         <div>Input Files:{{sample_info.files}}</div>
       </div>
       <h3>Metadata</h3>
-      <table id='metadata_table'>
+      <table id='metadata_table' class="display">
       <thead>
         <tr>
           <th>Field</th>
@@ -82,19 +82,9 @@
     <ContigLengthChart  :list_contig="assemblyData.contigs"/>
   </div>
   <div style="float:left;width:50%">
-    <table id='assembly_table'>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Length</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in assemblyData.contigs" :key="item.name">
-          <td>{{item.name}}</td>
-          <td>{{item.length}}</td>
-        </tr>
-      </tbody>
+    <table id='assembly_table' class="hover">
+     
+     
     </table>
   </div>
 
@@ -116,9 +106,9 @@
 
 <div  class="container">
 <h1>
-Antibiotics Microbial Resistance
+Antimicrobial resistance genes
 </h1>
-<table id='amr_table' v-if="resistomeData">
+<table id='amr_table' class="display" v-if="resistomeData">
   <thead>
     <tr>
       <th>Sequence</th>
@@ -151,7 +141,7 @@ Antibiotics Microbial Resistance
 </div>
 <div v-if="loaded" class="container">
 <h1>Virulome</h1>
-<table id ='virulome_table' v-if="virulomeData">
+<table id ='virulome_table' class="display" v-if="virulomeData">
   <thead>
     <tr>
       <th>Sequence</th>
@@ -246,13 +236,29 @@ export default {
   methods: {
     loadTable(){
       var $ = require('jquery');
-      
-      var table_assembly=$('#assembly_table').DataTable();  
+      var datasource = [];
+      for (var i = 0; i < this.assemblyData.contigs.length; i++) {
+        var data = [
+          this.assemblyData.contigs[i].name,
+          this.assemblyData.contigs[i].length
+         
+        ];
+        datasource.push(data);
+      }
+      var table_assembly=$('#assembly_table').DataTable({
+        data:datasource,
+        columns: [
+       
+          { title: "Contig" },
+          { title: "Length" }
+         
+        ]
+      });  
       $('#amr_table').DataTable();
       $('#virulome_table').DataTable();
-      $('#assembly_table tbody').on('click', 'tr', function () {
+      $('#assembly_table tbody').on('click', "td.sorting_1", function () {
         var data = table_assembly.row( $(this)).data();
-           
+          console.log(data);
           EventBus.$emit('contig_emited', data[0]);
           if ( $(this).hasClass('selected') ) {
               $(this).removeClass('selected');
