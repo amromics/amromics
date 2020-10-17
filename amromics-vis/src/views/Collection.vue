@@ -7,7 +7,7 @@
   padding-right: 8px;
 }
 .container {
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
   transition: 0.3s;
   padding: 20px;
 }
@@ -15,14 +15,14 @@
   margin-top: 20px;
 }
 td.details-control {
-  /* background: url('static/expand.png') no-repeat center center; */
+  background: url('/static/expand.png') no-repeat center center; 
   cursor: pointer;
 }
-td.sorting_1{
+.sorting_1{
   cursor:pointer;
 }
 tr.shown td.details-control {
-  /* background: url('static/expand.png') no-repeat center center; */
+  background: url('/static/expand.png') no-repeat center center; 
 }
 .loader {
   border: 16px solid #f3f3f3; /* Light grey */
@@ -67,7 +67,7 @@ tr.shown td.details-control {
     </div>
     <div class="container margin20" v-if="geneClusterData">
       <h1>Gene clusters</h1>
-      <table id="cluster_table">
+      <table id="cluster_table" class="hover">
         <thead>
           <tr>
             <th>Gene</th>
@@ -79,13 +79,13 @@ tr.shown td.details-control {
         </thead>
       </table>
     </div>
-    <div class="container margin20" style="clear:both;min-height:300px" v-if="alignmentData">
+    <div class="container margin20" style="clear:both;" v-if="alignmentData">
       <h1>Genes Alignment</h1>
       <AlignmentComp :alignmentData="alignmentData" />
     </div>
     <div
       class="container margin20"
-      style="clear:both;margin-bottom:30px;min-height:500px"
+      style="clear:both;margin-bottom:30px;"
       v-if="phylogenyData"
     >
       <h1>Heatmap</h1>
@@ -203,6 +203,33 @@ export default {
       this.isReady = true;
     },
     loadData() {
+      var $ = require("jquery");
+      var datasource_gene_clusters = [];
+      for (var i = 0; i < this.geneClusterData.genes.length; i++) {
+        var data = [
+          this.geneClusterData.genes[i].gene,
+          this.geneClusterData.genes[i].annotation,
+          this.geneClusterData.genes[i].noisolates,
+          this.geneClusterData.genes[i].nosequences,
+          this.geneClusterData.genes[i].length
+        ];
+        datasource_gene_clusters.push(data);
+      }
+      //console.log(datasource_gene_clusters);
+      var table_clusters = $("#cluster_table").DataTable({
+        data: datasource_gene_clusters
+      });
+      $("#cluster_table tbody").on("click", "tr", function() {
+        var data = table_clusters.row($(this)).data();
+
+        EventBus.$emit("gene_id_emited", data[0]);
+        if ($(this).hasClass("selected")) {
+          $(this).removeClass("selected");
+        } else {
+          table_clusters.$("tr.selected").removeClass("selected");
+          $(this).addClass("selected");
+        }
+      });
       var datasource = [];
       for (var i = 0; i < this.list_sample.length; i++) {
         var data = [
@@ -220,7 +247,7 @@ export default {
       }
       //datasource["data"]=this.list_sample;
       //console.log(datasource);
-      var $ = require("jquery");
+     
       var table = $("#samples_table").DataTable({
         data: datasource,
         columns: [
@@ -238,7 +265,7 @@ export default {
             className: "details-control",
             orderable: false,
             data: null,
-            defaultContent: "+"
+            defaultContent: "Click to open"
           }
         ]
       });
@@ -278,32 +305,7 @@ export default {
           tr.addClass("shown");
         }
       });
-      var datasource_gene_clusters = [];
-      for (var i = 0; i < this.geneClusterData.genes.length; i++) {
-        var data = [
-          this.geneClusterData.genes[i].gene,
-          this.geneClusterData.genes[i].annotation,
-          this.geneClusterData.genes[i].noisolates,
-          this.geneClusterData.genes[i].nosequences,
-          this.geneClusterData.genes[i].length
-        ];
-        datasource_gene_clusters.push(data);
-      }
-      //console.log(datasource_gene_clusters);
-      var table_clusters = $("#cluster_table").DataTable({
-        data: datasource_gene_clusters
-      });
-      $("#cluster_table tbody").on("click", "tr", function() {
-        var data = table_clusters.row($(this)).data();
-
-        EventBus.$emit("gene_id_emited", data[0]);
-        if ($(this).hasClass("selected")) {
-          $(this).removeClass("selected");
-        } else {
-          table_clusters.$("tr.selected").removeClass("selected");
-          $(this).addClass("selected");
-        }
-      });
+ 
     }
   }
 };

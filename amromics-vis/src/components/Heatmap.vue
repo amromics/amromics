@@ -8,7 +8,7 @@
     <option v-for="item  in list_type" :key="item.name" :value="item.type">{{item.name}}</option>
   </select>
 </div>
-<div id="heatmap">
+<div id="heatmap" style="width:100%">
 </div>
 </div>
 
@@ -61,7 +61,7 @@ export default {
     //console.log(this.list_amr_hits);
     //console.log(this.list_amr_class);
     this.heatmapview.load(this.tree_data,this.list_amr_hits);
-    this.heatmapview.setOptions({width:900,height:400});
+    //this.heatmapview.setOptions({width:900,height:400});
     this.heatmapview.draw();
     EventBus.$on('samples_emited', arr_ids => {
       console.log('sample_emited '+arr_ids);
