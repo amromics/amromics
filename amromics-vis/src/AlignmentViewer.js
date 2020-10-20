@@ -118,6 +118,7 @@ export class AlignmentViewer {
     else{
       for (var i = 0; i < this.samples.length; i++) {
         var prot_seq=this.translateDNA2Prot(this.samples[i].seq);
+        //console.log(prot_seq);
         var arr = [...prot_seq];
         list_sample.push(this.samples[i].sample);
         taxa.push({
@@ -639,7 +640,8 @@ export class AlignmentViewer {
       'T': ['ACA', 'ACC', 'ACG', 'ACT'],
       'V': ['GTA', 'GTC', 'GTG', 'GTT'],
       'W': ['TGG'],
-      'Y': ['TAC', 'TAT']
+      'Y': ['TAC', 'TAT'],
+      '':['TAA','TAG']
     };
 
     // codon dictionary derived from aminoDict
@@ -649,8 +651,15 @@ export class AlignmentViewer {
         codonDict[a] = k
 
     let result = ''
-    for (let i = 0; i < dna_seq.length; i += 3)
-      result += codonDict[dna_seq.substr(i, 3)]
+    for (let i = 0; i < dna_seq.length; i += 3){
+      //console.log(dna_seq.substr(i, 3)+"->"+codonDict[dna_seq.substr(i, 3)]);
+      var codon=dna_seq.substr(i, 3);
+      if(codon.lenght==3)
+        result += codonDict[codon];
+
+
+    }
+      
     return result;
   }
 }

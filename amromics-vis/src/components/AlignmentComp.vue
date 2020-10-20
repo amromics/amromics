@@ -25,7 +25,6 @@
 </style>
 <template>
   <div>
-  
     <div id="aligmentview" style="width:100%"></div>
   </div>
 </template>

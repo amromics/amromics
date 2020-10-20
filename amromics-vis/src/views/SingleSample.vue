@@ -23,6 +23,9 @@
     float:left;
     margin-right: 20px;
   }
+  .margin-r5 {
+    margin-right: 5px;
+  }
   .loader {
   border: 16px solid #f3f3f3; /* Light grey */
   border-top: 16px solid #3498db; /* Blue */
@@ -68,7 +71,7 @@
       </thead>
     </table>
     </div>
-<div v-if="loaded" class="container" style="height:550px" >
+<div v-if="loaded" class="container">
 <div>
 <h1>Assembly Stats</h1>
 </div>
@@ -78,13 +81,25 @@
                   <div class="marR20">Min length <span class='bold mar10'>{{assemblyData.min_length}}</span></div>
                   <div class="marR20">Max length <span class='bold mar10'>{{assemblyData.max_length}}</span></div>
 </div>
-  <div style="float:left;width:50%">
+  <div style="width:100%">
     <ContigLengthChart  :list_contig="assemblyData.contigs"/>
   </div>
-  <div style="float:left;width:50%">
+  <div style="width:100%">
     <table id='assembly_table' class="hover">
-     
-     
+    </table>
+  </div>
+
+</div>
+<div v-if="loaded" class="container">
+<div>
+<h1>MLST</h1>
+</div>
+<div style="width:100%">
+  <div class="left-align bold margin-r5">MLST:</div>
+  <div>{{mlstData.st}}</div>
+</div>
+ <div style="width:100%">
+    <table id='mlst_table' class="display">
     </table>
   </div>
 
@@ -104,7 +119,7 @@
   </div>
 </div>
 
-<div  class="container">
+<div  class="container" v-if="loaded">
 <h1>
 Antimicrobial resistance genes
 </h1>
@@ -236,17 +251,17 @@ export default {
   methods: {
     loadTable(){
       var $ = require('jquery');
-      var datasource = [];
+      var datasource_asm = [];
       for (var i = 0; i < this.assemblyData.contigs.length; i++) {
         var data = [
           this.assemblyData.contigs[i].name,
           this.assemblyData.contigs[i].length
          
         ];
-        datasource.push(data);
+        datasource_asm.push(data);
       }
       var table_assembly=$('#assembly_table').DataTable({
-        data:datasource,
+        data:datasource_asm,
         columns: [
        
           { title: "Contig" },
@@ -269,16 +284,34 @@ export default {
           }
 
       } );
-      var datasource = [];
+      var datasource_meta = [];
       for (var key in this.sample_info.metadata) {
         var data = [
           key,
           this.sample_info.metadata[key]
         ];
-        datasource.push(data);
+        datasource_meta.push(data);
       }
-      var table_assembly=$('#metadata_table').DataTable({
-        data: datasource,
+      var metadata_assembly=$('#metadata_table').DataTable({
+        data: datasource_meta,
+      });  
+      var datasource_mlst = [];
+      console.log(this.mlstData.hits);
+      for (var i=0; i<this.mlstData.hits.length;i++) {
+        var data = [
+          this.mlstData.hits[i].locus,
+          this.mlstData.hits[i].allele
+        ];
+        datasource_mlst.push(data);
+      }
+      var mlst_table=$('#mlst_table').DataTable({
+        data: datasource_mlst,
+        columns: [
+       
+          { title: "Locus" },
+          { title: "Allele" }
+         
+        ]
       });  
     },
     async fetchData(){

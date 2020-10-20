@@ -15,14 +15,14 @@
   margin-top: 20px;
 }
 td.details-control {
-  background: url('/static/expand.png') no-repeat center center; 
+  background: url('/static/expand.png') no-repeat center center;
   cursor: pointer;
 }
 .sorting_1{
   cursor:pointer;
 }
 tr.shown td.details-control {
-  background: url('/static/expand.png') no-repeat center center; 
+  background: url('/static/expand.png') no-repeat center center;
 }
 .loader {
   border: 16px solid #f3f3f3; /* Light grey */
@@ -95,22 +95,9 @@ tr.shown td.details-control {
       <h1>Phylogeny tree</h1>
       <PhylogenyBrowser :newitck_tree="phylogenyData" :samples="list_sample" />
     </div>
-    <div class="container margin20" v-if="list_sample">
+    <div class="container margin20" v-if="isReady">
       <h1>Samples</h1>
       <table id="samples_table" class="display">
-        <!-- <thead>
-    <tr>
-      <th>Sample ID</th>
-      <th>Name</th>
-      <th>Genus</th>
-      <th>Species</th>
-      <th>Strain</th>
-      <th>Gram</th>
-      <th>Input type</th>
-      <th>Files</th>
-      <th>Metadata</th>
-    </tr>
-        </thead>-->
       </table>
     </div>
   </div>
