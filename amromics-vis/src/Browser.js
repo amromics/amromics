@@ -66,6 +66,11 @@ export class Browser {
     this.contig_select = document.createElement('select');
     this.contig_select.id="select_contig";
     this.contig_select.addEventListener("change", this.changeContigSelect.bind(this));
+
+    this.control_loading = document.createElement('div');
+    this.control_loading.style.margin = "10px";
+    this.control_loading.style.float = "left";
+    this.control_loading.innerText="";
    
     //Event.observe(this.contig_select, 'change', changeContig.bind(this));
     control_select.appendChild(this.contig_select);
@@ -73,7 +78,7 @@ export class Browser {
     control_zoom.appendChild(control_zoom_in);
     control_div.appendChild(control_zoom);
     control_div.appendChild(control_select);
-
+    control_div.appendChild(this.control_loading);
     var content_div = document.createElement('div');
     content_div.style.width = (this.props.width) + "px";
     content_div.style.height = "500px";
@@ -95,6 +100,7 @@ export class Browser {
     this.knowngenes = genes;
     this.gc_skew = skew;
     this.gc_content = content;
+    console.log(this.gc_content);
     //this.gc_content_window=content.window;
     //this.gc_content_step=content.step;
     //console.log(contigs)
@@ -239,13 +245,17 @@ export class Browser {
       .attr("y", 15)
       .text("Genes");
     var tooltip = d3
-      .select("#trackSVG")
+      .select("#track_div")
       .append("div")
       .style("opacity", 0)
       .attr("class", "tooltip")
+      .style("position","relative")
+      .style("width","300px")
+      .style("font-size","small")
       .style("background-color", "white")
       .style("border", "solid")
-      .style("border-width", "2px")
+      .style("border-color","#666")
+      .style("border-width", "1px")
       .style("border-radius", "5px")
       .style("padding", "5px");
 
@@ -257,23 +267,22 @@ export class Browser {
         .style("opacity", 1);
     };
     var mousemove = function(d) {
+      //console.log(d);
       tooltip
         .html(
           d.start +
           " ->" +
           d.end +
-          ":" + d.gene +
+          ":" + d.name +
           "<br>" +
-          "Type: " + d.type +
-          "<br/>Product:" + d.product
-
-
-
+          "<b>Type</b>: " + d.type +
+          "<br/><b>Product</b>:" + d.product
         )
-        .style("left", d3.mouse(this)[0] + 70 + "px")
-        .style("top", d3.mouse(this)[1] + "px");
+        .style("left", d3.mouse(this)[0] + 20 + "px")
+        .style("top", (d3.mouse(this)[1]-100) + "px");
     };
     var mouseleave = function(d) {
+      console.log("mouse leave");
       tooltip.style("opacity", 0);
       d3.select(this).style("stroke", "white");
     };
@@ -286,26 +295,31 @@ export class Browser {
     //console.log(data);
     for (var i = 0; i < data.length; i++) {
 
-      this.drawGeneBlock(i, g_track, data[i].start * this.scale, data[i].end * this.scale, data[i].strain, data[i].name, this.props.color, mouseover, mousemove, mouseleave);
+      this.drawGeneBlock(i,data[i], g_track, data[i].start * this.scale, data[i].end * this.scale, data[i].strain, data[i].name, this.props.color, mouseover, mousemove, mouseleave);
     }
   }
 
 
-  drawGeneBlock(i, g, pos_s, pos_e, direction, label, color, mouseover, mousemove, mouseleave) {
+  drawGeneBlock(i,data, g, pos_s, pos_e, direction, label, color, mouseover, mousemove, mouseleave) {
     var level = i % 4 + 1;
+ 
     if (direction == "+") {
       g.append("polygon")
+        .datum(data)
         .attr("points", pos_s + "," + (10 + level * 20) + " " + (pos_s + 10) + "," + (20 + level * 20) + " " + pos_e + "," + (20 + level * 20) + " " + pos_e + "," + (0 + level * 20) + " " + (pos_s + 10) + "," + (0 + level * 20))
         .style("fill", color)
-        .style("stroke", "black")
-        .style("stroke-width", 1)
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseleave", mouseleave);
 
     } else {
       g.append("polygon")
+        .datum(data)  
         .attr("points", pos_s + "," + (0 + level * 20) + " " + pos_s + "," + (20 + level * 20) + " " + (pos_e - 10) + "," + (20 + level * 20) + " " + pos_e + "," + (10 + level * 20) + " " + (pos_e - 10) + "," + (0 + level * 20))
-        .style("fill", color)
-        .style("stroke", "black")
-        .style("stroke-width", 1)
+        .style("fill", color)       
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseleave", mouseleave);
 
     }
     g.append("text")
@@ -316,17 +330,23 @@ export class Browser {
   }
   drawSkew() {
     var data = [];
-    console.log(this.current_contig.name);
+    //console.log(this.current_contig.name);
+    var max_cum=0.0;
     for (var i = 0; i < this.gc_skew.length; i++) {
-      if (this.gc_skew[i].contig.split(' ')[0] == this.current_contig.name)
+      if (this.gc_skew[i].contig.split(' ')[0] == this.current_contig.name){
+        var cumulative_value=0.0;
+        
         for (var j = 0; j < this.gc_skew[i].GC.length; j++) {
+          cumulative_value=cumulative_value+this.gc_skew[i].GC[j];
+          if(max_cum<cumulative_value)max_cum=cumulative_value;
           data.push({
             contig: this.gc_skew[i].contig.split(' ')[0],
-            position: j * 100 + 1000,
-            value: this.gc_skew[i].GC[j]
+            position: j * 100 ,
+            value: this.gc_skew[i].GC[j],
+            cum:cumulative_value
           });
         }
-
+      }
 
     }
     var track_h = 120;
@@ -353,10 +373,10 @@ export class Browser {
 
 
 
-    var pre_point = data[0].value;
+    var pre_point = data[0];
     for (var i = 1; i < data.length; i++) {
-      this.drawSkewLine(g_track, data[i].position * this.scale, 100 * this.scale, data[i].value, pre_point);
-      pre_point = data[i].value;
+      this.drawSkewLine(g_track, data[i].position * this.scale, 100 * this.scale, data[i],pre_point,max_cum);
+      pre_point = data[i];
     }
     //draw oy axis
     g_track.append("line")
@@ -396,16 +416,25 @@ export class Browser {
 
 
   }
-  drawSkewLine(g, pos_s, window_size, value, pre_value) {
+  drawSkewLine(g, pos_s, window_size, data, pre_data,max_cum) {
 
     g.append("line")
       .attr("x1", pos_s - window_size)
-      .attr("y1", 50 - pre_value * 50)
+      .attr("y1", 50 - pre_data.value * 50)
       .attr("x2", pos_s)
-      .attr("y2", 50 - value * 50)
+      .attr("y2", 50 - data.value * 50)
       .style("fill", "#0C4524")
       .style("stroke", "black")
       .style("stroke-width", 1)
+    
+    // g.append("line")
+    //   .attr("x1", pos_s - window_size)
+    //   .attr("y1", 50 - pre_data.cum/max_cum * 50)
+    //   .attr("x2", pos_s)
+    //   .attr("y2", 50 - data.cum/max_cum * 50)
+    //   .style("fill", "#0C4524")
+    //   .style("stroke", "blue")
+    //   .style("stroke-width", 1)
 
   }
   drawContent() {
@@ -416,8 +445,8 @@ export class Browser {
         for (var j = 0; j < this.gc_content[i].GC.length; j++) {
           data.push({
             contig: this.gc_content[i].contig.split(' ')[0],
-            position: j * 100 + 1000,
-            value: this.gc_content[i].GC[j]
+            position: j * 100 ,
+            value: this.gc_content[i].GC[j]*100
           });
         }
 
@@ -444,7 +473,7 @@ export class Browser {
       .attr("x", 10)
       .attr("y", -10)
       .text("GC content");
-    //console.log(data);
+   // console.log(data);
     var pre_point = data[0].value;
     for (var i = 0; i < data.length; i++) {
       this.drawContentLine(g_track, data[i].position * this.scale, 100 * this.scale, data[i].value, pre_point);
@@ -486,20 +515,22 @@ export class Browser {
 
     g.append("line")
       .attr("x1", pos_s - window_size)
-      .attr("y1", 150 - pre_value * 150)
+      .attr("y1", 150 - pre_value * 1.50)
       .attr("x2", pos_s)
-      .attr("y2", 150 - value * 150)
+      .attr("y2", 150 - value * 1.50)
       .style("fill", "#0C4524")
       .style("stroke", "black")
       .style("stroke-width", 1)
 
   }
   drawAgain() {
+    this.control_loading.innerText="Loading...";
     this.track_div.innerHTML = "";
     this.drawContig();
     this.drawKnowgenes();
     this.drawSkew();
     this.drawContent();
+    this.control_loading.innerText="";
   }
   //var _this=this;
   changeContigSelect() {
@@ -547,7 +578,10 @@ export class Browser {
     this.drawAgain();
 
   }
-
+  locatePosition(pos){
+    var pos_in_pixel=pos*this.scale;
+    this.track_div.scrollLeft=pos_in_pixel-(this.props.width/2);
+  }
 }
 
 

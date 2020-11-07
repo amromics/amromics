@@ -15,11 +15,15 @@ export class Phylogeny {
     control_div.style.height = "40px";
     control_div.style.padding = "0px";
     control_div.style.margin = "0px";
-
+    control_div.style.borderBottom="1px solid #aaa";
     var control_select = document.createElement('div');
-    control_select.style.margin = "10px";
+    //control_select.style.margin = "10px";
     control_select.style.float = "right";
     this.type_select = document.createElement('select');
+    this.type_select.style.border="1px solid #aaa";
+    this.type_select.style.borderRadius="3px";
+    this.type_select.style.padding="4px";
+    this.type_select.style.backgroundColor="transparent";
     var opt_rect = document.createElement('option');
     opt_rect.appendChild(document.createTextNode("Rectangular"));
     opt_rect.value = "rectangular";
@@ -45,6 +49,10 @@ export class Phylogeny {
     control_select.appendChild(this.type_select);
   
     this.meta_select = document.createElement('select');
+    this.meta_select.style.border="1px solid #aaa";
+    this.meta_select.style.borderRadius="3px";
+    this.meta_select.style.padding="4px";
+    this.meta_select.style.backgroundColor="transparent";
     var opt_meta_select_default= document.createElement('option');
     opt_meta_select_default.appendChild(document.createTextNode("Select metadata"));
     opt_meta_select_default.value = "";

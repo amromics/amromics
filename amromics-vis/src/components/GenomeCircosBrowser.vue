@@ -33,6 +33,10 @@ export default {
         console.log(event.detail);
         EventBus.$emit('contig_emited', event.detail);
       });
+      ctx.addEventListener("element_select", function(event) {
+        console.log(event.detail);
+        EventBus.$emit('element_emited', event.detail);
+      });
       this.loading = false;
     },
     async created() {
