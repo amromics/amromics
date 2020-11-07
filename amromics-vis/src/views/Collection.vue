@@ -1,15 +1,33 @@
 <style scoped>
 .wrapper {
-  width: 1600px;
+  width: 1200px;
   margin-right: auto;
   margin-left: auto;
   padding-left: 8px;
   padding-right: 8px;
+  font-family: Arial, Helvetica, sans-serif;
+    color:#333;
 }
 .container {
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
   transition: 0.3s;
   padding: 20px;
+  border-radius: 5px;
+  border: #AAAAAA 1px solid;
+  margin-bottom: 20px;
+}
+.header{
+  background-color: #3675AA;
+  font-size: 20px;
+  font-weight: bold;
+  border: #3675AA 1px solid;
+  padding:20px;
+   border-radius: 5px 5px 0px 0px;
+   margin-bottom: 10px;
+   color:white;
+   margin-top:-20px;
+   margin-left:-20px;
+   margin-right:-20px;
 }
 .margin20 {
   margin-top: 20px;
@@ -17,9 +35,6 @@
 td.details-control {
   background: url('/static/expand.png') no-repeat center center;
   cursor: pointer;
-}
-.sorting_1{
-  cursor:pointer;
 }
 tr.shown td.details-control {
   background: url('/static/expand.png') no-repeat center center;
@@ -33,7 +48,6 @@ tr.shown td.details-control {
   animation: spin 2s linear infinite;
   display: inline-block;
 }
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -45,6 +59,12 @@ tr.shown td.details-control {
 .center {
   text-align: center;
 }
+.highlight {
+    background-color: whitesmoke !important;
+    text-decoration: underline;
+    font-weight: bold;
+    cursor: pointer;
+}
 </style>
 <template>
   <div class="wrapper">
@@ -53,23 +73,29 @@ tr.shown td.details-control {
       <div>Data loading...</div>
     </div>
     <div>
-      <h1>Demo pangenome analysis</h1>
-      <h3>Hsuan-Lin Her, Yu-Wei Wu, A pan-genome-based machine learning approach for predicting antimicrobial resistance activities of the Escherichia coli strains, Bioinformatics, Volume 34, Issue 13, 01 July 2018, Pages i89–i95, https://doi.org/10.1093/bioinformatics/bty276</h3>
+      <h1>{{collectionId}}</h1>
+      <!-- <h3>Hsuan-Lin Her, Yu-Wei Wu, A pan-genome-based machine learning approach for predicting antimicrobial resistance activities of the Escherichia coli strains, Bioinformatics, Volume 34, Issue 13, 01 July 2018, Pages i89–i95, https://doi.org/10.1093/bioinformatics/bty276</h3> -->
+    </div>
+     <div class="container margin20" v-if="isReady">
+      <div class="header">Samples</div>
+      <table id="samples_table" class="display">
+      </table>
     </div>
     <div class="container" style="height:500px" v-if="isReady">
-      <h1>Core and Accesory Genes</h1>
-      <div v-if="coreData" style="float:left;width:50%;">
-        <PangenomePieChart :core_data="coreData.group" />
+      <div class="header">Core and Accesory Genes</div>
+      <div v-if="coreDataURL" style="float:left;width:50%;">
+        <PangenomePieChart :core_data_url="coreDataURL" />
       </div>
       <div v-if="geneClusterData" style="float:left;width:50%;">
         <GeneDistributionChart :cluster_data="geneClusterData.genes" />
       </div>
     </div>
     <div class="container margin20" v-if="geneClusterData">
-      <h1>Gene clusters</h1>
+      <div class="header">Gene clusters</div>
       <table id="cluster_table" class="hover">
         <thead>
           <tr>
+            <th>Select</th>
             <th>Gene</th>
             <th>Annotation</th>
             <th>Number of Isolate</th>
@@ -80,7 +106,7 @@ tr.shown td.details-control {
       </table>
     </div>
     <div class="container margin20" style="clear:both;" v-if="alignmentData">
-      <h1>Genes Alignment</h1>
+      <div class="header">Genes Alignment</div>
       <AlignmentComp :alignmentData="alignmentData" />
     </div>
     <div
@@ -88,17 +114,12 @@ tr.shown td.details-control {
       style="clear:both;margin-bottom:30px;"
       v-if="phylogenyData"
     >
-      <h1>Heatmap</h1>
-      <Heatmap :newitck_tree="phylogenyData" :heatmap="phyloHeatmap" />
+      <div class="header">Heatmap</div>
+      <Heatmap :newitck_tree="phylogenyData" :heatmap_url="phyloHeatmapURL" />
     </div>
     <div style="clear:both" class="container margin20" v-if="phylogenyData">
-      <h1>Phylogeny tree</h1>
+      <div class="header">Phylogeny tree</div>
       <PhylogenyBrowser :newitck_tree="phylogenyData" :samples="list_sample" />
-    </div>
-    <div class="container margin20" v-if="isReady">
-      <h1>Samples</h1>
-      <table id="samples_table" class="display">
-      </table>
     </div>
   </div>
 </template>
@@ -126,18 +147,26 @@ export default {
   },
   data() {
     return {
-      coreData: undefined,
+      //coreData: undefined,
+      coreDataURL: undefined,
       phylogenyData: undefined,
       geneClusterData: undefined,
-      coreData: undefined,
-      phyloHeatmap: undefined,
+      geneClusterURL: undefined,
+      //coreData: undefined,
+      coreDataURL: undefined,
+      phyloHeatmapURL: undefined,
       alignmentData: undefined,
       isLoading: true,
       list_sample: [],
       isReady: false
     };
   },
-  computed: {},
+  computed: {
+    collectionId() {
+      return this.$route.params.cid;
+      ;
+    }
+  },
   async created() {
     this.loading = true;
     await Promise.all([this.fetchData()]);
@@ -150,7 +179,7 @@ export default {
       // console.log("below is samle id")
       // console.log(this.sampleId)
       this.isReady = false;
-      const value = await SampleAPI.fetchSetResult();
+      const value = await SampleAPI.fetchSetResult(this.collectionId);
       //console.log(result)
       var result = value.data.results;
       this.list_sample = value.data.samples;
@@ -162,15 +191,15 @@ export default {
         }
         if (result[i].group == "pan_sum") {
           // this.coreData=JSON.parse(atob(result.execution_results[i].data));
-          this.coreData = result[i].data;
+          this.coreDataURL = result[i].data;
         }
         if (result[i].group == "pan_cluster") {
           // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
-          this.geneClusterData = result[i].data;
+          this.geneClusterURL = result[i].data;
         }
         if (result[i].group == "phylo_heatmap") {
           // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
-          this.phyloHeatmap = result[i].data;
+          this.phyloHeatmapURL = result[i].data;
         }
         if (result[i].group == "gene_alignments") {
           // this.geneClusterData=JSON.parse(atob(result.execution_results[i].data));
@@ -179,6 +208,8 @@ export default {
       }
       // sort geneClusterData
       //console.log(this.geneClusterData)
+      const value2 = await SampleAPI.fetchPangenomeCluster(this.collectionId);
+      this.geneClusterData = value2.data;
       this.geneClusterData.genes.sort(function(a, b) {
         return b.noisolates - a.noisolates;
       });
@@ -194,6 +225,7 @@ export default {
       var datasource_gene_clusters = [];
       for (var i = 0; i < this.geneClusterData.genes.length; i++) {
         var data = [
+          '',
           this.geneClusterData.genes[i].gene,
           this.geneClusterData.genes[i].annotation,
           this.geneClusterData.genes[i].noisolates,
@@ -217,6 +249,14 @@ export default {
           $(this).addClass("selected");
         }
       });
+      $( table_clusters.column( 0 ).nodes() ).addClass( 'highlight' );
+      $('#cluster_table tbody')
+        .on( 'mouseenter', 'td', function () {
+            var rowIdx = table_clusters.cell(this).index().column;
+            console.log(rowIdx);
+            $( table_clusters.cells().nodes() ).removeClass( 'highlight' );
+            $( table_clusters.row( rowIdx ).nodes() ).addClass( 'highlight' );
+        } );
       var datasource = [];
       for (var i = 0; i < this.list_sample.length; i++) {
         var data = [
@@ -256,9 +296,10 @@ export default {
           }
         ]
       });
+      var collectionId=this.collectionId;
       $("#samples_table tbody").on("click", "td.sorting_1", function() {
         var data = table.row($(this)).data();
-        window.open("/sample/" + data[0], "_blank");
+        window.open("/"+collectionId+"/" + data[0], "_blank");
       });
       var childtemplate = function(d) {
         console.log(d);

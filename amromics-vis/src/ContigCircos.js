@@ -85,7 +85,7 @@ export class ContigCircos {
         this._contig.push({
           len: this.contigs[i].length,
           color: "#bc80bd",
-          label: contig_id.split('_')[2],
+          label: contig_id.split('_')[1],
           id: contig_id
         });
     }
@@ -106,22 +106,22 @@ export class ContigCircos {
     var configuration = {
       innerRadius: unit*40,
       outerRadius: unit*45,
-      cornerRadius: 0,
-      gap: 0.04, // in radian
+      cornerRadius: 3,
+      gap: 0.02, // in radian
       labels: {
         display: true,
         position: 'center',
         size: '10px',
-        color: '#000000',
-        radialOffset: 20,
+        color: '#333333',
+        radialOffset: 30,
       },
       ticks: {
-        display: true,
+        display: false,
         color: 'grey',
         spacing: 10000000,
         labels: true,
         labelSpacing: 10,
-        labelSuffix: 'Mb',
+       
         labelDenominator: 1000000,
         labelDisplay0: true,
         labelSize: '10px',
@@ -133,17 +133,36 @@ export class ContigCircos {
           major: 5,
         }
       },
-      tooltipContent: function(d) {
-        return `${d.label}`
+      tooltipContent: function(datum, index) {
+        console.log(datum);
+        return `<h5>${datum.label}</h5>`
       },
       events: {
         'click.alert': function (datum, index, nodes, event) {
             container.dispatchEvent(new CustomEvent("contig_select", {
             detail: datum.id
           }));
+  
+        //  for (let i=0;i<nodes.length;i++){
+        //     nodes[i].setAttribute('selected', 'false');
+        //     nodes[i].childNodes[0].setAttribute('style', 'fill: #bc80bd');  
+        //   }
+          nodes[index].childNodes[0].setAttribute('style', 'fill: #7c417c'); 
+          //nodes[index].setAttribute('selected', 'true');
         },
         'mouseover':function (datum, index, nodes, event) {
-          nodes.style.border="solid 1px";
+         
+        //  for (let i=0;i<nodes.length;i++){
+        //    nodes[i].childNodes[0].setAttribute('style', 'fill: #bc80bd');
+        // }
+          nodes[index].childNodes[0].setAttribute('style', 'fill: #9d529e');        
+
+        },
+        'mouseleave':function (datum, index, nodes, event) {
+         //if(nodes[index].getAttribute("selected")!="true") 
+            nodes[index].childNodes[0].setAttribute('style', 'fill: #bc80bd'); 
+
+
         }
       }
     }
@@ -162,9 +181,16 @@ export class ContigCircos {
       opacity: 1,
       logScale: false,
       tooltipContent: function(d) {
-        return `${d.label}`
+        return `<div>${d.label}</div><i>Click to locate on browser</i>`
       },
-      events: {}
+      events: {
+        'click.alert': function (datum, index, nodes, event) {
+            container.dispatchEvent(new CustomEvent("element_select", {
+            detail: {contig:datum.block_id,pos:Math.trunc((parseInt(datum.start)+parseInt(datum.end))/2)}
+          }));   
+          //document.getElementsByClassName(datum.block_id).childNodes[0].setAttribute('style', 'fill: #7c417c');
+        }
+      }
     }
     var virulome_configuration = {
       innerRadius: 0.55,
@@ -183,7 +209,13 @@ export class ContigCircos {
       tooltipContent: function(d) {
         return `${d.label}`
       },
-      events: {}
+      events: {
+        'click.alert': function (datum, index, nodes, event) {
+          container.dispatchEvent(new CustomEvent("element_select", {
+          detail: {contig:datum.block_id,pos:Math.trunc((parseInt(datum.start)+parseInt(datum.end))/2)}
+        }));       
+      }
+      }
     }
     var skew_configuration = {
       innerRadius: 0.8,
@@ -199,9 +231,7 @@ export class ContigCircos {
 
       opacity: 1,
       logScale: true,
-      tooltipContent: function(d) {
-        return `${d.GC}`
-      },
+     
       axes: [{
         color: 'blue',
         position: 0.00000001,

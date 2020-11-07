@@ -34,8 +34,18 @@ export class PhyloHeatmap {
       bottom: 60,
       left: 30
     };
-    var width_tree =  this.props.width / 5 - margin.left - margin.right-50;
+    //var width_tree =  this.props.width / 5 - margin.left - margin.right-50;
     var newick = NewickTools.parse(phylotree);
+     //estimate length of sample name, by average length plus 10
+     var numchar=0;
+     var listsamples=Object.keys(NewickTools.dfs(newick));
+    
+     for (var s in listsamples){
+       numchar=numchar+listsamples[s].length;
+      
+     }
+     var namelength=numchar/listsamples.length*5+10;
+     var width_tree = this.props.width / 5 - margin.left - margin.right-namelength;
      //  assigns the data to a hierarchy using parent-child relationships
     let nodes = d3.hierarchy(newick, d => d.branchset);
     // maps the node data to the tree layout

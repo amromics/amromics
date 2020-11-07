@@ -118,7 +118,7 @@ export class AlignmentViewer {
     else{
       for (var i = 0; i < this.samples.length; i++) {
         var prot_seq=this.translateDNA2Prot(this.samples[i].seq);
-        //console.log(prot_seq);
+        console.log(prot_seq);
         var arr = [...prot_seq];
         list_sample.push(this.samples[i].sample);
         taxa.push({
@@ -135,7 +135,7 @@ export class AlignmentViewer {
         }
       }
     }
-    //console.log(this.data);
+    console.log(this.data);
     for (var i = 1; i <= maxpos; i++) {
       this.pos.push(i);
     }
@@ -151,17 +151,21 @@ export class AlignmentViewer {
       height = cell_h * list_sample.length + margin.top + margin.bottom;
 
     var newick_raw = phylotree;
-    //construct tree
-    //phylogeny_tree
+   
+    
 
-    //(newick_raw);
-
-
-    //console.log("after rename");
-    //console.log(newick_raw);
-    var width_tree = this.props.width / 5 - margin.left - margin.right-50;
+   
     var newick = NewickTools.parse(newick_raw);
-
+    //estimate length of sample name, by average length plus 10
+    var numchar=0;
+    var listsamples=Object.keys(NewickTools.dfs(newick));
+    //console.log(NewickTools.dfs(newick));
+    for (var s in listsamples){
+      numchar=numchar+listsamples[s].length;
+      //console.log(listsamples[s]);
+    }
+    var namelength=numchar/listsamples.length*5+10;
+    var width_tree = this.props.width / 5 - margin.left - margin.right-namelength;
     //console.log(newick);
     // declares a tree layout and assigns the size
     const treemap = d3.tree().size([height, width_tree]);
@@ -650,13 +654,18 @@ export class AlignmentViewer {
       for (let a of aminoDict[k])
         codonDict[a] = k
 
-    let result = ''
+    var result = "";
+    dna_seq=dna_seq.replace(/\-/g,'');
     for (let i = 0; i < dna_seq.length; i += 3){
       //console.log(dna_seq.substr(i, 3)+"->"+codonDict[dna_seq.substr(i, 3)]);
       var codon=dna_seq.substr(i, 3);
-      if(codon.lenght==3)
-        result += codonDict[codon];
-
+      console.log(codon.length);
+      if(codon.length==3){
+        result = result.concat(codonDict[codon]);
+        console.log(result);
+      }
+        
+      
 
     }
       

@@ -16,10 +16,7 @@ export default {
     return {
       loading: false,
       current_zoom: 3,
-
-
       current_type: "prot",
-
       pos_track: 0,
       svg_title: undefined,
       scale:0.1,
@@ -33,11 +30,16 @@ export default {
     //console.log(this.GC_content);
     var browser = new Browser(ctx);
     browser.load(this.list_contig,this.knowngene,this.GC_skew,this.GC_content);
-    browser.setOptions({width:1000});
+    browser.setOptions({width:618});
     browser.draw();
     EventBus.$on('contig_emited', contig_id => {
       
       browser.changeContig(contig_id);
+    });
+    EventBus.$on('element_emited', element => {
+      //console.log(element);
+      browser.changeContig(element.contig);
+      browser.locatePosition(element.pos);
     });
     this.loading = false;
   },

@@ -32,6 +32,7 @@
 /* eslint-disable */
 import { AlignmentViewer } from "@/amromicsjs";
 import EventBus from "@/event-bus.js";
+import SampleAPI from "@/api/SampleAPI";
 // import SampleIGV from "@/components/Visualization/IGV";
 export default {
   name: "AlignmentComp",
@@ -39,16 +40,27 @@ export default {
   data() {
     return {
       loading: false,
-      list_alignments: []
+      list_alignments: [],
+      current_alignment:undefined,
+      alignmentview:undefined
     };
   },
-  mounted() {
+  computed: {
+    collectionId() {
+      return this.$route.params.cid;
+      ;
+    }
+  },
+  async mounted() {
     this.loading = true;
     var ctx = document.getElementById("aligmentview");
     //console.log(this.core_data);
     //console.log(Phylogeny);
-    var list_alignments = this.alignmentData.alignments;
-    var alignmentview = new AlignmentViewer(ctx);
+    
+    this.list_alignments = this.alignmentData.alignments;
+    const value = await SampleAPI.fetchAlignment(this.collectionId,this.alignmentData.alignments[0].gene);
+    this.current_alignment=value.data
+    this.alignmentview = new AlignmentViewer(ctx);
 
     var tree_data = atob(this.alignmentData.alignments[0].tree).replace(
       /.ref/g,
@@ -56,36 +68,20 @@ export default {
     );
     tree_data = tree_data.replace(/.fasta/g, "");
     //console.log(this.alignmentData.alignments[0])
-    alignmentview.load(
+    this.alignmentview.load(
       this.alignmentData.alignments[0].gene,
       tree_data,
-      this.alignmentData.alignments[0].samples
+      this.current_alignment
     );
     //alignmentview.setOptions({width:ctx.clientWidth,height:0});
     
-    alignmentview.draw();
+    this.alignmentview.draw();
    
     EventBus.$on("gene_id_emited", gene_id => {
       //console.log('gene_id_emited'+gene_id);
       this.loading=true;
-     
-      for (var i = 0; i < list_alignments.length; i++) {
-        if (list_alignments[i].gene == gene_id) {
-          var tree = atob(this.alignmentData.alignments[i].tree).replace(
-            /.ref/g,
-            ""
-          );
-          tree = tree.replace(/.fasta/g, "");
-          //console.log(tree);
-          alignmentview.load(
-            this.alignmentData.alignments[i].gene,
-            tree,
-            this.alignmentData.alignments[i].samples
-          );
-          alignmentview.draw();
-          break;
-        }
-      }
+      this.reloadAlignment(gene_id);
+      
       this.loading=false;
      
     });
@@ -93,7 +89,7 @@ export default {
       //console.log('sample_emited '+arr_ids);
       this.loading=true;
  
-      alignmentview.setActiveNames(arr_ids);
+      this.alignmentview.setActiveNames(arr_ids);
       this.loading=false;
   
     });
@@ -101,6 +97,28 @@ export default {
     //document.getElementById("al_loader").display="none";
   },
   async created() {},
-  methods: {}
+  methods: {
+    async reloadAlignment(gene_id){
+      for (var i = 0; i < this.list_alignments.length; i++) {
+        if (this.list_alignments[i].gene == gene_id) {
+          var tree = atob(this.alignmentData.alignments[i].tree).replace(
+            /.ref/g,
+            ""
+          );
+          tree = tree.replace(/.fasta/g, "");
+          //console.log(tree);
+          const value = await SampleAPI.fetchAlignment(this.collectionId,gene_id);
+          this.current_alignment=value.data
+          this.alignmentview.load(
+            this.alignmentData.alignments[i].gene,
+            tree,
+            this.current_alignment
+          );
+          this.alignmentview.draw();
+          break;
+        }
+      }
+    }
+  }
 };
 </script>

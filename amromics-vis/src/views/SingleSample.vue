@@ -1,18 +1,34 @@
 <style scoped>
   .wrapper{
-    width:1600px;
+    width:1200px;
     margin-right: auto;
     margin-left: auto;
     padding-left: 8px;
     padding-right: 8px;
+    font-family: Arial, Helvetica, sans-serif;
+    color:#333;
   }
-  .container{
-    clear:both;
-    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
-    transition: 0.3s;
-    margin: 20px;
-    padding:20px;
-  }
+ .container {
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  padding: 20px;
+  border-radius: 5px;
+  border: #AAAAAA 1px solid;
+  margin-bottom: 20px;
+}
+.header{
+  background-color: #3675AA;
+  font-size: 20px;
+  font-weight: bold;
+  border: #3675AA 1px solid;
+  padding:20px;
+   border-radius: 5px 5px 0px 0px;
+   margin-bottom: 10px;
+   color:white;
+   margin-top:-20px;
+   margin-left:-20px;
+   margin-right:-20px;
+}
   .bold {
     font-weight: bold;
   }
@@ -35,7 +51,12 @@
   animation: spin 2s linear infinite;
   display: inline-block;
 }
-
+select{
+  border: 1px solid rgb(170, 170, 170);
+  border-radius: 3px;
+  padding: 4px;
+  background-color: transparent;
+}
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -55,7 +76,7 @@
       <div>Data loading...</div>
     </div>
    <div class="container" v-if="loaded">
-      <h1>{{sampleId}}</h1>
+      <div class="header">{{sampleId}}</div>
       <div>
         <div>Sample name:{{sample_info.name}}</div>
         <div >Genus:{{sample_info.genus}}</div><div>Species:{{sample_info.species}}</div><div>Strain:{{sample_info.strain}}</div><div>Gram:{{sample_info.gram}}</div>
@@ -73,7 +94,7 @@
     </div>
 <div v-if="loaded" class="container">
 <div>
-<h1>Assembly Stats</h1>
+ <div class="header">Assembly Stats</div>
 </div>
 <div style="float:left;width:100%">
                   <div class="marR20">Genome length <span class='bold mar10'>{{assemblyData.genome_length}}</span></div>
@@ -92,7 +113,7 @@
 </div>
 <div v-if="loaded" class="container">
 <div>
-<h1>MLST</h1>
+<div class="header">MLST</div>
 </div>
 <div style="width:100%">
   <div class="left-align bold margin-r5">MLST:</div>
@@ -104,25 +125,25 @@
   </div>
 
 </div>
-<div v-if="loaded" style="height: 650px;float:left"  class="container" >
-<div>
-<h1>
+<div v-if="loaded" style="height: 650px;"  class="container" >
+
+ <div class="header">
   Genome Browser
-</h1>
 </div>
-  <div style="width:500px;height: 500px;float:left">
+<div>
+  <div style="width:500px;height: 300px;float:left">
     <GenomeCircosBrowser :contigs="assemblyData.contigs" :amr_genes= "resistomeData.hits" :virulome_genes= "virulomeData.hits" :skew="assemblyData.skew"/>
   </div>
-  <div style="margin-left: 520px;height: 500px;">
+  <div style="margin-left: 500px;height:300px;">
     <GenomeBrowser :list_contig="assemblyData.contigs" :knowngene= "annotationData.genes" :GC_skew= "assemblyData.skew" :GC_content="assemblyData.content.array"/>
-
+  </div>
   </div>
 </div>
 
 <div  class="container" v-if="loaded">
-<h1>
+ <div class="header">
 Antimicrobial resistance genes
-</h1>
+</div>
 <table id='amr_table' class="display" v-if="resistomeData">
   <thead>
     <tr>
@@ -130,7 +151,6 @@ Antimicrobial resistance genes
       <th>Start</th>
       <th>End</th>
       <th>Gene</th>
-      <th>Coverage</th>
       <th>Identity</th>
       <th>Database</th>
       <th>Accession</th>
@@ -144,7 +164,6 @@ Antimicrobial resistance genes
       <td>{{item.start}}</td>
       <td>{{item.end}}</td>
       <td>{{item.gene}}</td>
-      <td>{{item.coverage}}</td>
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
       <td>{{item.accession}}</td>
@@ -155,7 +174,7 @@ Antimicrobial resistance genes
 </table>
 </div>
 <div v-if="loaded" class="container">
-<h1>Virulome</h1>
+ <div class="header">Virulome</div>
 <table id ='virulome_table' class="display" v-if="virulomeData">
   <thead>
     <tr>
@@ -232,7 +251,11 @@ export default {
   },
   computed: {
     sampleId() {
-      return this.$route.params.id;
+      return this.$route.params.sid;
+      ;
+    },
+    collectionId() {
+      return this.$route.params.cid;
       ;
     }
   },
@@ -306,16 +329,14 @@ export default {
       }
       var mlst_table=$('#mlst_table').DataTable({
         data: datasource_mlst,
-        columns: [
-       
+        columns: [       
           { title: "Locus" },
-          { title: "Allele" }
-         
+          { title: "Allele" }        
         ]
       });  
     },
     async fetchData(){
-      const ret = await SampleAPI.fetchResult(this.sampleId);
+      const ret = await SampleAPI.fetchResult(this.collectionId,this.sampleId);
       //const ret = await SampleAPI.fetchResult("573.12859");
       for (var i = 0; i < ret.data.execution.result.length; i++) {
         if (ret.data.execution.result[i].group.localeCompare("MLST") == 0) {
@@ -332,7 +353,6 @@ export default {
         } else if (ret.data.execution.result[i].group == 'CONTIG') {
           this.assemblyData = ret.data.execution.result[i].data;
           this.assemblyData.GC = Math.trunc(this.assemblyData.GC) + ' %';
-
 
         } else if (ret.data.execution.result[i].group == 'SPECIES') {
           this.speciesData = ret.data.execution.result[i].data;
