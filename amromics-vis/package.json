@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.20.0",
     "chart.js": "^2.9.3",
+    "chartjs-plugin-annotation": "^0.5.7",
     "circos": "^2.1.0",
     "d3": "^4.13.0",
     "datatables.net": "^1.10.22",

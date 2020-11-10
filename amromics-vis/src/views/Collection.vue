@@ -95,7 +95,6 @@ tr.shown td.details-control {
       <table id="cluster_table" class="hover">
         <thead>
           <tr>
-            <th>Select</th>
             <th>Gene</th>
             <th>Annotation</th>
             <th>Number of Isolate</th>
@@ -225,7 +224,7 @@ export default {
       var datasource_gene_clusters = [];
       for (var i = 0; i < this.geneClusterData.genes.length; i++) {
         var data = [
-          '',
+        
           this.geneClusterData.genes[i].gene,
           this.geneClusterData.genes[i].annotation,
           this.geneClusterData.genes[i].noisolates,
@@ -240,7 +239,7 @@ export default {
       });
       $("#cluster_table tbody").on("click", "tr", function() {
         var data = table_clusters.row($(this)).data();
-
+        console.log("gene_id_emited"+data[0])
         EventBus.$emit("gene_id_emited", data[0]);
         if ($(this).hasClass("selected")) {
           $(this).removeClass("selected");
