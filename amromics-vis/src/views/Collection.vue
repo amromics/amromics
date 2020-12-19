@@ -92,7 +92,7 @@ tr.shown td.details-control {
     </div>
     <div class="container margin20" v-if="geneClusterData">
       <div class="header">Gene clusters</div>
-      <table id="cluster_table" class="hover">
+      <table id="cluster_table" class="display hover">
         <thead>
           <tr>
             <th>Gene</th>
@@ -130,10 +130,18 @@ import PhylogenyBrowser from "@/components/PhylogenyBrowser";
 import Heatmap from "@/components/Heatmap";
 import AlignmentComp from "@/components/AlignmentComp";
 import SampleAPI from "@/api/SampleAPI";
-import dt from "datatables.net";
+
 import Chart from "chart.js";
 
+import dt from "datatables.net";
+import("datatables-buttons");
+import("jszip");
+import("pdfmake");
 import("datatables.net-dt");
+import("datatables.net-buttons-dt");
+import("datatables.net-buttons/js/buttons.colVis.js");
+import("datatables.net-buttons/js/buttons.flash.js");
+import("datatables.net-buttons/js/buttons.html5.js");
 import EventBus from "@/event-bus.js";
 export default {
   name: "Collection",
@@ -143,6 +151,7 @@ export default {
     PhylogenyBrowser,
     Heatmap,
     AlignmentComp
+
   },
   data() {
     return {
@@ -179,7 +188,7 @@ export default {
       // console.log(this.sampleId)
       this.isReady = false;
       const value = await SampleAPI.fetchSetResult(this.collectionId);
-      //console.log(result)
+      console.log(value)
       var result = value.data.results;
       this.list_sample = value.data.samples;
 
@@ -235,7 +244,11 @@ export default {
       }
       //console.log(datasource_gene_clusters);
       var table_clusters = $("#cluster_table").DataTable({
-        data: datasource_gene_clusters
+        data: datasource_gene_clusters,
+        dom: 'Bfrtip',
+        buttons: [
+            'csv', 'excel', 'pdf'
+        ]
       });
       $("#cluster_table tbody").on("click", "tr", function() {
         var data = table_clusters.row($(this)).data();
@@ -257,6 +270,7 @@ export default {
             $( table_clusters.row( rowIdx ).nodes() ).addClass( 'highlight' );
         } );
       var datasource = [];
+      //console.log(this.list_sample);
       for (var i = 0; i < this.list_sample.length; i++) {
         var data = [
           this.list_sample[i].id,
@@ -264,9 +278,8 @@ export default {
           this.list_sample[i].genus,
           this.list_sample[i].species,
           this.list_sample[i].strain,
-          this.list_sample[i].gram,
-          this.list_sample[i].type,
           this.list_sample[i].files,
+          this.list_sample[i].download,
           this.list_sample[i].metadata
         ];
         datasource.push(data);
@@ -282,10 +295,15 @@ export default {
           { title: "Genus" },
           { title: "Species" },
           { title: "Strain" },
-          { title: "Gram" },
-          { title: "Types" },
-          { title: "Files" },
-
+       
+          { title: "Files"
+          
+          
+          },
+          { title: "Download"
+          
+          
+          },
           {
             title: "Metadata",
             className: "details-control",
@@ -293,7 +311,25 @@ export default {
             data: null,
             defaultContent: "Click to open"
           }
-        ]
+        ],
+        columnDefs: [ 
+          {
+            targets: 5,
+            render: function (data, type, row) {
+              //
+              //console.log(row);
+              var html='';
+              for (var i =0;i<row[6].length;i++){
+                var link=row[6][i].file;
+                link=link.replace("web-app/","");//correct path file
+                html+='<a href=\''+link+'\'>'+row[6][i].name+'</a>&nbsp;'
+              }
+                
+             return html;
+            }
+          },
+          { "visible": false,  "targets": [6] }
+          ]
       });
       var collectionId=this.collectionId;
       $("#samples_table tbody").on("click", "td.sorting_1", function() {
@@ -302,7 +338,8 @@ export default {
       });
       var childtemplate = function(d) {
         console.log(d);
-        var html =
+       
+       var html =
           '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
         for (var key in d) {
           html +=
@@ -328,7 +365,7 @@ export default {
           tr.removeClass("shown");
         } else {
           // Open this row
-          row.child(childtemplate(row.data()[8])).show();
+          row.child(childtemplate(row.data()[7])).show();
           tr.addClass("shown");
         }
       });
