@@ -45,7 +45,7 @@ def export_json(inp_dir, collectionID, exp_dir):
             files.append({'name':'FASTA','file':copyFileToWeb(out['assembly'],exp_dir_downloadfile)})
             files.append({'name':'GFF','file':copyFileToWeb(out['annotation']+'/'+id+'.gff',exp_dir_downloadfile)})
             files.append({'name':'GBK','file':copyFileToWeb(out['annotation']+'/'+id+'.gbk',exp_dir_downloadfile)})
-			
+
             result = []
             # handle assembly results
             ret_asm = {'group': 'CONTIG', 'data': exportAssembly(out['assembly'])}
