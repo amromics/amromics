@@ -84,13 +84,13 @@ export class AlignmentViewer {
     this.current_type="nucl";
     this.active_names=[];
   }
-  load(genelabel, phylotree, alignment,type) {
+  load(genelabel, phylotree, alignment,type,mlst) {
 
     this.control_gene.innerHTML = genelabel;
     this.samples = alignment;
     this.phylotree=phylotree;
     this.genelabel=genelabel;
-
+    this.mlst=mlst;
     this.pos = [];
     this.data = [];
     var list_sample = [];
@@ -585,6 +585,13 @@ export class AlignmentViewer {
       .style("fill", "none");
     var y_data=this.arr_sample_from_tree.slice();
     y_data.reverse();
+    if (this.mlst!=undefined){
+      //look for mslt for each sample
+      for (var i =0;i<y_data.length;i++)
+        for (var j=0;j<this.mlst.length;i++)
+          if(y_data[i]==this.mlst[j])
+            y_data[i]=y_data[i]+"("+this.mlst[j]+")";
+    }
     var y = d3
         .scaleBand()
         .range([cell_h * this.arr_sample_from_tree.length, 0])
@@ -606,7 +613,7 @@ export class AlignmentViewer {
   }
   zoomIn() {
 
-    console.log("event zoom in");
+    //console.log("event zoom in");
     if (this.zoom_lv < 3) this.zoom_lv = this.zoom_lv + 1;
     this.draw();
 
@@ -645,7 +652,7 @@ export class AlignmentViewer {
       'V': ['GTA', 'GTC', 'GTG', 'GTT'],
       'W': ['TGG'],
       'Y': ['TAC', 'TAT'],
-      '':['TAA','TAG']
+      '':['TAA','TAG','TGA']
     };
 
     // codon dictionary derived from aminoDict
@@ -659,10 +666,10 @@ export class AlignmentViewer {
     for (let i = 0; i < dna_seq.length; i += 3){
       //console.log(dna_seq.substr(i, 3)+"->"+codonDict[dna_seq.substr(i, 3)]);
       var codon=dna_seq.substr(i, 3);
-      console.log(codon.length);
+      //console.log(codon.length);
       if(codon.length==3){
         result = result.concat(codonDict[codon]);
-        console.log(result);
+        //console.log(result);
       }
         
       

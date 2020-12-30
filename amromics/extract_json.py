@@ -7,7 +7,14 @@ import os
 
 from Bio import SeqIO
 
-
+def copyFileToWeb(orginal_file,web_dir):
+    try:
+        web_file=os.path.join(web_dir,os.path.basename(orginal_file))
+        shutil.copyfile(orginal_file, web_file)
+        return web_file
+    except:
+        print('copy file '+orginal_file+' error')
+        return ''
 def export_json(work_dir, webapp_data_dir, collection_id, collection_name=''):
     update_collection_history(webapp_data_dir, collection_id, collection_name, "Not Ready")
     # look for dump file:
@@ -21,7 +28,13 @@ def export_json(work_dir, webapp_data_dir, collection_id, collection_name=''):
     report = json.load(open(dump_file))
 
     # export single samples
+    samples = []
     for sample in report['samples']:
+
+        files=[]
+        files.append({'name':'FASTA','file':copyFileToWeb(sample['assembly'],exp_dir_downloadfile)})
+	    files.append({'name':'GFF','file':copyFileToWeb(sample['annotation']+'/'+id+'.gff',exp_dir_downloadfile)})
+	    files.append({'name':'GBK','file':copyFileToWeb(sample['annotation']+'/'+id+'.gbk',exp_dir_downloadfile)})
         result = []
         # handle assembly results
         ret_asm = {'group': 'CONTIG', 'data': exportAssembly(sample['assembly'])}
@@ -39,18 +52,19 @@ def export_json(work_dir, webapp_data_dir, collection_id, collection_name=''):
         result.append(ret_annotation)
         sample['result'] = result
         save_sample_result(sample, exp_dir_current)
+        samples.append({
+            'id': report['samples'][id]['id'], \
+            'name': report['samples'][id]['name'],
+            'type': report['samples'][id]['type'],
+            'files': report['samples'][id]['files'],
+            'genus': report['samples'][id]['genus'],
+            'species': report['samples'][id]['species'],
+            'strain': report['samples'][id]['strain'],
+            'gram': report['samples'][id]['gram'],
+            'metadata': report['samples'][id]['metadata'],
+            'download':files
 
-        # samples.append({
-        #     'id': report['samples'][id]['id'],
-        #     'name': report['samples'][id]['name'],
-        #     'type': report['samples'][id]['type'],
-        #     'files': report['samples'][id]['files'],
-        #     'genus': report['samples'][id]['genus'],
-        #     'species': report['samples'][id]['species'],
-        #     'strain': report['samples'][id]['strain'],
-        #     'gram': report['samples'][id]['gram'],
-        #     'metadata': report['samples'][id]['metadata']
-        # })
+        })
 
     set_result = []
     if not os.path.exists(exp_dir_current + "/set"):
@@ -65,7 +79,7 @@ def export_json(work_dir, webapp_data_dir, collection_id, collection_name=''):
     set_result.append(
         {'group': 'phylogeny_tree', 'data': export_phylogeny_tree(report['phylogeny'] + '/parsnp.tree')})
     set_result.append({'group': 'gene_alignments', 'data': export_msa(report, exp_dir_current)})
-    collection_report = {"samples": report['samples'], "results": set_result}
+    collection_report = {"samples": samples, "results": set_result}
     json.dump(collection_report, open(exp_dir_current + '/set.json', 'w'))
     update_collection_history(webapp_data_dir, collection_id, collection_name, "Ready")
 
@@ -447,4 +461,3 @@ def update_collection_history(export_dir, collection_id, collection_name, status
              "status": status})
     with open(collection_json, 'w') as fn:
         json.dump(collections, fn)
-
