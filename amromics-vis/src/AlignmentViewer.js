@@ -84,13 +84,17 @@ export class AlignmentViewer {
     this.current_type="nucl";
     this.active_names=[];
   }
+
   load(genelabel, phylotree, alignment,type,mlst) {
+
 
     this.control_gene.innerHTML = genelabel;
     this.samples = alignment;
     this.phylotree=phylotree;
     this.genelabel=genelabel;
+
     this.mlst=mlst;
+
     this.pos = [];
     this.data = [];
     var list_sample = [];
@@ -655,6 +659,7 @@ export class AlignmentViewer {
       '':['TAA','TAG','TGA']
     };
 
+
     // codon dictionary derived from aminoDict
     let codonDict = {}
     for (let k of Object.keys(aminoDict))
@@ -670,6 +675,7 @@ export class AlignmentViewer {
       if(codon.length==3){
         result = result.concat(codonDict[codon]);
         //console.log(result);
+
       }
         
       

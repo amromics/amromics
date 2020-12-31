@@ -218,6 +218,7 @@ import SampleAPI from '@/api/SampleAPI'
 import Chart from 'chart.js';
 import EventBus from '@/event-bus.js';
 
+
 import dt from "datatables.net";
 import("datatables-buttons");
 import("jszip");
@@ -227,6 +228,7 @@ import("datatables.net-buttons-dt");
 import("datatables.net-buttons/js/buttons.colVis.js");
 import("datatables.net-buttons/js/buttons.flash.js");
 import("datatables.net-buttons/js/buttons.html5.js");
+
 export default {
   name: 'SingleSample',
   components: {
@@ -298,6 +300,7 @@ export default {
         buttons: [
             'csv', 'excel', 'pdf'
         ],
+
         columns: [
        
           { title: "Contig" },
@@ -317,6 +320,7 @@ export default {
             'csv', 'excel', 'pdf'
         ]
       });
+
       $('#assembly_table tbody').on('click', "td.sorting_1", function () {
         var data = table_assembly.row( $(this)).data();
           console.log(data);
@@ -352,8 +356,6 @@ export default {
       }
       var mlst_table=$('#mlst_table').DataTable({
         data: datasource_mlst,
-
-
         columns: [       
           { title: "Locus" },
           { title: "Allele" }        
@@ -392,7 +394,6 @@ export default {
           this.annotationData = ret.data.execution.result[i].data;
 
         }       
-                
       }
       this.sample_info={name:ret.data.name,genus:ret.data.genus,species:ret.data.species,strain:ret.data.strain,gram:ret.data.gram,files:ret.data.files,metadata:ret.data.metadata};
       

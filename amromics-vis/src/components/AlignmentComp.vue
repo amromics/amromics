@@ -71,8 +71,12 @@ export default {
     this.alignmentview.load(
       this.alignmentData.alignments[0].gene,
       tree_data,
+<<<<<<< HEAD
       this.current_alignment,
       undefined
+=======
+      this.current_alignment
+>>>>>>> c184eedd78a2411e37beb6e2a9fd33f90a00632b
     );
     //alignmentview.setOptions({width:ctx.clientWidth,height:0});
     

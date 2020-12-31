@@ -93,6 +93,7 @@ tr.shown td.details-control {
     <div class="container margin20" v-if="geneClusterData">
       <div class="header">Gene clusters</div>
       <table id="cluster_table" class="display hover">
+
         <thead>
           <tr>
             <th>Gene</th>
@@ -151,7 +152,6 @@ export default {
     PhylogenyBrowser,
     Heatmap,
     AlignmentComp
-
   },
   data() {
     return {
@@ -180,6 +180,7 @@ export default {
     await Promise.all([this.fetchData()]);
     this.loadData();
   },
+
 
   methods: {
     async fetchData() {
@@ -304,6 +305,7 @@ export default {
           
           
           },
+
           {
             title: "Metadata",
             className: "details-control",
@@ -330,6 +332,7 @@ export default {
           },
           { "visible": false,  "targets": [6] }
           ]
+
       });
       var collectionId=this.collectionId;
       $("#samples_table tbody").on("click", "td.sorting_1", function() {
@@ -338,8 +341,9 @@ export default {
       });
       var childtemplate = function(d) {
         console.log(d);
-       
+
        var html =
+
           '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
         for (var key in d) {
           html +=
@@ -365,6 +369,7 @@ export default {
           tr.removeClass("shown");
         } else {
           // Open this row
+
           row.child(childtemplate(row.data()[7])).show();
           tr.addClass("shown");
         }
