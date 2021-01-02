@@ -365,33 +365,33 @@ export default {
     async fetchData(){
       const ret = await SampleAPI.fetchResult(this.collectionId,this.sampleId);
       //const ret = await SampleAPI.fetchResult("573.12859");
-      for (var i = 0; i < ret.data.execution.result.length; i++) {
-        if (ret.data.execution.result[i].group.localeCompare("MLST") == 0) {
-          this.mlstData = ret.data.execution.result[i].data;
-        } else if (ret.data.execution.result[i].group == 'PLASMID') {
-          this.plasmidData = ret.data.execution.result[i].data;
+      for (var i = 0; i < ret.data.result.length; i++) {
+        if (ret.data.result[i].group.localeCompare("MLST") == 0) {
+          this.mlstData = ret.data.result[i].data;
+        } else if (ret.data.result[i].group == 'PLASMID') {
+          this.plasmidData = ret.data.result[i].data;
 
-        } else if (ret.data.execution.result[i].group == 'AMR') {
-          this.resistomeData = ret.data.execution.result[i].data;
+        } else if (ret.data.result[i].group == 'AMR') {
+          this.resistomeData = ret.data.result[i].data;
 
-        } else if (ret.data.execution.result[i].group == 'VIR') {
-          this.virulomeData = ret.data.execution.result[i].data;
+        } else if (ret.data.result[i].group == 'VIR') {
+          this.virulomeData = ret.data.result[i].data;
 
-        } else if (ret.data.execution.result[i].group == 'CONTIG') {
-          this.assemblyData = ret.data.execution.result[i].data;
+        } else if (ret.data.result[i].group == 'CONTIG') {
+          this.assemblyData = ret.data.result[i].data;
           this.assemblyData.GC = Math.trunc(this.assemblyData.GC) + ' %';
 
-        } else if (ret.data.execution.result[i].group == 'SPECIES') {
-          this.speciesData = ret.data.execution.result[i].data;
+        } else if (ret.data.result[i].group == 'SPECIES') {
+          this.speciesData = ret.data.result[i].data;
 
-        } else if (ret.data.execution.result[i].group == 'POINT') {
-          this.pointData = ret.data.execution.result[i].data;
+        } else if (ret.data.result[i].group == 'POINT') {
+          this.pointData = ret.data.result[i].data;
 
-        } else if (ret.data.execution.result[i].group == 'PMLST') {
-          this.pmlstData = ret.data.execution.result[i].data;
+        } else if (ret.data.result[i].group == 'PMLST') {
+          this.pmlstData = ret.data.result[i].data;
 
-        } else if (ret.data.execution.result[i].group == 'ANNOTATION') {
-          this.annotationData = ret.data.execution.result[i].data;
+        } else if (ret.data.result[i].group == 'ANNOTATION') {
+          this.annotationData = ret.data.result[i].data;
 
         }       
       }
