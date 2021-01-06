@@ -100,7 +100,7 @@ export class Browser {
     this.knowngenes = genes;
     this.gc_skew = skew;
     this.gc_content = content;
-    console.log(this.gc_content);
+    console.log(this.knowngenes);
     //this.gc_content_window=content.window;
     //this.gc_content_step=content.step;
     //console.log(contigs)

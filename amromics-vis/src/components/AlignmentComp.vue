@@ -18,9 +18,9 @@
   }
 }
 .center {
-  position:fixed;
+  position: fixed;
   left: 50%;
-  top:50%;
+  top: 50%;
 }
 </style>
 <template>
@@ -41,65 +41,80 @@ export default {
     return {
       loading: false,
       list_alignments: [],
-      current_alignment:undefined,
-      alignmentview:undefined
+      current_alignment: undefined,
+      alignmentview: undefined
     };
   },
   computed: {
     collectionId() {
       return this.$route.params.cid;
-      ;
     }
   },
-  async mounted() {
+ async mounted() {
     this.loading = true;
-    var ctx = document.getElementById("aligmentview");
-    //console.log(this.core_data);
-    //console.log(Phylogeny);
-    
-    this.list_alignments = this.alignmentData.alignments;
-    const value = await SampleAPI.fetchAlignment(this.collectionId,this.alignmentData.alignments[0].gene);
-    this.current_alignment=value.data
-    this.alignmentview = new AlignmentViewer(ctx);
-
-    var tree_data = atob(this.alignmentData.alignments[0].tree).replace(
-      /.ref/g,
-      ""
-    );
-    tree_data = tree_data.replace(/.fasta/g, "");
-    //console.log(this.alignmentData.alignments[0])
-    this.alignmentview.load(
-      this.alignmentData.alignments[0].gene,
-      tree_data,
-      this.current_alignment,
-      undefined
-    );
-    //alignmentview.setOptions({width:ctx.clientWidth,height:0});
-    
-    this.alignmentview.draw();
-   
-    EventBus.$on("gene_id_emited", gene_id => {
-      //console.log('gene_id_emited'+gene_id);
-      this.loading=true;
-      this.reloadAlignment(gene_id);
       
-      this.loading=false;
-     
-    });
-    EventBus.$on("samples_emited", arr_ids => {
-      //console.log('sample_emited '+arr_ids);
-      this.loading=true;
- 
-      this.alignmentview.setActiveNames(arr_ids);
-      this.loading=false;
-  
-    });
-    this.loading = false;
-    //document.getElementById("al_loader").display="none";
+      //console.log(this.core_data);
+      //console.log(Phylogeny);
+
+      this.list_alignments = this.alignmentData.alignments;
+      var value=await this.getAlignment();
+      //console.log(value);
+      await this.loadAlignment(value);
+   //this.loadAlignment();
+   EventBus.$on("gene_id_emited", gene_id => {
+        //console.log('gene_id_emited'+gene_id);
+        this.loading = true;
+        this.reloadAlignment(gene_id);
+
+        this.loading = false;
+      });
+      EventBus.$on("samples_emited", arr_ids => {
+        //console.log('sample_emited '+arr_ids);
+        this.loading = true;
+
+        this.alignmentview.setActiveNames(arr_ids);
+        this.loading = false;
+      });
   },
   async created() {},
   methods: {
-    async reloadAlignment(gene_id){
+    async getAlignment(){
+        return await SampleAPI.fetchAlignment(
+        this.collectionId,
+        this.alignmentData.alignments[0].gene
+      );
+         
+    },
+     async loadAlignment(res) {
+       const pako = require('pako');
+      var value=JSON.parse(pako.ungzip(res.data,{ to: 'string' }));
+         
+      var ctx = document.getElementById("aligmentview");
+      
+      this.current_alignment = value;
+      //console.log(this.current_alignment);
+      this.alignmentview = new AlignmentViewer(ctx);
+
+      var tree_data = atob(this.alignmentData.alignments[0].tree).replace(
+        /.ref/g,
+        ""
+      );
+      tree_data = tree_data.replace(/.fasta/g, "");
+      //console.log(this.alignmentData.alignments[0])
+      this.alignmentview.load(
+        this.alignmentData.alignments[0].gene,
+        tree_data,
+        this.current_alignment,
+        undefined
+      );
+      //alignmentview.setOptions({width:ctx.clientWidth,height:0});
+
+      this.alignmentview.draw();
+
+      
+      this.loading = false;
+    },
+    async reloadAlignment(gene_id) {
       for (var i = 0; i < this.list_alignments.length; i++) {
         if (this.list_alignments[i].gene == gene_id) {
           var tree = atob(this.alignmentData.alignments[i].tree).replace(
@@ -108,8 +123,13 @@ export default {
           );
           tree = tree.replace(/.fasta/g, "");
           //console.log(tree);
-          const value = await SampleAPI.fetchAlignment(this.collectionId,gene_id);
-          this.current_alignment=value.data
+          const value = await SampleAPI.fetchAlignment(
+            this.collectionId,
+            gene_id
+          );
+          const pako = require('pako');
+          this.current_alignment=JSON.parse(pako.ungzip(value.data,{ to: 'string' }));
+          
           this.alignmentview.load(
             this.alignmentData.alignments[i].gene,
             tree,

@@ -395,6 +395,7 @@ export default {
 
         }       
       }
+      console.log(this.annotationData);
       this.sample_info={name:ret.data.name,genus:ret.data.genus,species:ret.data.species,strain:ret.data.strain,gram:ret.data.gram,files:ret.data.files,metadata:ret.data.metadata};
       
       this.loaded=true;

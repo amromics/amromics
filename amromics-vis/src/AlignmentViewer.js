@@ -87,7 +87,7 @@ export class AlignmentViewer {
 
   load(genelabel, phylotree, alignment,type,mlst) {
 
-
+    console.log(alignment);
     this.control_gene.innerHTML = genelabel;
     this.samples = alignment;
     this.phylotree=phylotree;
@@ -103,6 +103,7 @@ export class AlignmentViewer {
 
     if(this.current_type=='nucl'){
       for (var i = 0; i < this.samples.length; i++) {
+        console.log(this.samples[i].seq);
         var arr = [...this.samples[i].seq];
         list_sample.push(this.samples[i].sample);
         taxa.push({

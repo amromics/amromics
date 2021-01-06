@@ -197,6 +197,7 @@ export default {
         if (result[i].group == "phylogeny_tree") {
           //console.log(atob(result[i].data))
           this.phylogenyData = atob(result[i].data);
+          this.phylogenyData=this.trimExtensionFileFasta(this.phylogenyData);
         }
         if (result[i].group == "pan_sum") {
           // this.coreData=JSON.parse(atob(result.execution_results[i].data));
@@ -375,6 +376,10 @@ export default {
         }
       });
  
+    },
+    trimExtensionFileFasta(filenames){
+      // removed 'fasta .fna from sample name. 
+      return filenames.replace(/.fasta/g,'').replace(/.fna/g,'');
     }
   }
 };
