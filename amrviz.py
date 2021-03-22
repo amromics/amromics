@@ -15,7 +15,7 @@ import socket
 import sys
 import pandas as pd
 
-from amromics import extract_json
+from amromics import extract_json, pan_genome
 from amromics.pipeline import wrapper
 from amromics.utils import valid_id, software_version
 
@@ -195,7 +195,7 @@ def collection_pa_func(args):
     with open(sample_set_file, 'w') as fn:
         json.dump(dataset_sample_ids, fn)
 
-    report = wrapper.run_roary(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
+    report = pan_genome.run_pan_genome_analysis(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
     report = wrapper.run_phylogeny_iqtree(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
     report = wrapper.run_gene_phylogeny_parallel(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
     with open(os.path.join(collection_dir, collection_id + '_dump.json'), 'w') as fn:

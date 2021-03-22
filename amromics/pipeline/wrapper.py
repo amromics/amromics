@@ -12,27 +12,13 @@ from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 
-from amromics.utils import get_open_func, get_compress_type, translate_dna
+from amromics.utils import get_open_func, get_compress_type, translate_dna, run_command
 
 logger = logging.getLogger(__name__)
 
 # TODOs:
 # - Can make it faster with using fasttree (parsnps need to have this option specifically set
 # - By default, parsnp use bootstrap of 1000. See if we can change the value and get the boottrap values
-
-
-def run_command(cmd, timing_log=None):
-    """
-    Run a command line, return the returning code of the command
-    :param cmd:
-    :param timing_log:
-    :return:
-    """
-    if timing_log is not None:
-        cmd = '/usr/bin/time --append -v -o {} bash -c "{}"'.format(timing_log, cmd)
-    logger.info('Run "' + cmd + '"')
-    ret = os.system(cmd)
-    return ret
 
 
 def assemble_shovill(sample, sample_dir, threads=4, memory=50, overwrite=False, timing_log=None):
@@ -445,7 +431,7 @@ def run_roary(report, collection_dir='.', threads=8, overwrite=False, timing_log
     roary_output = os.path.join(roary_folder, 'core_alignment_header.embl')
 
     # Check if roary has run for the same dataset ID and the same set of samples
-    report['roary'] = roary_folder
+    report['pan_genome'] = roary_folder
     if os.path.isfile(roary_output) and (not overwrite):
         logger.info('roary has run and the input has not changed, skip roarying')
         return report
@@ -567,7 +553,7 @@ def run_alignment(report, collection_dir, threads=8, overwrite=False, timing_log
         report object
     -------
     """
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.csv.gz'
+    gene_cluster_file = report['pan_genome'] + '/gene_presence_absence.csv.gz'
     dict_cds = {}
     for sample in report['samples']:
         with gzip.open(os.path.join(sample['annotation'], sample['id'] + '.ffn.gz'), 'rt') as fn:
@@ -673,7 +659,7 @@ def run_phylogeny_iqtree(report, collection_dir, threads=8, overwrite=False, tim
         logger.info('phylogeny tree exists and input has not changed, skip phylogeny analysis')
         return report
 
-    aln_file = os.path.join(report['roary'], 'core_gene_alignment.aln.gz')
+    aln_file = os.path.join(report['pan_genome'], 'core_gene_alignment.aln.gz')
     cmd = 'iqtree -s {alignment} --prefix {prefix} -B 1000 -T {threads} -czb -keep-ident'.format(
         alignment=aln_file, prefix=phylogeny_folder+'/core_gene_alignment', threads=threads)
     ret = run_command(cmd, timing_log)
@@ -706,7 +692,7 @@ def run_gene_phylogeny(report, collection_dir, threads=8, overwrite=False, timin
     -------
     """
     alignment_dir = os.path.join(collection_dir, 'alignments')
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.Rtab'   
+    gene_cluster_file = report['pan_genome'] + '/gene_presence_absence.Rtab'   
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
     
@@ -728,7 +714,7 @@ def run_gene_phylogeny(report, collection_dir, threads=8, overwrite=False, timin
                         logger.info('Phylogeny for gene {} done, skipping'.format(gene_id))
                         continue  # for _, row
         
-        gene_aln_file_roary = os.path.join(report['roary'],'pan_genome_sequences', gene_id + '.fa.aln')
+        gene_aln_file_roary = os.path.join(report['pan_genome'],'pan_genome_sequences', gene_id + '.fa.aln')
         gene_aln_file = os.path.join(gene_dir, gene_id + '.fa.aln')
         if not os.path.isfile(gene_aln_file_roary):
             logger.info('{} does not exist'.format(gene_aln_file_roary))
@@ -778,7 +764,7 @@ def run_protein_phylogeny(report, collection_dir, threads=8, overwrite=False, ti
     -------
     """
     alignment_dir = os.path.join(collection_dir, 'alignments')
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.Rtab'   
+    gene_cluster_file = report['pan_genome'] + '/gene_presence_absence.Rtab'   
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
     
@@ -800,7 +786,7 @@ def run_protein_phylogeny(report, collection_dir, threads=8, overwrite=False, ti
                         logger.info('Phylogeny for gene {} done, skipping'.format(gene_id))
                         continue  # for _, row
         
-        gene_aln_file_roary = os.path.join(report['roary'],'pan_genome_sequences', gene_id + '.fa.aln')
+        gene_aln_file_roary = os.path.join(report['pan_genome'],'pan_genome_sequences', gene_id + '.fa.aln')
         gene_aln_file = os.path.join(gene_dir, gene_id + '.fa.aln')
         if not os.path.isfile(gene_aln_file_roary):
             logger.info('{} does not exist'.format(gene_aln_file_roary))
@@ -859,7 +845,7 @@ def run_gene_phylogeny_parallel(report, collection_dir, threads=8, overwrite=Fal
     alignment_dir = os.path.join(collection_dir, 'alignments')
     if not os.path.exists(alignment_dir):
         os.makedirs(alignment_dir)
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.Rtab'   
+    gene_cluster_file = report['pan_genome'] + '/gene_presence_absence.Rtab'   
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
     
@@ -884,7 +870,7 @@ def run_gene_phylogeny_parallel(report, collection_dir, threads=8, overwrite=Fal
                         continue  # for _, row
         gen_list_string = json.dumps(gene_list)
 
-        gene_aln_file_roary = os.path.join(report['roary'],'pan_genome_sequences', gene_id + '.fa.aln')
+        gene_aln_file_roary = os.path.join(report['pan_genome'],'pan_genome_sequences', gene_id + '.fa.aln')
         gene_aln_file = os.path.join(gene_dir, gene_id + '.fa.aln')
         if not os.path.isfile(gene_aln_file_roary):
             continue
