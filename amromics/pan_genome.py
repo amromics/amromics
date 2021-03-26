@@ -142,6 +142,13 @@ def combine_proteins(handle, timing_log=None):
 
 
 def parse_cluster_file(cd_hit_cluster_file):
+    """
+    Parse cd-hit .clstr file
+
+    Parameters
+    -------
+    -------
+    """
     cd_hit_cluster_fh = open(cd_hit_cluster_file, 'r')
     clusters = {}
     for line in cd_hit_cluster_fh:
@@ -164,10 +171,17 @@ def parse_cluster_file(cd_hit_cluster_file):
 
 
 def run_cd_hit_iterative(handle, threads, timing_log):
+    """
+    Run CD-HIT iteratively
+
+    Parameters
+    -------
+    -------
+    """
     temp_dir = handle['temp_dir']
     combined_faa_file = handle['combined_faa_file']
 
-    cd_hit_cluster_output = os.path.join(temp_dir, 'cluster')
+    cd_hit_cluster_represent = os.path.join(temp_dir, 'cluster')
     cd_hit_cluster_file = os.path.join(temp_dir, 'cluster.clstr')
 
     removed_cluster_file = os.path.join(temp_dir, 'removed_cluster')
@@ -178,7 +192,7 @@ def run_cd_hit_iterative(handle, threads, timing_log):
     number_of_samples = len(handle['samples'])
     
     while percent_match >= 0.98:
-        cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_output} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 '
+        cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_represent} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
         ret = run_command(cmd, timing_log)
         if ret != 0:
             raise Exception('Error running cd-hit')
@@ -213,13 +227,79 @@ def run_cd_hit_iterative(handle, threads, timing_log):
 
     removed_cluster_fh.close()
     
-    handle['cd_hit_cluster_output'] = cd_hit_cluster_output
+    handle['cd_hit_cluster_represent'] = cd_hit_cluster_represent
     handle['cd_hit_cluster_file'] = cd_hit_cluster_file
     handle['removed_cluster_file'] = removed_cluster_file
     return handle
 
-#def all_against_all_blast():
 
+def chunk_fasta_file(fasta_file, out_dir):
+    chunked_file_list = []
+    chunk_number = 0
+    current_chunk_length = 0
+    chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
+    chunked_file_list.append(chunked_file)
+    for seq_record in SeqIO.parse(fasta_file, "fasta"):
+        if current_chunk_length > 200000:
+            chunk_number += 1
+            current_chunk_length = 0
+            chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
+            chunked_file_list.append(chunked_file)
+            SeqIO.write(seq_record, chunked_file, 'fasta')
+        chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
+        SeqIO.write(seq_record, chunked_file, 'fasta')
+        current_chunk_length += len(seq_record.seq)
+
+    return chunked_file_list
+
+
+def all_against_all_blast(handle, threads, timing_log):
+    """
+    Run all against all blast in parallel
+
+    Parameters
+    -------
+    -------
+    """
+    out_dir = os.path.join(handle['temp_dir'], 'blast')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    # make blast database
+    fasta_file = handle['cd_hit_cluster_represent']
+    blast_db = os.path.join(out_dir, 'output_contigs')
+    cmd = f"makeblastdb -in {fasta_file} -dbtype prot -out {blast_db} -logfile /dev/null"
+    ret = run_command(cmd, timing_log)
+    if ret != 0:
+        raise Exception('Error running makeblastdb')
+    
+    # chunk fasta file
+    chunked_file_list = chunk_fasta_file(fasta_file, out_dir)
+
+    # run parallel all-against-all blast
+    blast_cmds_file = os.path.join(out_dir,"blast_cmds.txt")
+    blast_cmds_fh = open(blast_cmds_file,'w')
+    blast_output_file_list = []
+    for chunked_file in chunked_file_list:
+        blast_output_file = os.path.splitext(chunked_file)[0] + '.out'
+        blast_output_file_list.append(blast_output_file)
+        cmd = f"blastp -query {chunked_file} -db {blast_db} -evalue 1E-6 -num_threads {threads} -outfmt 6 -max_target_seqs 2000 " + "| awk '{ if ($3 > 98) print $0;}' 2> /dev/null 1> " + blast_output_file
+        blast_cmds_fh.write(cmd + '\n')
+    blast_cmds_fh.close()  
+    cmd = f"parallel -a {blast_cmds_file}"
+    ret = run_command(cmd, timing_log)
+    if ret != 0:
+        raise Exception('Error running parallel all-against-all blast')
+
+    # combining blast results
+    blast_result_file = os.path.join(handle['temp_dir'], 'blast_results')
+    if os.path.isfile(blast_result_file) == True:
+        os.remove(blast_result_file)
+    for blast_output_file in blast_output_file_list:
+        os.system(f'cat {blast_output_file} >> {blast_result_file}')
+
+    handle['blast_result_file'] = blast_result_file
+    return handle
 
 #def cluster_mcl():
 
@@ -264,7 +344,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     handle = extract_proteins(handle, timing_log=timing_log)
     handle = combine_proteins(handle, timing_log=timing_log)
     handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
-
+    handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
 
 
 if __name__ == '__main__':
@@ -290,6 +370,7 @@ if __name__ == '__main__':
     handle = extract_proteins(handle, timing_log=timing_log)
     handle = combine_proteins(handle, timing_log=timing_log)
     handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
+    handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
     print(json.dumps(handle, indent=4, sort_keys=True))
     
 
