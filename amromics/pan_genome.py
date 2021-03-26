@@ -126,22 +126,97 @@ def combine_proteins(handle, timing_log=None):
     -------
     """
     temp_dir = handle['temp_dir']
-    combinded_faa_file = os.path.join(temp_dir, 'combined.faa')
+    combined_faa_file = os.path.join(temp_dir, 'combined.faa')
     faa_file_list =[]
     for sample in handle['samples']:
         faa_file = sample['faa_file']
         faa_file_list.append(faa_file)
 
-    cmd = "cat {} > {}".format(" ".join(faa_file_list),combinded_faa_file)
+    cmd = "cat {} > {}".format(" ".join(faa_file_list),combined_faa_file)
     ret = run_command(cmd, timing_log)
     if ret != 0:
         raise Exception('Error combining protein sequences')
 
-    handle['combinded_faa_file'] = combinded_faa_file
+    handle['combined_faa_file'] = combined_faa_file
     return handle
 
-#def run_cdhit_iterative():
 
+def parse_cluster_file(cd_hit_cluster_file):
+    cd_hit_cluster_fh = open(cd_hit_cluster_file, 'r')
+    clusters = {}
+    for line in cd_hit_cluster_fh:
+        if re.match(r"^>", line) != None:
+            cluster_name = re.findall(r'^>(.+)$', line)
+            cluster_name = cluster_name[0]
+            clusters[cluster_name] = {}
+            clusters[cluster_name]['gene_names'] = []
+        else:
+            result = re.findall(r'[\d]+\t[\w]+, >(.+)\.\.\. (.+)$', line)
+            if len(result) == 1:
+                gene_name = result[0][0]
+                identity = result[0][1]
+                if identity == '*':
+                    clusters[cluster_name]['representative'] = gene_name
+                else:
+                    clusters[cluster_name]['gene_names'].append(gene_name)
+
+    return clusters
+
+
+def run_cd_hit_iterative(handle, threads, timing_log):
+    temp_dir = handle['temp_dir']
+    combined_faa_file = handle['combined_faa_file']
+
+    cd_hit_cluster_output = os.path.join(temp_dir, 'cluster')
+    cd_hit_cluster_file = os.path.join(temp_dir, 'cluster.clstr')
+
+    removed_cluster_file = os.path.join(temp_dir, 'removed_cluster')
+    removed_cluster_fh = open(removed_cluster_file, 'a')
+
+    percent_match = 1
+    greater_than_or_equal = True
+    number_of_samples = len(handle['samples'])
+    
+    while percent_match >= 0.98:
+        cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_output} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 '
+        ret = run_command(cmd, timing_log)
+        if ret != 0:
+            raise Exception('Error running cd-hit')
+        
+        clusters = parse_cluster_file(cd_hit_cluster_file)
+
+        if percent_match != 1:
+            greater_than_or_equal = False
+        full_cluster_gene_names =[]
+        for cluster_name in clusters.keys():
+            representative_gene = clusters[cluster_name]['representative']
+            other_genes = clusters[cluster_name]['gene_names']
+            if greater_than_or_equal == True and len(other_genes) >= number_of_samples -1:
+                full_cluster_gene_names.append(representative_gene)
+                full_cluster_gene_names.extend(other_genes)
+                removed_cluster_fh.write(representative_gene+'\t'+'\t'.join(other_genes)+'\n')
+            if greater_than_or_equal == False and len(other_genes) == number_of_samples -1:
+                full_cluster_gene_names.append(representative_gene)
+                full_cluster_gene_names.extend(other_genes)
+                removed_cluster_fh.write(representative_gene+'\t'+'\t'.join(other_genes)+'\n')
+        
+
+        cluster_filtered_faa_file = combined_faa_file + '.filtered'
+        cluster_filtered_faa_fh = open(cluster_filtered_faa_file, 'w')
+        for seq_record in SeqIO.parse(combined_faa_file, "fasta"):
+            if seq_record.id in full_cluster_gene_names:
+                SeqIO.write(seq_record, cluster_filtered_faa_fh, 'fasta')
+        cluster_filtered_faa_fh.close()
+
+        shutil.move(cluster_filtered_faa_file, combined_faa_file)
+        percent_match -=0.005
+
+    removed_cluster_fh.close()
+    
+    handle['cd_hit_cluster_output'] = cd_hit_cluster_output
+    handle['cd_hit_cluster_file'] = cd_hit_cluster_file
+    handle['removed_cluster_file'] = removed_cluster_file
+    return handle
 
 #def all_against_all_blast():
 
@@ -188,11 +263,12 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     handle = get_input(handle=handle,report=report)
     handle = extract_proteins(handle, timing_log=timing_log)
     handle = combine_proteins(handle, timing_log=timing_log)
-
+    handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
 
 
 
 if __name__ == '__main__':
+    
     handle = {
         'main_dir' : '/home/ted/ubuntu/AMR/amromics-vis/dev',
         'temp_dir' : '/home/ted/ubuntu/AMR/amromics-vis/dev/temp',
@@ -209,11 +285,13 @@ if __name__ == '__main__':
             }
         ]
     }
-
-    handle = extract_proteins(handle)
-    handle = combine_proteins(handle)
+    threads = 4
+    timing_log = '/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
+    handle = extract_proteins(handle, timing_log=timing_log)
+    handle = combine_proteins(handle, timing_log=timing_log)
+    handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
     print(json.dumps(handle, indent=4, sort_keys=True))
-
+    
 
 
 
@@ -223,3 +301,4 @@ if __name__ == '__main__':
     # filtered protein sequence produced by roary did not have * character in the middle of sequence => check unfiltered protein sequence 
     # protein sequence with the same id are different from each other => run roary perl scrip individually
 # filter protein sequence
+# warming of CD-HIT: Discarding invalid sequence or sequence without identifier and description!
