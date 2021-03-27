@@ -4,7 +4,6 @@ import re
 import json
 import logging
 from Bio import SeqIO
-from Bio.Seq import Seq
 from amromics.utils import run_command
 
 logger = logging.getLogger(__name__)
@@ -166,8 +165,12 @@ def parse_cluster_file(cd_hit_cluster_file):
                     clusters[cluster_name]['representative'] = gene_name
                 else:
                     clusters[cluster_name]['gene_names'].append(gene_name)
+    # convert to a simple dictionary
+    clusters_new ={}
+    for cluster_name in clusters.keys():
+        clusters_new[clusters[cluster_name]['representative']] = clusters[cluster_name]['gene_names']
 
-    return clusters
+    return clusters_new
 
 
 def run_cd_hit_iterative(handle, threads, timing_log):
@@ -184,8 +187,10 @@ def run_cd_hit_iterative(handle, threads, timing_log):
     cd_hit_cluster_represent = os.path.join(temp_dir, 'cluster')
     cd_hit_cluster_file = os.path.join(temp_dir, 'cluster.clstr')
 
-    removed_cluster_file = os.path.join(temp_dir, 'removed_cluster')
-    removed_cluster_fh = open(removed_cluster_file, 'a')
+    excluded_cluster_file = os.path.join(temp_dir, 'excluded_cluster')
+    if os.path.isfile(excluded_cluster_file):
+        os.remove(excluded_cluster_file)
+    excluded_cluster_fh = open(excluded_cluster_file, 'a')
 
     percent_match = 1
     greater_than_or_equal = True
@@ -202,18 +207,16 @@ def run_cd_hit_iterative(handle, threads, timing_log):
         if percent_match != 1:
             greater_than_or_equal = False
         full_cluster_gene_names =[]
-        for cluster_name in clusters.keys():
-            representative_gene = clusters[cluster_name]['representative']
-            other_genes = clusters[cluster_name]['gene_names']
+        for cluster_represent in clusters.keys():
+            other_genes = clusters[cluster_represent]
             if greater_than_or_equal == True and len(other_genes) >= number_of_samples -1:
-                full_cluster_gene_names.append(representative_gene)
+                full_cluster_gene_names.append(cluster_represent)
                 full_cluster_gene_names.extend(other_genes)
-                removed_cluster_fh.write(representative_gene+'\t'+'\t'.join(other_genes)+'\n')
+                excluded_cluster_fh.write(cluster_represent+'\t'+'\t'.join(other_genes)+'\n')
             if greater_than_or_equal == False and len(other_genes) == number_of_samples -1:
-                full_cluster_gene_names.append(representative_gene)
+                full_cluster_gene_names.append(cluster_represent)
                 full_cluster_gene_names.extend(other_genes)
-                removed_cluster_fh.write(representative_gene+'\t'+'\t'.join(other_genes)+'\n')
-        
+                excluded_cluster_fh.write(cluster_represent+'\t'+'\t'.join(other_genes)+'\n')
 
         cluster_filtered_faa_file = combined_faa_file + '.filtered'
         cluster_filtered_faa_fh = open(cluster_filtered_faa_file, 'w')
@@ -225,31 +228,53 @@ def run_cd_hit_iterative(handle, threads, timing_log):
         shutil.move(cluster_filtered_faa_file, combined_faa_file)
         percent_match -=0.005
 
-    removed_cluster_fh.close()
+    excluded_cluster_fh.close()
     
+    cluster_json = os.path.join(temp_dir, 'cluster.json')
+    with open(cluster_json, 'w') as cluster_json_hd:
+        json.dump(clusters, cluster_json_hd, indent=4, sort_keys=True)
+
+
     handle['cd_hit_cluster_represent'] = cd_hit_cluster_represent
     handle['cd_hit_cluster_file'] = cd_hit_cluster_file
-    handle['removed_cluster_file'] = removed_cluster_file
+    handle['excluded_cluster_file'] = excluded_cluster_file
+    handle['cluster_json'] = cluster_json
     return handle
 
 
 def chunk_fasta_file(fasta_file, out_dir):
+    """
+    Take a fasta file and chunk it up into smaller files with the length of 200000
+
+    Parameters
+    -------
+    -------
+    """
+    if os.path.exists(out_dir):
+        shutil.rmtree(out_dir)
+        os.makedirs(out_dir)
+    else:
+        os.makedirs(out_dir)
+    
     chunked_file_list = []
     chunk_number = 0
     current_chunk_length = 0
     chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
+    chunked_fh = open(chunked_file, 'a')
     chunked_file_list.append(chunked_file)
     for seq_record in SeqIO.parse(fasta_file, "fasta"):
         if current_chunk_length > 200000:
+            chunked_fh.close()
             chunk_number += 1
             current_chunk_length = 0
             chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
             chunked_file_list.append(chunked_file)
-            SeqIO.write(seq_record, chunked_file, 'fasta')
+            chunked_fh = open(chunked_file, 'a')
+            SeqIO.write(seq_record, chunked_fh, 'fasta')
         chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
-        SeqIO.write(seq_record, chunked_file, 'fasta')
+        SeqIO.write(seq_record, chunked_fh, 'fasta')
         current_chunk_length += len(seq_record.seq)
-
+    chunked_fh.close()
     return chunked_file_list
 
 
@@ -274,7 +299,8 @@ def all_against_all_blast(handle, threads, timing_log):
         raise Exception('Error running makeblastdb')
     
     # chunk fasta file
-    chunked_file_list = chunk_fasta_file(fasta_file, out_dir)
+    chunk_dir = os.path.join(out_dir, 'chunk_files')
+    chunked_file_list = chunk_fasta_file(fasta_file, chunk_dir)
 
     # run parallel all-against-all blast
     blast_cmds_file = os.path.join(out_dir,"blast_cmds.txt")
@@ -293,7 +319,7 @@ def all_against_all_blast(handle, threads, timing_log):
 
     # combining blast results
     blast_result_file = os.path.join(handle['temp_dir'], 'blast_results')
-    if os.path.isfile(blast_result_file) == True:
+    if os.path.isfile(blast_result_file):
         os.remove(blast_result_file)
     for blast_output_file in blast_output_file_list:
         os.system(f'cat {blast_output_file} >> {blast_result_file}')
@@ -301,19 +327,102 @@ def all_against_all_blast(handle, threads, timing_log):
     handle['blast_result_file'] = blast_result_file
     return handle
 
-#def cluster_mcl():
+
+def cluster_with_mcl(handle, threads, timing_log):
+    """
+    Take blast results and outputs clustered results
+
+    Parameters
+    -------
+    -------
+    """
+    out_dir = handle['temp_dir']
+    blast_results = handle['blast_result_file']
+    output_mcl_file = os.path.join(out_dir, 'uninflated_mcl_groups')
+    cmd = f"mcxdeblast -m9 --score r --line-mode=abc {blast_results} 2> /dev/null | mcl - --abc -I 1.5 -o {output_mcl_file} > /dev/null 2>&1"
+    ret = run_command(cmd, timing_log)
+    if ret != 0:
+        raise Exception('Error running mcl')
+    handle['uninflated_mcl_groups'] = output_mcl_file
+    return handle
 
 
-#def reinflate_clusters():
+def reinflate_clusters(handle):
+    """
+    Take the clusters file from cd-hit and use it to inflate the output of MCL
 
+    Parameters
+    -------
+    -------
+    """
+    with open(handle['cluster_json'],'r') as fh:
+        clusters = json.load(fh)
+    mcl_file = handle['uninflated_mcl_groups']
+    mcl_fh = open(mcl_file, 'r')
+    output_file = os.path.join(handle['temp_dir'], 'inflated_unsplit_mcl_groups')
+    output_fh = open(output_file, 'w')
+    # Inflate genes from cdhit which were sent to mcl
+    for line in mcl_fh:
+        inflated_genes = []
+        line = line.rstrip('\n')
+        genes = line.split('\t')
+        for gene in genes:
+            inflated_genes.append(gene)
+            if gene in clusters:
+                inflated_genes.extend(clusters[gene])
+                del clusters[gene]
+        output_fh.write('\t'.join(inflated_genes)+'\n')
+    mcl_fh.close()
+
+    # Inflate any clusters that were in the clusters file but not sent to mcl
+    for gene in clusters.keys():
+        output_fh.write(gene + '\t' + '\t'.join(cluster[gene])+ '\n')
+
+    # Add clusters which were excluded
+    excluded_cluster_file = handle['excluded_cluster_file']
+    excluded_cluster_fh = open(excluded_cluster_file, 'r')
+    for line in excluded_cluster_fh:
+        output_fh.write(line)
+    excluded_cluster_fh.close()
+    output_fh.close()
+
+    handle['inflated_unsplit_mcl_groups'] = output_file
+    return handle
 
 #def split_paralogs():
 
 
-#def label_group():
+def label_group(handle):
+    """
+    Add labels to the groups
+
+    Parameters
+    -------
+    -------
+    """
+    input_file = handle['inflated_unsplit_mcl_groups']
+    ouput_file = os.path.join(handle['temp_dir'], 'labeled_mcl_groups')
+    input_fh = open(input_file, 'r')
+    output_fh = open(ouput_file, 'w')
+    counter = 1
+    for line in input_fh:
+        output_fh.write('groups_' + str(counter) + '\t' + line )
+        counter += 1
+    input_fh.close()
+    output_fh.close()
+    handle['labeled_mcl_groups'] = ouput_file
+    return handle
 
 
-#def annotate_group():
+def annotate_group():
+    """
+    Take in a group file and associated GFF files for the isolates 
+    and update the group name to the gene name
+
+    Parameters
+    -------
+    -------
+    """
 
 
 def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=False, timing_log=None):
@@ -345,25 +454,42 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     handle = combine_proteins(handle, timing_log=timing_log)
     handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
     handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
+    handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
+    handle = reinflate_clusters(handle)
+    handle = label_group(handle)
 
 
 if __name__ == '__main__':
-    
     handle = {
-        'main_dir' : '/home/ted/ubuntu/AMR/amromics-vis/dev',
-        'temp_dir' : '/home/ted/ubuntu/AMR/amromics-vis/dev/temp',
-        'samples':[
+        "blast_result_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/blast_results",
+        "cd_hit_cluster_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster.clstr",
+        "cd_hit_cluster_represent": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster",
+        "cluster_json": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster.json",
+        "combined_faa_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/combined.faa",
+        "excluded_cluster_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/excluded_cluster",
+        "inflated_unsplit_mcl_groups": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/inflated_unsplit_mcl_groups",
+        "labeled_mcl_groups": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/labeled_mcl_groups",
+        "main_dir": "/home/ted/ubuntu/AMR/amromics-vis/dev",
+        "samples": [
             {
-                'assembly_file' : '/home/ted/ubuntu/AMR/amromics-vis/dev/BMP071.fna',
-                'gff_file' : '/home/ted/ubuntu/AMR/amromics-vis/dev/BMP071.gff',
-                'id':'BMP071'
+                "assembly_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP071.fna",
+                "bed": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP071.bed",
+                "extracted_fna_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP071.extracted.fna",
+                "faa_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP071.faa",
+                "gff_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP071.gff",
+                "id": "BMP071"
             },
             {
-                'assembly_file' : '/home/ted/ubuntu/AMR/amromics-vis/dev/BMP077.fna',
-                'gff_file' : '/home/ted/ubuntu/AMR/amromics-vis/dev/BMP077.gff',
-                'id':'BMP077'
+                "assembly_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP077.fna",
+                "bed": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP077.bed",
+                "extracted_fna_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP077.extracted.fna",
+                "faa_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP077.faa",
+                "gff_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP077.gff",
+                "id": "BMP077"
             }
-        ]
+        ],
+        "temp_dir": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp",
+        "uninflated_mcl_groups": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/uninflated_mcl_groups"
     }
     threads = 4
     timing_log = '/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
@@ -371,6 +497,9 @@ if __name__ == '__main__':
     handle = combine_proteins(handle, timing_log=timing_log)
     handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
     handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
+    handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
+    handle = reinflate_clusters(handle)
+    handle = label_group(handle)
     print(json.dumps(handle, indent=4, sort_keys=True))
     
 
