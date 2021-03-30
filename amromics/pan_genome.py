@@ -75,8 +75,15 @@ def parse_gff_file(ggf_file, bed_out_file):
         gene_name = re.findall(r"Name=(.+?);",cells[8])
         if len(gene_name) != 0:
             gene_name = gene_name[0]
-            dictionary[gene_id] = gene_name
-        
+            if gene_id not in dictionary:
+                dictionary[gene_id] = {}
+            dictionary[gene_id]['name'] = gene_name
+        gene_product = re.findall(r"product=(.+?)$",cells[8])
+        if len(gene_product) != 0:
+            gene_product = gene_product[0]
+            if gene_id not in dictionary:
+                dictionary[gene_id] = {}
+            dictionary[gene_id]['product'] = gene_product
         trand = cells[6]
         seq_id = cells[0]
         out_handle.write(seq_id+'\t'+str(start -1)+'\t'+ str(end)+'\t'+gene_id+'\t'+trand+'\n')
@@ -125,10 +132,7 @@ def extract_proteins(handle, timing_log=None):
         sample['extracted_fna_file'] = extracted_fna_file
         sample['faa_file'] = faa_file
     
-    annotation_json = os.path.join(temp_dir, 'annotation.json')
-    with open(annotation_json, 'w') as fh:
-        json.dump(gene_annotation, fh, indent=4, sort_keys=True)
-    handle['gene_annotation'] = annotation_json
+    handle['gene_annotation'] = gene_annotation
     return handle
     
 
@@ -184,7 +188,7 @@ def parse_cluster_file(cd_hit_cluster_file):
                     clusters[cluster_name]['gene_names'].append(gene_name)
     # convert to a simple dictionary
     clusters_new ={}
-    for cluster_name in clusters.keys():
+    for cluster_name in clusters:
         clusters_new[clusters[cluster_name]['representative']] = clusters[cluster_name]['gene_names']
 
     return clusters_new
@@ -204,7 +208,7 @@ def run_cd_hit_iterative(handle, threads, timing_log):
     cd_hit_cluster_represent = os.path.join(temp_dir, 'cluster')
     cd_hit_cluster_file = os.path.join(temp_dir, 'cluster.clstr')
 
-    excluded_cluster_output = []
+    excluded_cluster = []
 
     percent_match = 1
     greater_than_or_equal = True
@@ -221,7 +225,7 @@ def run_cd_hit_iterative(handle, threads, timing_log):
         if percent_match != 1:
             greater_than_or_equal = False
         full_cluster_gene_names =[]
-        for cluster_represent in clusters.keys():
+        for cluster_represent in clusters:
             other_genes = clusters[cluster_represent]
             this_cluster = []
             if greater_than_or_equal == True and len(other_genes) >= number_of_samples -1:
@@ -231,7 +235,7 @@ def run_cd_hit_iterative(handle, threads, timing_log):
                 this_cluster.append(cluster_represent)
                 this_cluster.extend(other_genes)
             full_cluster_gene_names.extend(this_cluster)
-            excluded_cluster_output.append(this_cluster)
+            excluded_cluster.append(this_cluster)
 
         cluster_filtered_faa_file = combined_faa_file + '.filtered'
         cluster_filtered_faa_fh = open(cluster_filtered_faa_file, 'w')
@@ -243,19 +247,10 @@ def run_cd_hit_iterative(handle, threads, timing_log):
         shutil.move(cluster_filtered_faa_file, combined_faa_file)
         percent_match -=0.005
 
-    
-    cluster_json = os.path.join(temp_dir, 'cluster.clstr.json')
-    with open(cluster_json, 'w') as fh:
-        json.dump(clusters, fh, indent=4, sort_keys=True)
-
-    excluded_cluster_file = os.path.join(temp_dir, 'excluded_cluster.json')
-    with open(excluded_cluster_file, 'w') as fh:
-        json.dump(excluded_cluster_output, fh, indent=4, sort_keys=True)
-
     handle['cd_hit_cluster_represent'] = cd_hit_cluster_represent
     handle['cd_hit_cluster_file'] = cd_hit_cluster_file
-    handle['excluded_cluster_file'] = excluded_cluster_file
-    handle['cluster_clstr_json'] = cluster_json
+    handle['excluded_cluster'] = excluded_cluster
+    handle['cd_hit_cluster'] = clusters
     return handle
 
 
@@ -373,9 +368,7 @@ def reinflate_clusters(handle):
     -------
     """
     inflated_clusters = []
-
-    with open(handle['cluster_clstr_json'],'r') as fh:
-        clusters = json.load(fh)
+    clusters = handle['cd_hit_cluster']
 
     # Inflate genes from cdhit which were sent to mcl
     mcl_file = handle['uninflated_mcl_clusters']
@@ -393,23 +386,20 @@ def reinflate_clusters(handle):
     mcl_fh.close()
 
     # Inflate any clusters that were in the clusters file but not sent to mcl
-    for gene in clusters.keys():
+    for gene in clusters:
         inflated_genes = []
         inflated_genes.append(gene)
         inflated_genes.extend(cluster[gene])
         inflated_clusters.append(inflated_genes)
 
     # Add clusters which were excluded
-    with open(handle['excluded_cluster_file'],'r') as fh:
-        excluded_cluster = json.load(fh)
+    excluded_cluster = handle['excluded_cluster']
     for cluster in excluded_cluster:
         inflated_clusters.append(cluster)
 
-    output_file = os.path.join(handle['temp_dir'], 'inflated_unsplit_clusters.json')
-    with open(output_file, 'w') as fh:
-        json.dump(inflated_clusters, fh, indent=4, sort_keys=True)
-
-    handle['inflated_unsplit_clusters'] = output_file
+    handle['inflated_unsplit_clusters'] = inflated_clusters
+    del handle['cd_hit_cluster']
+    del handle['excluded_cluster']
     return handle
 
 #def split_paralogs():
@@ -423,8 +413,7 @@ def label_cluster(handle):
     -------
     -------
     """
-    with open(handle['inflated_unsplit_clusters'],'r') as fh:
-        unlabeled_clusters = json.load(fh)
+    unlabeled_clusters = handle['inflated_unsplit_clusters']
 
     # Add labels to the clusters
     labeled_clusters = {}
@@ -433,25 +422,46 @@ def label_cluster(handle):
         labeled_clusters['groups_' + str(counter)] = cluster
         counter += 1
 
-    output_file = os.path.join(handle['temp_dir'], 'labeled_clusters.json')
-    with open(output_file, 'w') as fh:
-        json.dump(labeled_clusters, fh, indent=4, sort_keys=True)
-
-    handle['labeled_clusters'] = output_file
+    handle['labeled_clusters'] = labeled_clusters
+    del handle['inflated_unsplit_clusters']
     return handle
 
 
 def annotate_cluster(handle):
     """
-    Take in a labeled cluster file and annotation file and update 
-    the cluster name to the gene name
+    Update the cluster name to the gene name
 
     Parameters
     -------
     -------
     """
+    clusters = handle['labeled_clusters']
+    gene_annotation = handle['gene_annotation']
+    annotated_cluster = {}
+    for cluster_name in clusters:
+        cluster_new_name = cluster_name
+        cluster_product = ''
+        gene_name_count = {}
+        max_number = 0
+        gene_id_list = clusters[cluster_name]
+        for gene_id in gene_id_list:
+            if gene_id in gene_annotation and 'name' in gene_annotation[gene_id]:
+                gene_name = gene_annotation[gene_id]['name']
+                if gene_name not in gene_name_count:
+                    gene_name_count[gene_name] = 1
+                else:
+                    gene_name_count[gene_name] += 1
+                if gene_name_count[gene_name] > max_number:
+                    cluster_new_name = gene_name
+                    if 'product' in gene_annotation[gene_id]:
+                        cluster_product = gene_annotation[gene_id]['product']
+                    max_number = gene_name_count[gene_name]
 
-
+        annotated_cluster[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
+    del handle['labeled_clusters']
+    del handle['gene_annotation']
+    handle['annotated_cluster'] = annotated_cluster
+    return handle
 
 def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=False, timing_log=None):
     # Check if any sample has been updated
@@ -485,6 +495,8 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
     handle = reinflate_clusters(handle)
     handle = label_cluster(handle)
+    handle = annotate_cluster(handle)
+    
 
 
 if __name__ == '__main__':
@@ -492,13 +504,8 @@ if __name__ == '__main__':
         "blast_result_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/blast_results",
         "cd_hit_cluster_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster.clstr",
         "cd_hit_cluster_represent": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster",
-        "cluster_clstr_json": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster.clstr.json",
-        "cluster_json": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster.clstr.json",
         "combined_faa_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/combined.faa",
-        "excluded_cluster_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/excluded_cluster.json",
         "gene_annotation": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/annotation.json",
-        "inflated_unsplit_clusters": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/inflated_unsplit_clusters.json",
-        "labeled_clusters": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/labeled_clusters.json",
         "main_dir": "/home/ted/ubuntu/AMR/amromics-vis/dev",
         "samples": [
             {
@@ -530,7 +537,9 @@ if __name__ == '__main__':
     handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
     handle = reinflate_clusters(handle)
     handle = label_cluster(handle)
-    print(json.dumps(handle, indent=4, sort_keys=True))
+    handle = annotate_cluster(handle)
+    print(handle.keys())
+    print(json.dumps(handle['annotated_cluster'], indent=4, sort_keys=True))
     
 
 
