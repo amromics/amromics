@@ -2,6 +2,7 @@ import os
 import shutil
 import re
 import json
+#from datetime import datetime
 import logging
 from Bio import SeqIO
 from amromics.utils import run_command
@@ -37,7 +38,7 @@ def get_input(handle, report):
     return handle
 
 
-def parse_gff_file(ggf_file, bed_out_file):
+def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
     """
     Parse gff file, create a bed file and return a dictionary contain gen id 
     and gene annotation. Filter out small genes(<18 base)
@@ -49,7 +50,8 @@ def parse_gff_file(ggf_file, bed_out_file):
     in_handle = open(ggf_file,'r')
     out_handle = open(bed_out_file, 'w')
     found_fasta = 0
-    dictionary = {}
+    last_seq_id = None
+    count = 1
     for line in in_handle:
         if found_fasta == 1:
             continue
@@ -69,28 +71,33 @@ def parse_gff_file(ggf_file, bed_out_file):
         if end - start < 18:
             continue
 
-        gene_id = re.findall(r"ID=(.+?);",cells[8])
-        gene_id = gene_id[0]
-        
+        seq_id = cells[0]
+        if seq_id != last_seq_id:
+            count = 1
+            last_seq_id = seq_id
+        #gene_id = re.findall(r"ID=(.+?);",cells[8])
+        #gene_id = gene_id[0]
+        gene_id = sample_id + '_' + seq_id + '_' + str(count)
+        count = count + 1
+        trand = cells[6]
+        out_handle.write(seq_id+'\t'+str(start -1)+'\t'+ str(end)+'\t'+gene_id+'\t'+trand+'\n')\
+
+        # create annotation dictionary
+        #if gene_id in dictionary:
+        #    gene_id = gene_id + datetime.now().strftime("%M%S%f")
+        dictionary[gene_id] = {}
+        dictionary[gene_id]['sample_id'] = sample_id
         gene_name = re.findall(r"Name=(.+?);",cells[8])
         if len(gene_name) != 0:
             gene_name = gene_name[0]
-            if gene_id not in dictionary:
-                dictionary[gene_id] = {}
             dictionary[gene_id]['name'] = gene_name
         gene_product = re.findall(r"product=(.+?)$",cells[8])
         if len(gene_product) != 0:
             gene_product = gene_product[0]
-            if gene_id not in dictionary:
-                dictionary[gene_id] = {}
             dictionary[gene_id]['product'] = gene_product
-        trand = cells[6]
-        seq_id = cells[0]
-        out_handle.write(seq_id+'\t'+str(start -1)+'\t'+ str(end)+'\t'+gene_id+'\t'+trand+'\n')
+
     in_handle.close()
     out_handle.close()
-
-    return dictionary
 
 
 def extract_proteins(handle, timing_log=None):
@@ -111,8 +118,8 @@ def extract_proteins(handle, timing_log=None):
         # extract nucleotide region
         extracted_fna_file = os.path.join(temp_dir, sample_id +'.extracted.fna')
         bed_file = os.path.join(temp_dir, sample_id +'.bed')
-        annotation = parse_gff_file(ggf_file, bed_file)
-        gene_annotation.update(annotation)
+        parse_gff_file(ggf_file, bed_file, sample_id, gene_annotation)
+
         cmd = f"bedtools getfasta -s -fi {fna_file} -bed {bed_file} -fo {extracted_fna_file} -name > /dev/null 2>&1"
         ret = run_command(cmd, timing_log)
         if ret != 0:
@@ -234,8 +241,9 @@ def run_cd_hit_iterative(handle, threads, timing_log):
             if greater_than_or_equal == False and len(other_genes) == number_of_samples -1:
                 this_cluster.append(cluster_represent)
                 this_cluster.extend(other_genes)
-            full_cluster_gene_names.extend(this_cluster)
-            excluded_cluster.append(this_cluster)
+            if len(this_cluster) != 0:
+                full_cluster_gene_names.extend(this_cluster)
+                excluded_cluster.append(this_cluster)
 
         cluster_filtered_faa_file = combined_faa_file + '.filtered'
         cluster_filtered_faa_fh = open(cluster_filtered_faa_file, 'w')
@@ -402,8 +410,141 @@ def reinflate_clusters(handle):
     del handle['excluded_cluster']
     return handle
 
-#def split_paralogs():
+def find_paralogs(cluster, gene_annotation):
+    samples = {}
+    for gene_id in cluster:
+        sample_id = gene_annotation[gene_id]['sample_id']
+        if sample_id not in samples:
+            samples[sample_id] = []
+        samples[sample_id].append(sample_id)
+    
+    # pick paralogs with the smallest number of genes
+    smallest_number = 1000000
+    paralog_genes = None
+    for sample_id in samples:
+        genes = samples[sample_id]
+        count = len(genes)
+        if count > 1 and count < smallest_number:
+            paralog_genes = genes
+            smallest_number = count
 
+    return paralog_genes
+
+
+def create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_index):
+    # get neighbour gene
+    neighbour_gene_dictionary = {}
+    for gene_id in cluster:
+        match = re.search(r'^(.+_)(\d+)$', gene_id)
+        gene_id_prefix = match.group(1)
+        gene_position = int(match.group(2))
+        before_position = gene_position - 5
+        after_position = gene_position + 5
+        neighbour_genes = []
+        for i in range(before_position, after_position+1):
+            neighbour_gene_id = gene_id_prefix + str(i)
+            if neighbour_gene_id in gene_annotation and neighbour_gene_id != gene_id:
+                neighbour_genes.append(neighbour_gene_id)
+        neighbour_gene_dictionary[gene_id] = neighbour_genes
+
+    # find cluster indices of all the neighbour genes of each paralog gene
+    cluster_indices_around_paralogs = []
+    for p in paralog_genes:
+        neighbours_of_p = neighbour_gene_dictionary[p]
+        cluster_indices_around_p = []
+        for neighbour_gene in neighbours_of_p:
+            cluster_index = gene_to_cluster_index[neighbour_gene]
+            cluster_indices_around_p.append(cluster_index)
+        cluster_indices_around_paralogs.append(cluster_indices_around_p)
+    
+    # create data structure to hold new clusters
+    new_clusters = []
+    for p in paralog_genes:
+        new_clusters.append([p])
+    new_clusters.append([]) # extra "leftovers" list to gather genes that don't share CGN with any paralog gene
+
+    # add other members of the cluster to their closest match
+    for g in cluster:
+        if g in paralog_genes:
+            continue
+
+        neighbour_genes_of_g = neighbour_gene_dictionary[g]
+        if len(neighbour_genes_of_g) == 0:
+            new_clusters[-1].append(g)
+
+        # find paralog gene which is closest match with g
+        best_score = 0
+        best_score_index = -1  # -1 is the index of "leftovers" list
+        for p in range(len(paralog_genes)):
+            cluster_indices_around_p = cluster_indices_around_paralogs[p]
+            score_of_p = 0
+            for neighbour_gene in neighbour_genes_of_g:
+                cluster_index = gene_to_cluster_index[neighbour_gene]
+                if cluster_index in cluster_indices_around_p:
+                    score_of_p += 1
+            score_of_p = score_of_p / len(neighbour_genes_of_g)
+            if score_of_p > best_score:
+                best_score = score_of_p
+                best_score_index = p
+
+            new_clusters[best_score_index].append(g)
+
+    # check for "leftovers", remove if absent
+    if len(new_clusters[-1]) == 0:
+        del new_clusters[-1]
+    
+    return new_clusters
+
+
+def split_paralogs(handle):
+    gene_annotation = handle['gene_annotation']
+    unsplit_clusters = handle['inflated_unsplit_clusters']
+
+    clusters_not_paralogs = []
+
+    # run iteratively
+    out_clusters = unsplit_clusters
+    for i in range(5):
+        in_clusters = out_clusters
+        out_clusters = []
+        any_paralogs = 0
+        for cluster in in_clusters:
+            if len(cluster) == 1:
+                out_clusters.append(cluster)
+                continue
+            first_gene = cluster[0]
+            if first_gene in clusters_not_paralogs:
+                out_clusters.append(cluster)
+                continue
+
+            # check paralogs
+            paralog_genes = find_paralogs(cluster, gene_annotation)
+
+            if paralog_genes == None:
+                clusters_not_paralogs.append(first_gene)
+                out_clusters.append(cluster)
+                continue
+            
+            # convert in_clusters so we can find the cluster index of gene
+            gene_to_cluster_index = {}
+            for index in range(len(in_clusters)):
+                genes = in_clusters[index]
+                for gene in genes:
+                    gene_to_cluster_index[gene] = index
+
+            # split paralogs
+            orthologs_clusters = create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_index)
+            out_clusters.extend(orthologs_clusters)
+            any_paralogs = 1
+
+        # check if next iteration is required
+        if any_paralogs == 0:
+            break
+
+    split_clusters = out_clusters
+    handle['split_clusters'] = split_clusters
+    del handle['inflated_unsplit_clusters']
+    return handle
 
 def label_cluster(handle):
     """
@@ -413,7 +554,7 @@ def label_cluster(handle):
     -------
     -------
     """
-    unlabeled_clusters = handle['inflated_unsplit_clusters']
+    unlabeled_clusters = handle['split_clusters']
 
     # Add labels to the clusters
     labeled_clusters = {}
@@ -423,7 +564,7 @@ def label_cluster(handle):
         counter += 1
 
     handle['labeled_clusters'] = labeled_clusters
-    del handle['inflated_unsplit_clusters']
+    del handle['split_clusters']
     return handle
 
 
@@ -445,18 +586,25 @@ def annotate_cluster(handle):
         max_number = 0
         gene_id_list = clusters[cluster_name]
         for gene_id in gene_id_list:
-            if gene_id in gene_annotation and 'name' in gene_annotation[gene_id]:
+            if 'name' in gene_annotation[gene_id]:
                 gene_name = gene_annotation[gene_id]['name']
-                if gene_name not in gene_name_count:
-                    gene_name_count[gene_name] = 1
-                else:
-                    gene_name_count[gene_name] += 1
+                gene_name_count[gene_name] = gene_name_count.get(gene_name, 1) + 1
                 if gene_name_count[gene_name] > max_number:
                     cluster_new_name = gene_name
+                    max_number = gene_name_count[gene_name]
                     if 'product' in gene_annotation[gene_id]:
                         cluster_product = gene_annotation[gene_id]['product']
-                    max_number = gene_name_count[gene_name]
-
+        if cluster_product == '':
+            cluster_product =[]
+            for gene_id in gene_id_list:
+                if 'product' in gene_annotation[gene_id]:
+                    gene_product = gene_annotation[gene_id]['product']
+                    if gene_product not in cluster_product:
+                        cluster_product.append(gene_product)
+            if len(cluster_product) > 0:
+                cluster_product = ', '.join(cluster_product)
+            else:
+                cluster_product = 'hypothetical protein'
         annotated_cluster[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
     del handle['labeled_clusters']
     del handle['gene_annotation']
@@ -494,6 +642,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
     handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
     handle = reinflate_clusters(handle)
+    handle = split_paralogs(handle)
     handle = label_cluster(handle)
     handle = annotate_cluster(handle)
     
@@ -531,21 +680,30 @@ if __name__ == '__main__':
     threads = 4
     timing_log = '/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
     handle = extract_proteins(handle, timing_log=timing_log)
+    json.dump(handle['gene_annotation'], open('gene_annotation', 'w'), indent=4, sort_keys=True)
     handle = combine_proteins(handle, timing_log=timing_log)
     handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
     handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
     handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
+    json.dump(handle['excluded_cluster'], open('excluded_cluster', 'w'), indent=4, sort_keys=True)
+    json.dump(handle['cd_hit_cluster'], open('cd_hit_cluster', 'w'), indent=4, sort_keys=True)
     handle = reinflate_clusters(handle)
+    json.dump(handle['inflated_unsplit_clusters'], open('inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
+    handle = split_paralogs(handle)
+    json.dump(handle['split_clusters'], open('split_clusters', 'w'), indent=4, sort_keys=True)
     handle = label_cluster(handle)
+    json.dump(handle['labeled_clusters'], open('labeled_clusters', 'w'), indent=4, sort_keys=True)
     handle = annotate_cluster(handle)
-    print(handle.keys())
-    print(json.dumps(handle['annotated_cluster'], indent=4, sort_keys=True))
+    json.dump(handle['annotated_cluster'], open('annotated_cluster', 'w'), indent=4, sort_keys=True)
     
+    #print(json.dump(handle['annotated_cluster'], 'annotated_cluster', indent=4, sort_keys=True))
+    #print(json.dump(handle['annotated_cluster'], 'annotated_cluster' indent=4, sort_keys=True))
 
 
 
 ## TO-DO ##
 # handle or report ???
+# input from gene bank
 # check protein translate (compare with perl script)
     # filtered protein sequence produced by roary did not have * character in the middle of sequence => check unfiltered protein sequence 
     # protein sequence with the same id are different from each other => run roary perl scrip individually
