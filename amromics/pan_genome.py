@@ -2,14 +2,15 @@ import os
 import shutil
 import re
 import json
-#from datetime import datetime
+import csv
+from datetime import datetime
 import logging
 from Bio import SeqIO
 from amromics.utils import run_command
 
 logger = logging.getLogger(__name__)
 
-def get_input(handle, report):
+def get_input(report):
     """
     Get and extract ggf files and assembly files to temp folder
 
@@ -17,25 +18,18 @@ def get_input(handle, report):
     -------
     -------
     """
-    handle['samples'] = []
     for sample in report['samples']:
         sample_id = sample['id']
         gffgz_file = os.path.join(sample['annotation'], sample_id + '.gff.gz')
-        gff_file = os.path.join(handle['temp_dir'], sample_id + '.gff')
+        gff_file = os.path.join(report['temp_dir'], sample_id + '.gff')
         if run_command('gunzip -c {} > {}'.format(gffgz_file, gff_file)) != 0:
             raise Exception('Cannot get {}'.format(gffgz_file))
 
         assembly_gz_file = report['assembly']
-        assembly_file = os.path.join(handle['temp_dir'], sample_id + '.fna')
+        assembly_file = os.path.join(report['temp_dir'], sample_id + '.fna')
         if run_command('gunzip -c {} > {}'.format(assembly_gz_file, assembly_file)) != 0:
             raise Exception('Cannot get {}'.format(assembly_gz_file))
-        
-        sample_handle['id'] = sample_id
-        sample_handle['gff_file'] = gff_file
-        sample_handle['assembly_file'] = assembly_file
-        handle['samples'].append(sample_handle)
-
-    return handle
+    return report
 
 
 def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
@@ -47,60 +41,56 @@ def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
     -------
     -------
     """
-    in_handle = open(ggf_file,'r')
-    out_handle = open(bed_out_file, 'w')
     found_fasta = 0
     last_seq_id = None
     count = 1
-    for line in in_handle:
-        if found_fasta == 1:
-            continue
-        if re.match(r"^##FASTA", line) != None:
-            found_fasta = 1
-            continue
-        if re.match(r"^##", line) != None:
-            continue
-        line = line.rstrip('\n')
-        cells = line.split('\t')
-        if cells[2] != 'CDS':
-            continue
-            
-        #filter out small genes (<18 base)
-        start = int(cells[3])
-        end = int(cells[4])
-        if end - start < 18:
-            continue
+    with open(ggf_file,'r') as in_fh, open(bed_out_file, 'w') as out_fh:
+        for line in in_fh:
+            if found_fasta == 1:
+                continue
+            if re.match(r"^##FASTA", line) != None:
+                found_fasta = 1
+                continue
+            if re.match(r"^##", line) != None:
+                continue
+            line = line.rstrip('\n')
+            cells = line.split('\t')
+            if cells[2] != 'CDS':
+                continue
+                
+            #filter out small genes (<18 base)
+            start = int(cells[3])
+            end = int(cells[4])
+            if end - start < 18:
+                continue
 
-        seq_id = cells[0]
-        if seq_id != last_seq_id:
-            count = 1
-            last_seq_id = seq_id
-        #gene_id = re.findall(r"ID=(.+?);",cells[8])
-        #gene_id = gene_id[0]
-        gene_id = sample_id + '_' + seq_id + '_' + str(count)
-        count = count + 1
-        trand = cells[6]
-        out_handle.write(seq_id+'\t'+str(start -1)+'\t'+ str(end)+'\t'+gene_id+'\t'+trand+'\n')\
+            seq_id = cells[0]
+            if seq_id != last_seq_id:
+                count = 1
+                last_seq_id = seq_id
+            #gene_id = re.findall(r"ID=(.+?);",cells[8])
+            #gene_id = gene_id[0]
+            gene_id = sample_id + '_' + seq_id + '_' + str(count)
+            count = count + 1
+            trand = cells[6]
+            out_fh.write(seq_id+'\t'+str(start -1)+'\t'+ str(end)+'\t'+gene_id+'\t'+trand+'\n')\
 
-        # create annotation dictionary
-        #if gene_id in dictionary:
-        #    gene_id = gene_id + datetime.now().strftime("%M%S%f")
-        dictionary[gene_id] = {}
-        dictionary[gene_id]['sample_id'] = sample_id
-        gene_name = re.findall(r"Name=(.+?);",cells[8])
-        if len(gene_name) != 0:
-            gene_name = gene_name[0]
-            dictionary[gene_id]['name'] = gene_name
-        gene_product = re.findall(r"product=(.+?)$",cells[8])
-        if len(gene_product) != 0:
-            gene_product = gene_product[0]
-            dictionary[gene_id]['product'] = gene_product
-
-    in_handle.close()
-    out_handle.close()
+            # create annotation dictionary
+            #if gene_id in dictionary:
+            #    gene_id = gene_id + datetime.now().strftime("%M%S%f")
+            dictionary[gene_id] = {}
+            dictionary[gene_id]['sample_id'] = sample_id
+            gene_name = re.findall(r"Name=(.+?);",cells[8])
+            if len(gene_name) != 0:
+                gene_name = gene_name[0]
+                dictionary[gene_id]['name'] = gene_name
+            gene_product = re.findall(r"product=(.+?)$",cells[8])
+            if len(gene_product) != 0:
+                gene_product = gene_product[0]
+                dictionary[gene_id]['product'] = gene_product
 
 
-def extract_proteins(handle, timing_log=None):
+def extract_proteins(report, timing_log=None):
     """
     Take in GFF file and fasta file and create protein sequences in FASTA format.
     Create json file contain annotation information of genes
@@ -109,9 +99,9 @@ def extract_proteins(handle, timing_log=None):
     -------
     -------
     """
-    temp_dir = handle['temp_dir']
+    temp_dir = report['temp_dir']
     gene_annotation = {}
-    for sample in handle['samples']:
+    for sample in report['samples']:
         fna_file = sample['assembly_file']
         ggf_file = sample['gff_file']
         sample_id = sample['id']
@@ -126,24 +116,23 @@ def extract_proteins(handle, timing_log=None):
             raise Exception('Error running bedtools')
         # translate nucleotide to protein
         faa_file = os.path.join(temp_dir, sample_id +'.faa')
-        faa_hd = open(faa_file, 'w')
-        for seq_record in SeqIO.parse(extracted_fna_file, "fasta"):
-            headers = seq_record.id.split(':')
-            seq_record.id = headers[0]
-            seq_record.name = ''
-            seq_record.description = ''
-            seq_record.seq = seq_record.seq.translate(table=11)
-            SeqIO.write(seq_record, faa_hd, 'fasta')
-        faa_hd.close()
+        with open(faa_file, 'w') as faa_hd:
+            for seq_record in SeqIO.parse(extracted_fna_file, "fasta"):
+                headers = seq_record.id.split(':')
+                seq_record.id = headers[0]
+                seq_record.name = ''
+                seq_record.description = ''
+                seq_record.seq = seq_record.seq.translate(table=11)
+                SeqIO.write(seq_record, faa_hd, 'fasta')
         sample['bed'] = bed_file
         sample['extracted_fna_file'] = extracted_fna_file
         sample['faa_file'] = faa_file
     
-    handle['gene_annotation'] = gene_annotation
-    return handle
+    report['gene_annotation'] = gene_annotation
+    return report
     
 
-def combine_proteins(handle, timing_log=None):
+def combine_proteins(report, timing_log=None):
     """
     Take in multiple FASTA sequences containing proteomes and concat them together 
     and output a FASTA file
@@ -152,10 +141,10 @@ def combine_proteins(handle, timing_log=None):
     -------
     -------
     """
-    temp_dir = handle['temp_dir']
+    temp_dir = report['temp_dir']
     combined_faa_file = os.path.join(temp_dir, 'combined.faa')
     faa_file_list =[]
-    for sample in handle['samples']:
+    for sample in report['samples']:
         faa_file = sample['faa_file']
         faa_file_list.append(faa_file)
 
@@ -164,8 +153,8 @@ def combine_proteins(handle, timing_log=None):
     if ret != 0:
         raise Exception('Error combining protein sequences')
 
-    handle['combined_faa_file'] = combined_faa_file
-    return handle
+    report['combined_faa_file'] = combined_faa_file
+    return report
 
 
 def parse_cluster_file(cd_hit_cluster_file):
@@ -176,23 +165,24 @@ def parse_cluster_file(cd_hit_cluster_file):
     -------
     -------
     """
-    cd_hit_cluster_fh = open(cd_hit_cluster_file, 'r')
+    
     clusters = {}
-    for line in cd_hit_cluster_fh:
-        if re.match(r"^>", line) != None:
-            cluster_name = re.findall(r'^>(.+)$', line)
-            cluster_name = cluster_name[0]
-            clusters[cluster_name] = {}
-            clusters[cluster_name]['gene_names'] = []
-        else:
-            result = re.findall(r'[\d]+\t[\w]+, >(.+)\.\.\. (.+)$', line)
-            if len(result) == 1:
-                gene_name = result[0][0]
-                identity = result[0][1]
-                if identity == '*':
-                    clusters[cluster_name]['representative'] = gene_name
-                else:
-                    clusters[cluster_name]['gene_names'].append(gene_name)
+    with open(cd_hit_cluster_file, 'r') as fh:
+        for line in fh:
+            if re.match(r"^>", line) != None:
+                cluster_name = re.findall(r'^>(.+)$', line)
+                cluster_name = cluster_name[0]
+                clusters[cluster_name] = {}
+                clusters[cluster_name]['gene_names'] = []
+            else:
+                result = re.findall(r'[\d]+\t[\w]+, >(.+)\.\.\. (.+)$', line)
+                if len(result) == 1:
+                    gene_name = result[0][0]
+                    identity = result[0][1]
+                    if identity == '*':
+                        clusters[cluster_name]['representative'] = gene_name
+                    else:
+                        clusters[cluster_name]['gene_names'].append(gene_name)
     # convert to a simple dictionary
     clusters_new ={}
     for cluster_name in clusters:
@@ -201,7 +191,7 @@ def parse_cluster_file(cd_hit_cluster_file):
     return clusters_new
 
 
-def run_cd_hit_iterative(handle, threads, timing_log):
+def run_cd_hit_iterative(report, threads, timing_log):
     """
     Run CD-HIT iteratively
 
@@ -209,8 +199,8 @@ def run_cd_hit_iterative(handle, threads, timing_log):
     -------
     -------
     """
-    temp_dir = handle['temp_dir']
-    combined_faa_file = handle['combined_faa_file']
+    temp_dir = report['temp_dir']
+    combined_faa_file = report['combined_faa_file']
 
     cd_hit_cluster_represent = os.path.join(temp_dir, 'cluster')
     cd_hit_cluster_file = os.path.join(temp_dir, 'cluster.clstr')
@@ -219,7 +209,7 @@ def run_cd_hit_iterative(handle, threads, timing_log):
 
     percent_match = 1
     greater_than_or_equal = True
-    number_of_samples = len(handle['samples'])
+    number_of_samples = len(report['samples'])
     
     while percent_match >= 0.98:
         cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_represent} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
@@ -246,20 +236,19 @@ def run_cd_hit_iterative(handle, threads, timing_log):
                 excluded_cluster.append(this_cluster)
 
         cluster_filtered_faa_file = combined_faa_file + '.filtered'
-        cluster_filtered_faa_fh = open(cluster_filtered_faa_file, 'w')
-        for seq_record in SeqIO.parse(combined_faa_file, "fasta"):
-            if seq_record.id in full_cluster_gene_names:
-                SeqIO.write(seq_record, cluster_filtered_faa_fh, 'fasta')
-        cluster_filtered_faa_fh.close()
+        with open(cluster_filtered_faa_file, 'w') as fh:
+            for seq_record in SeqIO.parse(combined_faa_file, "fasta"):
+                if seq_record.id in full_cluster_gene_names:
+                    SeqIO.write(seq_record, fh, 'fasta')
 
         shutil.move(cluster_filtered_faa_file, combined_faa_file)
         percent_match -=0.005
 
-    handle['cd_hit_cluster_represent'] = cd_hit_cluster_represent
-    handle['cd_hit_cluster_file'] = cd_hit_cluster_file
-    handle['excluded_cluster'] = excluded_cluster
-    handle['cd_hit_cluster'] = clusters
-    return handle
+    report['cd_hit_cluster_represent'] = cd_hit_cluster_represent
+    report['cd_hit_cluster_file'] = cd_hit_cluster_file
+    report['excluded_cluster'] = excluded_cluster
+    report['cd_hit_cluster'] = clusters
+    return report
 
 
 def chunk_fasta_file(fasta_file, out_dir):
@@ -280,7 +269,7 @@ def chunk_fasta_file(fasta_file, out_dir):
     chunk_number = 0
     current_chunk_length = 0
     chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
-    chunked_fh = open(chunked_file, 'a')
+    chunked_fh = open(chunked_file, 'w')
     chunked_file_list.append(chunked_file)
     for seq_record in SeqIO.parse(fasta_file, "fasta"):
         if current_chunk_length > 200000:
@@ -289,7 +278,7 @@ def chunk_fasta_file(fasta_file, out_dir):
             current_chunk_length = 0
             chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
             chunked_file_list.append(chunked_file)
-            chunked_fh = open(chunked_file, 'a')
+            chunked_fh = open(chunked_file, 'w')
             SeqIO.write(seq_record, chunked_fh, 'fasta')
         chunked_file = os.path.join(out_dir, str(chunk_number) + '.seq')
         SeqIO.write(seq_record, chunked_fh, 'fasta')
@@ -298,7 +287,7 @@ def chunk_fasta_file(fasta_file, out_dir):
     return chunked_file_list
 
 
-def all_against_all_blast(handle, threads, timing_log):
+def all_against_all_blast(report, threads, timing_log):
     """
     Run all against all blast in parallel
 
@@ -306,12 +295,12 @@ def all_against_all_blast(handle, threads, timing_log):
     -------
     -------
     """
-    out_dir = os.path.join(handle['temp_dir'], 'blast')
+    out_dir = os.path.join(report['temp_dir'], 'blast')
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
     # make blast database
-    fasta_file = handle['cd_hit_cluster_represent']
+    fasta_file = report['cd_hit_cluster_represent']
     blast_db = os.path.join(out_dir, 'output_contigs')
     cmd = f"makeblastdb -in {fasta_file} -dbtype prot -out {blast_db} -logfile /dev/null"
     ret = run_command(cmd, timing_log)
@@ -324,31 +313,30 @@ def all_against_all_blast(handle, threads, timing_log):
 
     # run parallel all-against-all blast
     blast_cmds_file = os.path.join(out_dir,"blast_cmds.txt")
-    blast_cmds_fh = open(blast_cmds_file,'w')
     blast_output_file_list = []
-    for chunked_file in chunked_file_list:
-        blast_output_file = os.path.splitext(chunked_file)[0] + '.out'
-        blast_output_file_list.append(blast_output_file)
-        cmd = f"blastp -query {chunked_file} -db {blast_db} -evalue 1E-6 -num_threads {threads} -outfmt 6 -max_target_seqs 2000 " + "| awk '{ if ($3 > 98) print $0;}' 2> /dev/null 1> " + blast_output_file
-        blast_cmds_fh.write(cmd + '\n')
-    blast_cmds_fh.close()  
+    with open(blast_cmds_file,'w') as fh:
+        for chunked_file in chunked_file_list:
+            blast_output_file = os.path.splitext(chunked_file)[0] + '.out'
+            blast_output_file_list.append(blast_output_file)
+            cmd = f"blastp -query {chunked_file} -db {blast_db} -evalue 1E-6 -num_threads {threads} -outfmt 6 -max_target_seqs 2000 " + "| awk '{ if ($3 > 98) print $0;}' 2> /dev/null 1> " + blast_output_file
+            fh.write(cmd + '\n')
     cmd = f"parallel -a {blast_cmds_file}"
     ret = run_command(cmd, timing_log)
     if ret != 0:
         raise Exception('Error running parallel all-against-all blast')
 
     # combining blast results
-    blast_result_file = os.path.join(handle['temp_dir'], 'blast_results')
+    blast_result_file = os.path.join(report['temp_dir'], 'blast_results')
     if os.path.isfile(blast_result_file):
         os.remove(blast_result_file)
     for blast_output_file in blast_output_file_list:
         os.system(f'cat {blast_output_file} >> {blast_result_file}')
 
-    handle['blast_result_file'] = blast_result_file
-    return handle
+    report['blast_result_file'] = blast_result_file
+    return report
 
 
-def cluster_with_mcl(handle, threads, timing_log):
+def cluster_with_mcl(report, threads, timing_log):
     """
     Take blast results and outputs clustered results
 
@@ -356,18 +344,18 @@ def cluster_with_mcl(handle, threads, timing_log):
     -------
     -------
     """
-    out_dir = handle['temp_dir']
-    blast_results = handle['blast_result_file']
+    out_dir = report['temp_dir']
+    blast_results = report['blast_result_file']
     output_mcl_file = os.path.join(out_dir, 'uninflated_mcl_clusters')
     cmd = f"mcxdeblast -m9 --score r --line-mode=abc {blast_results} 2> /dev/null | mcl - --abc -I 1.5 -o {output_mcl_file} > /dev/null 2>&1"
     ret = run_command(cmd, timing_log)
     if ret != 0:
         raise Exception('Error running mcl')
-    handle['uninflated_mcl_clusters'] = output_mcl_file
-    return handle
+    report['uninflated_mcl_clusters'] = output_mcl_file
+    return report
 
 
-def reinflate_clusters(handle):
+def reinflate_clusters(report):
     """
     Take the clusters file from cd-hit and use it to reinflate the output of MCL
 
@@ -376,22 +364,21 @@ def reinflate_clusters(handle):
     -------
     """
     inflated_clusters = []
-    clusters = handle['cd_hit_cluster']
+    clusters = report['cd_hit_cluster']
 
     # Inflate genes from cdhit which were sent to mcl
-    mcl_file = handle['uninflated_mcl_clusters']
-    mcl_fh = open(mcl_file, 'r')
-    for line in mcl_fh:
-        inflated_genes = []
-        line = line.rstrip('\n')
-        genes = line.split('\t')
-        for gene in genes:
-            inflated_genes.append(gene)
-            if gene in clusters:
-                inflated_genes.extend(clusters[gene])
-                del clusters[gene]
-        inflated_clusters.append(inflated_genes)
-    mcl_fh.close()
+    mcl_file = report['uninflated_mcl_clusters']
+    with open(mcl_file, 'r') as fh:
+        for line in fh:
+            inflated_genes = []
+            line = line.rstrip('\n')
+            genes = line.split('\t')
+            for gene in genes:
+                inflated_genes.append(gene)
+                if gene in clusters:
+                    inflated_genes.extend(clusters[gene])
+                    del clusters[gene]
+            inflated_clusters.append(inflated_genes)
 
     # Inflate any clusters that were in the clusters file but not sent to mcl
     for gene in clusters:
@@ -401,14 +388,14 @@ def reinflate_clusters(handle):
         inflated_clusters.append(inflated_genes)
 
     # Add clusters which were excluded
-    excluded_cluster = handle['excluded_cluster']
+    excluded_cluster = report['excluded_cluster']
     for cluster in excluded_cluster:
         inflated_clusters.append(cluster)
 
-    handle['inflated_unsplit_clusters'] = inflated_clusters
-    del handle['cd_hit_cluster']
-    del handle['excluded_cluster']
-    return handle
+    report['inflated_unsplit_clusters'] = inflated_clusters
+    #del report['cd_hit_cluster']
+    #del report['excluded_cluster']
+    return report
 
 def find_paralogs(cluster, gene_annotation):
     samples = {}
@@ -496,9 +483,9 @@ def create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_in
     return new_clusters
 
 
-def split_paralogs(handle):
-    gene_annotation = handle['gene_annotation']
-    unsplit_clusters = handle['inflated_unsplit_clusters']
+def split_paralogs(report):
+    gene_annotation = report['gene_annotation']
+    unsplit_clusters = report['inflated_unsplit_clusters']
 
     clusters_not_paralogs = []
 
@@ -542,11 +529,11 @@ def split_paralogs(handle):
             break
 
     split_clusters = out_clusters
-    handle['split_clusters'] = split_clusters
-    del handle['inflated_unsplit_clusters']
-    return handle
+    report['split_clusters'] = split_clusters
+    #del report['inflated_unsplit_clusters']
+    return report
 
-def label_cluster(handle):
+def label_cluster(report):
     """
     Add labels to the cluster
 
@@ -554,7 +541,7 @@ def label_cluster(handle):
     -------
     -------
     """
-    unlabeled_clusters = handle['split_clusters']
+    unlabeled_clusters = report['split_clusters']
 
     # Add labels to the clusters
     labeled_clusters = {}
@@ -563,12 +550,12 @@ def label_cluster(handle):
         labeled_clusters['groups_' + str(counter)] = cluster
         counter += 1
 
-    handle['labeled_clusters'] = labeled_clusters
-    del handle['split_clusters']
-    return handle
+    report['labeled_clusters'] = labeled_clusters
+    #del report['split_clusters']
+    return report
 
 
-def annotate_cluster(handle):
+def annotate_cluster(report):
     """
     Update the cluster name to the gene name
 
@@ -576,12 +563,12 @@ def annotate_cluster(handle):
     -------
     -------
     """
-    clusters = handle['labeled_clusters']
-    gene_annotation = handle['gene_annotation']
+    clusters = report['labeled_clusters']
+    gene_annotation = report['gene_annotation']
     annotated_cluster = {}
     for cluster_name in clusters:
         cluster_new_name = cluster_name
-        cluster_product = ''
+        cluster_product = None
         gene_name_count = {}
         max_number = 0
         gene_id_list = clusters[cluster_name]
@@ -594,7 +581,7 @@ def annotate_cluster(handle):
                     max_number = gene_name_count[gene_name]
                     if 'product' in gene_annotation[gene_id]:
                         cluster_product = gene_annotation[gene_id]['product']
-        if cluster_product == '':
+        if cluster_product == None:
             cluster_product =[]
             for gene_id in gene_id_list:
                 if 'product' in gene_annotation[gene_id]:
@@ -604,12 +591,32 @@ def annotate_cluster(handle):
             if len(cluster_product) > 0:
                 cluster_product = ', '.join(cluster_product)
             else:
-                cluster_product = 'hypothetical protein'
+                cluster_product = 'unknown'
+        # check if cluster_new_name is already exist
+        if cluster_new_name in annotated_cluster:
+            cluster_new_name += cluster_new_name + '_' + + datetime.now().strftime("%M%S%f")
         annotated_cluster[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
-    del handle['labeled_clusters']
-    del handle['gene_annotation']
-    handle['annotated_cluster'] = annotated_cluster
-    return handle
+    #del report['labeled_clusters']
+    #del report['gene_annotation']
+    report['annotated_cluster'] = annotated_cluster
+    return report
+
+
+def create_spreadsheet(report):
+    spreadsheet_file = os.path.join(report['pan_genome'], 'gene_presence_absence.csv')
+    with open(spreadsheet_file, 'w') as fh:
+        writer = csv.writer(fh, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow([])
+
+
+
+
+def create_rtab(report):
+
+
+def create_summary(report):
+
+
 
 def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=False, timing_log=None):
     # Check if any sample has been updated
@@ -618,12 +625,12 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
 
     pan_genome_folder = os.path.join(collection_dir, 'pan_genome')
     temp_dir = os.path.join(collection_dir, 'temp')
-    pan_genome_output = os.path.join(pan_genome_folder,'')
+    pan_genome_output = os.path.join(pan_genome_folder,'summary_statistics.txt')
     report['pan_genome'] = pan_genome_folder
-    
+    report['temp_dir'] = temp_dir
     # Check if pan-genome has run
     if os.path.isfile(pan_genome_output) and (not overwrite):
-        logger.info('pan-genome has run and the input has not changed, skip')
+        logger.info('Pan-genome has run and the input has not changed, skip')
         return report
 
     if not os.path.exists(pan_genome_folder):
@@ -631,81 +638,44 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
     
-    handle = {}
-    handle['main_dir'] = pan_genome_folder
-    handle['temp_dir'] = temp_dir
-
-    handle = get_input(handle=handle,report=report)
-    handle = extract_proteins(handle, timing_log=timing_log)
-    handle = combine_proteins(handle, timing_log=timing_log)
-    handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
-    handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
-    handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
-    handle = reinflate_clusters(handle)
-    handle = split_paralogs(handle)
-    handle = label_cluster(handle)
-    handle = annotate_cluster(handle)
+    report = get_input(report)
+    report = extract_proteins(report, timing_log=timing_log)
+    report = combine_proteins(report, timing_log=timing_log)
+    report = run_cd_hit_iterative(report, threads=threads, timing_log=timing_log)
+    report = all_against_all_blast(report, threads=threads, timing_log=timing_log)
+    report = cluster_with_mcl(report, threads=threads, timing_log=timing_log)
+    report = reinflate_clusters(report)
+    report = split_paralogs(report)
+    report = label_cluster(report)
+    report = annotate_cluster(report)
     
 
 
 if __name__ == '__main__':
-    handle = {
-        "blast_result_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/blast_results",
-        "cd_hit_cluster_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster.clstr",
-        "cd_hit_cluster_represent": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/cluster",
-        "combined_faa_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/combined.faa",
-        "gene_annotation": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/annotation.json",
-        "main_dir": "/home/ted/ubuntu/AMR/amromics-vis/dev",
-        "samples": [
-            {
-                "assembly_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP071.fna",
-                "bed": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP071.bed",
-                "extracted_fna_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP071.extracted.fna",
-                "faa_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP071.faa",
-                "gff_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP071.gff",
-                "id": "BMP071"
-            },
-            {
-                "assembly_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP077.fna",
-                "bed": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP077.bed",
-                "extracted_fna_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP077.extracted.fna",
-                "faa_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/BMP077.faa",
-                "gff_file": "/home/ted/ubuntu/AMR/amromics-vis/dev/BMP077.gff",
-                "id": "BMP077"
-            }
-        ],
-        "temp_dir": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp",
-        "uninflated_mcl_clusters": "/home/ted/ubuntu/AMR/amromics-vis/dev/temp/uninflated_mcl_clusters",
-    }
-    threads = 4
-    timing_log = '/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
-    handle = extract_proteins(handle, timing_log=timing_log)
-    json.dump(handle['gene_annotation'], open('gene_annotation', 'w'), indent=4, sort_keys=True)
-    handle = combine_proteins(handle, timing_log=timing_log)
-    handle = run_cd_hit_iterative(handle, threads=threads, timing_log=timing_log)
-    handle = all_against_all_blast(handle, threads=threads, timing_log=timing_log)
-    handle = cluster_with_mcl(handle, threads=threads, timing_log=timing_log)
-    json.dump(handle['excluded_cluster'], open('excluded_cluster', 'w'), indent=4, sort_keys=True)
-    json.dump(handle['cd_hit_cluster'], open('cd_hit_cluster', 'w'), indent=4, sort_keys=True)
-    handle = reinflate_clusters(handle)
-    json.dump(handle['inflated_unsplit_clusters'], open('inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
-    handle = split_paralogs(handle)
-    json.dump(handle['split_clusters'], open('split_clusters', 'w'), indent=4, sort_keys=True)
-    handle = label_cluster(handle)
-    json.dump(handle['labeled_clusters'], open('labeled_clusters', 'w'), indent=4, sort_keys=True)
-    handle = annotate_cluster(handle)
-    json.dump(handle['annotated_cluster'], open('annotated_cluster', 'w'), indent=4, sort_keys=True)
-    
-    #print(json.dump(handle['annotated_cluster'], 'annotated_cluster', indent=4, sort_keys=True))
-    #print(json.dump(handle['annotated_cluster'], 'annotated_cluster' indent=4, sort_keys=True))
+    report = json.load(open('dev/report', 'r'))
+    report = run_pan_genome_analysis(
+        report, 
+        collection_dir='dev', 
+        threads=4, 
+        overwrite=False, 
+        timing_log='/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
+    )
+
+    json.dump(report['gene_annotation'], open('dev/temp/gene_annotation', 'w'), indent=4, sort_keys=True)
+    json.dump(report['excluded_cluster'], open('dev/temp/excluded_cluster', 'w'), indent=4, sort_keys=True)
+    json.dump(report['cd_hit_cluster'], open('dev/temp/cd_hit_cluster', 'w'), indent=4, sort_keys=True)
+    json.dump(report['inflated_unsplit_clusters'], open('dev/temp/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['labeled_clusters'], open('dev/temp/labeled_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['annotated_cluster'], open('dev/temp/annotated_cluster', 'w'), indent=4, sort_keys=True)
 
 
 
-## TO-DO ##
-# handle or report ???
+## TODO ##
 # input from gene bank
 # check protein translate (compare with perl script)
     # filtered protein sequence produced by roary did not have * character in the middle of sequence => check unfiltered protein sequence 
     # protein sequence with the same id are different from each other => run roary perl scrip individually
 # filter protein sequence
 # warming of CD-HIT: Discarding invalid sequence or sequence without identifier and description!
+# should we change the gene id, and how to impliment split clusters
