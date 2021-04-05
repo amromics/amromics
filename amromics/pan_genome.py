@@ -6,6 +6,7 @@ import csv
 from datetime import datetime
 import logging
 from Bio import SeqIO
+import pandas as pd
 from amromics.utils import run_command
 
 logger = logging.getLogger(__name__)
@@ -24,11 +25,12 @@ def get_input(report):
         gff_file = os.path.join(report['temp_dir'], sample_id + '.gff')
         if run_command('gunzip -c {} > {}'.format(gffgz_file, gff_file)) != 0:
             raise Exception('Cannot get {}'.format(gffgz_file))
-
-        assembly_gz_file = report['assembly']
+        sample['gff_file'] = gff_file
+        assembly_gz_file = sample['assembly']
         assembly_file = os.path.join(report['temp_dir'], sample_id + '.fna')
         if run_command('gunzip -c {} > {}'.format(assembly_gz_file, assembly_file)) != 0:
             raise Exception('Cannot get {}'.format(assembly_gz_file))
+        sample['assembly_file'] = assembly_file
     return report
 
 
@@ -565,7 +567,7 @@ def annotate_cluster(report):
     """
     clusters = report['labeled_clusters']
     gene_annotation = report['gene_annotation']
-    annotated_cluster = {}
+    annotated_clusters = {}
     for cluster_name in clusters:
         cluster_new_name = cluster_name
         cluster_product = None
@@ -593,29 +595,140 @@ def annotate_cluster(report):
             else:
                 cluster_product = 'unknown'
         # check if cluster_new_name is already exist
-        if cluster_new_name in annotated_cluster:
-            cluster_new_name += cluster_new_name + '_' + + datetime.now().strftime("%M%S%f")
-        annotated_cluster[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
+        if cluster_new_name in annotated_clusters:
+            cluster_new_name += cluster_new_name + '_' + datetime.now().strftime("%M%S%f")
+        annotated_clusters[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
     #del report['labeled_clusters']
     #del report['gene_annotation']
-    report['annotated_cluster'] = annotated_cluster
+    report['annotated_clusters'] = annotated_clusters
     return report
 
 
 def create_spreadsheet(report):
     spreadsheet_file = os.path.join(report['pan_genome'], 'gene_presence_absence.csv')
+    annotated_clusters = report['annotated_clusters']
+    gene_annotation = report['gene_annotation']
     with open(spreadsheet_file, 'w') as fh:
         writer = csv.writer(fh, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow([])
 
+        # write header
+        header = ['Gene', 'Non-unique Gene name', 'Annotation', 'No. isolates', 'No. sequences', 'Avg sequences per isolate', 'Genome Fragment','Order within Fragment', 'Accessory Fragment','Accessory Order with Fragment', 'QC','Min group size nuc', 'Max group size nuc', 'Avg group size nuc' ]
+        for sample in report['samples']:
+            header.append(sample['id'])
+        writer.writerow(header)
 
+        # write row
+        for cluster in annotated_clusters:
+            row = []
+            # Gene
+            row.append(cluster)
+            # Non-unique Gene name
+            row.append("")
+            # Annotation
+            row.append(annotated_clusters[cluster]['product'])
+            # No. isolates
+            row.append("")
+            # No. sequences
+            row.append(len(annotated_clusters[cluster]['gene_id']))
+            # Avg sequences per isolate
+            row.append("")
+            # Genome Fragment
+            row.append("")
+            # Order within Fragment
+            row.append("")
+            # Accessory Fragment
+            row.append("")
+            # Accessory Order with Fragment
+            row.append("")
+            # QC
+            row.append("")
+            # Min group size nuc
+            row.append("")
+            # Max group size nuc
+            row.append("")
+            # Avg group size nuc
+            row.append("")
+            # sample columns
+            sample_dict = {}
+            for gene in annotated_clusters[cluster]['gene_id']:
+                sample_id = gene_annotation[gene]['sample_id']
+                if sample_id not in sample_dict:
+                    sample_dict[sample_id] = []
+                sample_dict[sample_id].append(gene)
+            for sample in report['samples']:
+                sample_id = sample['id']
+                gene_list = sample_dict[sample_id]
+                row.append('\t'.join(gene_list))
+            writer.writerow(row)
+    report['spreadsheet'] = spreadsheet_file
+    return report
 
 
 def create_rtab(report):
+    rtab_file = os.path.join(report['pan_genome'], 'gene_presence_absence.Rtab')
+    annotated_clusters = report['annotated_clusters']
+    gene_annotation = report['gene_annotation']
+    with open(rtab_file, 'w') as fh:
+        writer = csv.writer(fh, delimiter='\t')
+
+        # write header
+        header = ['Gene']
+        for sample in report['samples']:
+            header.append(sample['id'])
+        writer.writerow(header)
+
+        # write row
+        for cluster in annotated_clusters:
+            row = []
+            # Gene
+            row.append(cluster)
+            # Samples
+            sample_dict = {}
+            for gene in annotated_clusters[cluster]['gene_id']:
+                sample_id = gene_annotation[gene]['sample_id']
+                if sample_id not in sample_dict:
+                    sample_dict[sample_id] = []
+                sample_dict[sample_id].append(gene)
+            for sample in report['samples']:
+                sample_id = sample['id']
+                gene_list = sample_dict[sample_id]
+                row.append(len(gene_list))
+            writer.writerow(row)
+    report['rtab'] = rtab_file
+    return report
 
 
 def create_summary(report):
+    rtab_file = report['rtab']
+    cluster_df = pd.read_csv(rtab_file, sep='\t', index_col='Gene')
 
+    num_core = 0
+    num_soft_core = 0
+    num_shell = 0
+    num_cloud = 0
+    num_sample = len(cluster_df)
+    for cluster, row in cluster_df.iterrows():
+        absent = len(row[row == 0])
+        percent = (num_sample - absent) / num_sample
+        if percent >= 0.99:
+            num_core += 1
+        elif percent >= 0.95:
+            num_soft_core += 1
+        elif percent >= 0.15:
+            num_shell += 1
+        else:
+            num_cloud += 1
+    total = num_core + num_soft_core + num_shell + num_cloud
+
+    summary_file = os.path.join(report['pan_genome'], 'summary_statistics.txt')
+    with open(summary_file, 'w') as fh:
+        fh.write('Core genes' + '\t' + '(99% <= strains <= 100%)' + str(num_core) + '\n')
+        fh.write('Soft core genes' + '\t' + '(95% <= strains < 99%)' + str(num_soft_core) + '\n')
+        fh.write('Shell genes' + '\t' + '(15% <= strains < 95%)' + str(num_shell) + '\n')
+        fh.write('Cloud genes' + '\t' + '(0% <= strains < 15%)' + str(num_cloud) + '\n')
+        fh.write('Total genes' + '\t' + '(0% <= strains <= 100%)' + str(total))
+    report['summary'] = summary_file
+    return report
 
 
 def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=False, timing_log=None):
@@ -648,7 +761,27 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     report = split_paralogs(report)
     report = label_cluster(report)
     report = annotate_cluster(report)
-    
+    report = create_spreadsheet(report)
+    report = create_rtab(report)
+    report = create_summary(report)
+
+    json.dump(report['gene_annotation'], open('dev/temp/gene_annotation', 'w'), indent=4, sort_keys=True)
+    json.dump(report['excluded_cluster'], open('dev/temp/excluded_cluster', 'w'), indent=4, sort_keys=True)
+    json.dump(report['cd_hit_cluster'], open('dev/temp/cd_hit_cluster', 'w'), indent=4, sort_keys=True)
+    json.dump(report['inflated_unsplit_clusters'], open('dev/temp/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['labeled_clusters'], open('dev/temp/labeled_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['annotated_clusters'], open('dev/temp/annotated_clusters', 'w'), indent=4, sort_keys=True)
+
+    del report['gene_annotation']
+    del report['excluded_cluster']
+    del report['cd_hit_cluster']
+    del report['inflated_unsplit_clusters']
+    del report['split_clusters']
+    del report['labeled_clusters']
+    del report['annotated_clusters']
+
+    json.dump(report, open('dev/temp/report', 'w'), indent=4, sort_keys=True)
 
 
 if __name__ == '__main__':
@@ -660,15 +793,6 @@ if __name__ == '__main__':
         overwrite=False, 
         timing_log='/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
     )
-
-    json.dump(report['gene_annotation'], open('dev/temp/gene_annotation', 'w'), indent=4, sort_keys=True)
-    json.dump(report['excluded_cluster'], open('dev/temp/excluded_cluster', 'w'), indent=4, sort_keys=True)
-    json.dump(report['cd_hit_cluster'], open('dev/temp/cd_hit_cluster', 'w'), indent=4, sort_keys=True)
-    json.dump(report['inflated_unsplit_clusters'], open('dev/temp/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['labeled_clusters'], open('dev/temp/labeled_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['annotated_cluster'], open('dev/temp/annotated_cluster', 'w'), indent=4, sort_keys=True)
-
 
 
 ## TODO ##
