@@ -68,16 +68,16 @@ def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
 
             seq_id = cells[0]
             
-            #if seq_id != last_seq_id:
-            #    count = 1
-            #    last_seq_id = seq_id
-            #gene_id = sample_id + '_' + seq_id + '_' + str(count)
-            #count = count + 1
+            if seq_id != last_seq_id:
+                count = 1
+                last_seq_id = seq_id
+            gene_id = sample_id + '_' + seq_id + '_' + str(count)
+            count = count + 1
             
-            gene_id = re.findall(r"ID=(.+?);",cells[8])
-            gene_id = gene_id[0]
-            if gene_id in dictionary:
-                gene_id = gene_id + datetime.now().strftime("%M%S%f")
+            #gene_id = re.findall(r"ID=(.+?);",cells[8])
+            #gene_id = gene_id[0]
+            #if gene_id in dictionary:
+            #    gene_id = gene_id + datetime.now().strftime("%M%S%f")
             
             trand = cells[6]
             row = [seq_id, str(start -1), str(end), gene_id, '1', trand]
@@ -462,11 +462,12 @@ def create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_in
         neighbour_genes_of_g = neighbour_gene_dictionary[g]
         if len(neighbour_genes_of_g) == 0:
             new_clusters[-1].append(g)
+            continue
 
         # find paralog gene which is closest match with g
         best_score = 0
         best_score_index = -1  # -1 is the index of "leftovers" list
-        for p in range(len(paralog_genes)):
+        for p,_ in enumerate(paralog_genes):
             cluster_indices_around_p = cluster_indices_around_paralogs[p]
             score_of_p = 0
             for neighbour_gene in neighbour_genes_of_g:
@@ -478,7 +479,7 @@ def create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_in
                 best_score = score_of_p
                 best_score_index = p
 
-            new_clusters[best_score_index].append(g)
+        new_clusters[best_score_index].append(g)
 
     # check for "leftovers", remove if absent
     if len(new_clusters[-1]) == 0:
@@ -544,7 +545,7 @@ def label_cluster(report):
     -------
     -------
     """
-    unlabeled_clusters = report['inflated_unsplit_clusters']
+    unlabeled_clusters = report['split_clusters']
 
     # Add labels to the clusters
     labeled_clusters = {}
@@ -597,7 +598,7 @@ def annotate_cluster(report):
                 cluster_product = 'unknown'
         # check if cluster_new_name is already exist
         if cluster_new_name in annotated_clusters:
-            cluster_new_name += cluster_new_name + '_' + datetime.now().strftime("%M%S%f")
+            cluster_new_name += '_' + datetime.now().strftime("%M%S%f")
         annotated_clusters[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
     #del report['labeled_clusters']
     #del report['gene_annotation']
@@ -710,7 +711,7 @@ def create_summary(report):
     num_soft_core = 0
     num_shell = 0
     num_cloud = 0
-    num_sample = len(cluster_df)
+    num_sample = len(report['samples'])
     for cluster, row in cluster_df.iterrows():
         absent = len(row[row == 0])
         percent = (num_sample - absent) / num_sample
@@ -726,11 +727,11 @@ def create_summary(report):
 
     summary_file = os.path.join(report['pan_genome'], 'summary_statistics.txt')
     with open(summary_file, 'w') as fh:
-        fh.write('Core genes' + '\t' + '(99% <= strains <= 100%)' + str(num_core) + '\n')
-        fh.write('Soft core genes' + '\t' + '(95% <= strains < 99%)' + str(num_soft_core) + '\n')
-        fh.write('Shell genes' + '\t' + '(15% <= strains < 95%)' + str(num_shell) + '\n')
-        fh.write('Cloud genes' + '\t' + '(0% <= strains < 15%)' + str(num_cloud) + '\n')
-        fh.write('Total genes' + '\t' + '(0% <= strains <= 100%)' + str(total))
+        fh.write('Core genes' + '\t' + '(99% <= strains <= 100%)' + '\t'+ str(num_core) + '\n')
+        fh.write('Soft core genes' + '\t' + '(95% <= strains < 99%)' + '\t'+ str(num_soft_core) + '\n')
+        fh.write('Shell genes' + '\t' + '(15% <= strains < 95%)' + '\t' + str(num_shell) + '\n')
+        fh.write('Cloud genes' + '\t' + '(0% <= strains < 15%)' + '\t'+ str(num_cloud) + '\n')
+        fh.write('Total genes' + '\t' + '(0% <= strains <= 100%)' + '\t'+ str(total))
     report['summary'] = summary_file
     return report
 
@@ -762,7 +763,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     report = all_against_all_blast(report, threads=threads, timing_log=timing_log)
     report = cluster_with_mcl(report, threads=threads, timing_log=timing_log)
     report = reinflate_clusters(report)
-    #report = split_paralogs(report)
+    report = split_paralogs(report)
     report = label_cluster(report)
     report = annotate_cluster(report)
     report = create_spreadsheet(report)
@@ -773,7 +774,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     json.dump(report['excluded_cluster'], open('dev/temp/excluded_cluster', 'w'), indent=4, sort_keys=True)
     json.dump(report['cd_hit_cluster'], open('dev/temp/cd_hit_cluster', 'w'), indent=4, sort_keys=True)
     json.dump(report['inflated_unsplit_clusters'], open('dev/temp/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
-    #json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
     json.dump(report['labeled_clusters'], open('dev/temp/labeled_clusters', 'w'), indent=4, sort_keys=True)
     json.dump(report['annotated_clusters'], open('dev/temp/annotated_clusters', 'w'), indent=4, sort_keys=True)
 
@@ -781,7 +782,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     del report['excluded_cluster']
     del report['cd_hit_cluster']
     del report['inflated_unsplit_clusters']
-    #del report['split_clusters']
+    del report['split_clusters']
     del report['labeled_clusters']
     del report['annotated_clusters']
 
