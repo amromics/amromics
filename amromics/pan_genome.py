@@ -67,19 +67,24 @@ def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
                 continue
 
             seq_id = cells[0]
-            if seq_id != last_seq_id:
-                count = 1
-                last_seq_id = seq_id
-            #gene_id = re.findall(r"ID=(.+?);",cells[8])
-            #gene_id = gene_id[0]
-            gene_id = sample_id + '_' + seq_id + '_' + str(count)
-            count = count + 1
+            
+            #if seq_id != last_seq_id:
+            #    count = 1
+            #    last_seq_id = seq_id
+            #gene_id = sample_id + '_' + seq_id + '_' + str(count)
+            #count = count + 1
+            
+            gene_id = re.findall(r"ID=(.+?);",cells[8])
+            gene_id = gene_id[0]
+            if gene_id in dictionary:
+                gene_id = gene_id + datetime.now().strftime("%M%S%f")
+            
             trand = cells[6]
-            out_fh.write(seq_id+'\t'+str(start -1)+'\t'+ str(end)+'\t'+gene_id+'\t'+trand+'\n')\
+            row = [seq_id, str(start -1), str(end), gene_id, '1', trand]
+            out_fh.write('\t'.join(row)+ '\n')
 
             # create annotation dictionary
-            #if gene_id in dictionary:
-            #    gene_id = gene_id + datetime.now().strftime("%M%S%f")
+
             dictionary[gene_id] = {}
             dictionary[gene_id]['sample_id'] = sample_id
             gene_name = re.findall(r"Name=(.+?);",cells[8])
@@ -132,7 +137,7 @@ def extract_proteins(report, timing_log=None):
     
     report['gene_annotation'] = gene_annotation
     return report
-    
+
 
 def combine_proteins(report, timing_log=None):
     """
@@ -209,11 +214,10 @@ def run_cd_hit_iterative(report, threads, timing_log):
 
     excluded_cluster = []
 
-    percent_match = 1
     greater_than_or_equal = True
     number_of_samples = len(report['samples'])
     
-    while percent_match >= 0.98:
+    for percent_match in [1, 0.99, 0.985, 0.98, 0.98]:
         cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_represent} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
         ret = run_command(cmd, timing_log)
         if ret != 0:
@@ -240,11 +244,9 @@ def run_cd_hit_iterative(report, threads, timing_log):
         cluster_filtered_faa_file = combined_faa_file + '.filtered'
         with open(cluster_filtered_faa_file, 'w') as fh:
             for seq_record in SeqIO.parse(combined_faa_file, "fasta"):
-                if seq_record.id in full_cluster_gene_names:
+                if seq_record.id not in full_cluster_gene_names:
                     SeqIO.write(seq_record, fh, 'fasta')
-
         shutil.move(cluster_filtered_faa_file, combined_faa_file)
-        percent_match -=0.005
 
     report['cd_hit_cluster_represent'] = cd_hit_cluster_represent
     report['cd_hit_cluster_file'] = cd_hit_cluster_file
@@ -320,7 +322,7 @@ def all_against_all_blast(report, threads, timing_log):
         for chunked_file in chunked_file_list:
             blast_output_file = os.path.splitext(chunked_file)[0] + '.out'
             blast_output_file_list.append(blast_output_file)
-            cmd = f"blastp -query {chunked_file} -db {blast_db} -evalue 1E-6 -num_threads {threads} -outfmt 6 -max_target_seqs 2000 " + "| awk '{ if ($3 > 98) print $0;}' 2> /dev/null 1> " + blast_output_file
+            cmd = f"blastp -query {chunked_file} -db {blast_db} -evalue 1E-6 -num_threads {threads} -outfmt 6 -max_target_seqs 2000 " + "| awk '{ if ($3 > 95) print $0;}' 2> /dev/null 1> " + blast_output_file
             fh.write(cmd + '\n')
     cmd = f"parallel -a {blast_cmds_file}"
     ret = run_command(cmd, timing_log)
@@ -405,7 +407,7 @@ def find_paralogs(cluster, gene_annotation):
         sample_id = gene_annotation[gene_id]['sample_id']
         if sample_id not in samples:
             samples[sample_id] = []
-        samples[sample_id].append(sample_id)
+        samples[sample_id].append(gene_id)
     
     # pick paralogs with the smallest number of genes
     smallest_number = 1000000
@@ -516,8 +518,7 @@ def split_paralogs(report):
             
             # convert in_clusters so we can find the cluster index of gene
             gene_to_cluster_index = {}
-            for index in range(len(in_clusters)):
-                genes = in_clusters[index]
+            for index, genes in enumerate(in_clusters):
                 for gene in genes:
                     gene_to_cluster_index[gene] = index
 
@@ -543,7 +544,7 @@ def label_cluster(report):
     -------
     -------
     """
-    unlabeled_clusters = report['split_clusters']
+    unlabeled_clusters = report['inflated_unsplit_clusters']
 
     # Add labels to the clusters
     labeled_clusters = {}
@@ -657,8 +658,11 @@ def create_spreadsheet(report):
                 sample_dict[sample_id].append(gene)
             for sample in report['samples']:
                 sample_id = sample['id']
-                gene_list = sample_dict[sample_id]
-                row.append('\t'.join(gene_list))
+                if sample_id in sample_dict:
+                    gene_list = sample_dict[sample_id]
+                    row.append('\t'.join(gene_list))
+                else:
+                    row.append('')
             writer.writerow(row)
     report['spreadsheet'] = spreadsheet_file
     return report
@@ -691,7 +695,7 @@ def create_rtab(report):
                 sample_dict[sample_id].append(gene)
             for sample in report['samples']:
                 sample_id = sample['id']
-                gene_list = sample_dict[sample_id]
+                gene_list = sample_dict.get(sample_id, [])
                 row.append(len(gene_list))
             writer.writerow(row)
     report['rtab'] = rtab_file
@@ -758,7 +762,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     report = all_against_all_blast(report, threads=threads, timing_log=timing_log)
     report = cluster_with_mcl(report, threads=threads, timing_log=timing_log)
     report = reinflate_clusters(report)
-    report = split_paralogs(report)
+    #report = split_paralogs(report)
     report = label_cluster(report)
     report = annotate_cluster(report)
     report = create_spreadsheet(report)
@@ -769,7 +773,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     json.dump(report['excluded_cluster'], open('dev/temp/excluded_cluster', 'w'), indent=4, sort_keys=True)
     json.dump(report['cd_hit_cluster'], open('dev/temp/cd_hit_cluster', 'w'), indent=4, sort_keys=True)
     json.dump(report['inflated_unsplit_clusters'], open('dev/temp/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
+    #json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
     json.dump(report['labeled_clusters'], open('dev/temp/labeled_clusters', 'w'), indent=4, sort_keys=True)
     json.dump(report['annotated_clusters'], open('dev/temp/annotated_clusters', 'w'), indent=4, sort_keys=True)
 
@@ -777,7 +781,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     del report['excluded_cluster']
     del report['cd_hit_cluster']
     del report['inflated_unsplit_clusters']
-    del report['split_clusters']
+    #del report['split_clusters']
     del report['labeled_clusters']
     del report['annotated_clusters']
 
@@ -790,7 +794,7 @@ if __name__ == '__main__':
         report, 
         collection_dir='dev', 
         threads=4, 
-        overwrite=False, 
+        overwrite=True, 
         timing_log='/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
     )
 
