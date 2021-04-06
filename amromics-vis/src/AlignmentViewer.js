@@ -122,8 +122,9 @@ export class AlignmentViewer {
     }
     else{
       for (var i = 0; i < this.samples.length; i++) {
-        var prot_seq=this.translateDNA2Prot(this.samples[i].seq);
-        console.log(prot_seq);
+      //  var prot_seq=this.translateDNA2Prot(this.samples[i].seq);
+      //  console.log(prot_seq);
+        var prot_seq=this.samples[i].protein;
         var arr = [...prot_seq];
         list_sample.push(this.samples[i].sample);
         taxa.push({
@@ -156,10 +157,10 @@ export class AlignmentViewer {
       height = cell_h * list_sample.length + margin.top + margin.bottom;
 
     var newick_raw = phylotree;
-   
-    
 
-   
+
+
+
     var newick = NewickTools.parse(newick_raw);
     //estimate length of sample name, by average length plus 10
     var numchar=0;
@@ -603,7 +604,7 @@ export class AlignmentViewer {
         .domain(y_data)
         .padding(0.01);
       // create a tooltip
-  
+
     svg2
         .append("g")
         .attr(
@@ -678,11 +679,11 @@ export class AlignmentViewer {
         //console.log(result);
 
       }
-        
-      
+
+
 
     }
-      
+
     return result;
   }
 }
