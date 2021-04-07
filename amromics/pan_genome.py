@@ -2,6 +2,7 @@ import os
 import shutil
 import re
 import json
+import gzip
 import csv
 from datetime import datetime
 import logging
@@ -11,30 +12,8 @@ from amromics.utils import run_command
 
 logger = logging.getLogger(__name__)
 
-def get_input(report):
-    """
-    Get and extract ggf files and assembly files to temp folder
 
-    Parameters
-    -------
-    -------
-    """
-    for sample in report['samples']:
-        sample_id = sample['id']
-        gffgz_file = os.path.join(sample['annotation'], sample_id + '.gff.gz')
-        gff_file = os.path.join(report['temp_dir'], sample_id + '.gff')
-        if run_command('gunzip -c {} > {}'.format(gffgz_file, gff_file)) != 0:
-            raise Exception('Cannot get {}'.format(gffgz_file))
-        sample['gff_file'] = gff_file
-        assembly_gz_file = sample['assembly']
-        assembly_file = os.path.join(report['temp_dir'], sample_id + '.fna')
-        if run_command('gunzip -c {} > {}'.format(assembly_gz_file, assembly_file)) != 0:
-            raise Exception('Cannot get {}'.format(assembly_gz_file))
-        sample['assembly_file'] = assembly_file
-    return report
-
-
-def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
+def parse_gff_file(ggf_file, bed_out_file, fasta_out_file, sample_id, dictionary):
     """
     Parse gff file, create a bed file and return a dictionary contain gen id 
     and gene annotation. Filter out small genes(<18 base)
@@ -46,9 +25,10 @@ def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
     found_fasta = 0
     last_seq_id = None
     count = 1
-    with open(ggf_file,'r') as in_fh, open(bed_out_file, 'w') as out_fh:
+    with gzip.open(ggf_file,'rt') as in_fh, open(bed_out_file, 'w') as bed_fh, open(fasta_out_file, 'w') as fasta_fh:
         for line in in_fh:
             if found_fasta == 1:
+                fasta_fh.write(line)
                 continue
             if re.match(r"^##FASTA", line) != None:
                 found_fasta = 1
@@ -81,10 +61,9 @@ def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
             
             trand = cells[6]
             row = [seq_id, str(start -1), str(end), gene_id, '1', trand]
-            out_fh.write('\t'.join(row)+ '\n')
+            bed_fh.write('\t'.join(row)+ '\n')
 
             # create annotation dictionary
-
             dictionary[gene_id] = {}
             dictionary[gene_id]['sample_id'] = sample_id
             gene_name = re.findall(r"Name=(.+?);",cells[8])
@@ -99,30 +78,35 @@ def parse_gff_file(ggf_file, bed_out_file, sample_id, dictionary):
 
 def extract_proteins(report, timing_log=None):
     """
-    Take in GFF file and fasta file and create protein sequences in FASTA format.
-    Create json file contain annotation information of genes
+    Take in GFF file and create protein sequences in FASTA format.
+    Create json file contain annotation information of each gene_id
 
     Parameters
     -------
     -------
     """
-    temp_dir = report['temp_dir']
+    temp_dir = os.path.join(report['temp_dir'], 'samples')
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
     gene_annotation = {}
     for sample in report['samples']:
-        fna_file = sample['assembly_file']
-        ggf_file = sample['gff_file']
         sample_id = sample['id']
+        sample_dir = os.path.join(temp_dir, sample_id)
+        if not os.path.exists(sample_dir):
+            os.makedirs(sample_dir)
+        # parse gff file
+        ggf_file = os.path.join(sample['annotation'], sample_id + '.gff.gz')
+        fna_file = os.path.join(sample_dir, sample_id + '.fna')
+        bed_file = os.path.join(sample_dir, sample_id + '.bed')
+        parse_gff_file(ggf_file, bed_file, fna_file, sample_id, gene_annotation)
         # extract nucleotide region
-        extracted_fna_file = os.path.join(temp_dir, sample_id +'.extracted.fna')
-        bed_file = os.path.join(temp_dir, sample_id +'.bed')
-        parse_gff_file(ggf_file, bed_file, sample_id, gene_annotation)
-
+        extracted_fna_file = os.path.join(sample_dir, sample_id +'.extracted.fna')
         cmd = f"bedtools getfasta -s -fi {fna_file} -bed {bed_file} -fo {extracted_fna_file} -name > /dev/null 2>&1"
         ret = run_command(cmd, timing_log)
         if ret != 0:
             raise Exception('Error running bedtools')
         # translate nucleotide to protein
-        faa_file = os.path.join(temp_dir, sample_id +'.faa')
+        faa_file = os.path.join(sample_dir, sample_id +'.faa')
         with open(faa_file, 'w') as faa_hd:
             for seq_record in SeqIO.parse(extracted_fna_file, "fasta"):
                 headers = seq_record.id.split(':')
@@ -209,7 +193,7 @@ def run_cd_hit_iterative(report, threads, timing_log):
     temp_dir = report['temp_dir']
     combined_faa_file = report['combined_faa_file']
 
-    cd_hit_cluster_represent = os.path.join(temp_dir, 'cluster')
+    cd_hit_cluster_fasta = os.path.join(temp_dir, 'cluster')
     cd_hit_cluster_file = os.path.join(temp_dir, 'cluster.clstr')
 
     excluded_cluster = []
@@ -218,7 +202,7 @@ def run_cd_hit_iterative(report, threads, timing_log):
     number_of_samples = len(report['samples'])
     
     for percent_match in [1, 0.99, 0.985, 0.98, 0.98]:
-        cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_represent} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
+        cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_fasta} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
         ret = run_command(cmd, timing_log)
         if ret != 0:
             raise Exception('Error running cd-hit')
@@ -248,8 +232,7 @@ def run_cd_hit_iterative(report, threads, timing_log):
                     SeqIO.write(seq_record, fh, 'fasta')
         shutil.move(cluster_filtered_faa_file, combined_faa_file)
 
-    report['cd_hit_cluster_represent'] = cd_hit_cluster_represent
-    report['cd_hit_cluster_file'] = cd_hit_cluster_file
+    report['cd_hit_cluster_fasta'] = cd_hit_cluster_fasta
     report['excluded_cluster'] = excluded_cluster
     report['cd_hit_cluster'] = clusters
     return report
@@ -304,7 +287,7 @@ def all_against_all_blast(report, threads, timing_log):
         os.makedirs(out_dir)
 
     # make blast database
-    fasta_file = report['cd_hit_cluster_represent']
+    fasta_file = report['cd_hit_cluster_fasta']
     blast_db = os.path.join(out_dir, 'output_contigs')
     cmd = f"makeblastdb -in {fasta_file} -dbtype prot -out {blast_db} -logfile /dev/null"
     ret = run_command(cmd, timing_log)
@@ -397,8 +380,8 @@ def reinflate_clusters(report):
         inflated_clusters.append(cluster)
 
     report['inflated_unsplit_clusters'] = inflated_clusters
-    #del report['cd_hit_cluster']
-    #del report['excluded_cluster']
+    del report['cd_hit_cluster']
+    del report['excluded_cluster']
     return report
 
 def find_paralogs(cluster, gene_annotation):
@@ -534,7 +517,7 @@ def split_paralogs(report):
 
     split_clusters = out_clusters
     report['split_clusters'] = split_clusters
-    #del report['inflated_unsplit_clusters']
+    del report['inflated_unsplit_clusters']
     return report
 
 def label_cluster(report):
@@ -555,7 +538,7 @@ def label_cluster(report):
         counter += 1
 
     report['labeled_clusters'] = labeled_clusters
-    #del report['split_clusters']
+    del report['split_clusters']
     return report
 
 
@@ -600,8 +583,7 @@ def annotate_cluster(report):
         if cluster_new_name in annotated_clusters:
             cluster_new_name += '_' + datetime.now().strftime("%M%S%f")
         annotated_clusters[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
-    #del report['labeled_clusters']
-    #del report['gene_annotation']
+    del report['labeled_clusters']
     report['annotated_clusters'] = annotated_clusters
     return report
 
@@ -755,8 +737,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
         os.makedirs(pan_genome_folder)
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
-    
-    report = get_input(report)
+
     report = extract_proteins(report, timing_log=timing_log)
     report = combine_proteins(report, timing_log=timing_log)
     report = run_cd_hit_iterative(report, threads=threads, timing_log=timing_log)
@@ -771,20 +752,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     report = create_summary(report)
 
     json.dump(report['gene_annotation'], open('dev/temp/gene_annotation', 'w'), indent=4, sort_keys=True)
-    json.dump(report['excluded_cluster'], open('dev/temp/excluded_cluster', 'w'), indent=4, sort_keys=True)
-    json.dump(report['cd_hit_cluster'], open('dev/temp/cd_hit_cluster', 'w'), indent=4, sort_keys=True)
-    json.dump(report['inflated_unsplit_clusters'], open('dev/temp/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['split_clusters'], open('dev/temp/split_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['labeled_clusters'], open('dev/temp/labeled_clusters', 'w'), indent=4, sort_keys=True)
     json.dump(report['annotated_clusters'], open('dev/temp/annotated_clusters', 'w'), indent=4, sort_keys=True)
-
-    del report['gene_annotation']
-    del report['excluded_cluster']
-    del report['cd_hit_cluster']
-    del report['inflated_unsplit_clusters']
-    del report['split_clusters']
-    del report['labeled_clusters']
-    del report['annotated_clusters']
 
     json.dump(report, open('dev/temp/report', 'w'), indent=4, sort_keys=True)
 
@@ -801,10 +769,5 @@ if __name__ == '__main__':
 
 
 ## TODO ##
-# input from gene bank
-# check protein translate (compare with perl script)
-    # filtered protein sequence produced by roary did not have * character in the middle of sequence => check unfiltered protein sequence 
-    # protein sequence with the same id are different from each other => run roary perl scrip individually
-# filter protein sequence
-# warming of CD-HIT: Discarding invalid sequence or sequence without identifier and description!
+# filter protein sequence ?
 # should we change the gene id, and how to impliment split clusters
