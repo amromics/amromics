@@ -589,10 +589,10 @@ def annotate_cluster(report):
 
 
 def create_spreadsheet(report):
-    spreadsheet_file = os.path.join(report['pan_genome'], 'gene_presence_absence.csv')
+    spreadsheet_file = os.path.join(report['pan_genome'], 'gene_presence_absence.csv.gz')
     annotated_clusters = report['annotated_clusters']
     gene_annotation = report['gene_annotation']
-    with open(spreadsheet_file, 'w') as fh:
+    with gzip.open(spreadsheet_file, 'wt') as fh:
         writer = csv.writer(fh, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         # write header
@@ -750,13 +750,23 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     report = create_spreadsheet(report)
     report = create_rtab(report)
     report = create_summary(report)
+    
+    # clean
+    del report['gene_annotation']
+    del report['annotated_clusters']
+    del report['blast_result_file']
+    del report['cd_hit_cluster_fasta']
+    del report['combined_faa_file']
+    del report['uninflated_mcl_clusters']
+    for sample in report['samples']:
+        del sample['bed']
+        del sample['extracted_fna_file']
+        del sample['faa_file']
+    #shutil.rmtree(temp_dir)
 
-    json.dump(report['gene_annotation'], open('dev/temp/gene_annotation', 'w'), indent=4, sort_keys=True)
-    json.dump(report['annotated_clusters'], open('dev/temp/annotated_clusters', 'w'), indent=4, sort_keys=True)
+    return report
 
-    json.dump(report, open('dev/temp/report', 'w'), indent=4, sort_keys=True)
-
-
+    
 if __name__ == '__main__':
     report = json.load(open('dev/report', 'r'))
     report = run_pan_genome_analysis(
@@ -766,7 +776,7 @@ if __name__ == '__main__':
         overwrite=True, 
         timing_log='/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
     )
-
+    json.dump(report, open('dev/report_output.json', 'w'), indent=4, sort_keys=True)
 
 ## TODO ##
 # filter protein sequence ?
