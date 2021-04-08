@@ -195,7 +195,7 @@ def collection_pa_func(args):
     with open(sample_set_file, 'w') as fn:
         json.dump(dataset_sample_ids, fn)
 
-    report = wrapper.run_roary(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
+    report = pan_genome.run_pan_genome_analysis(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
     report = wrapper.get_gene_sequences(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
     report = wrapper.run_protein_alignment(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)
     report = wrapper.create_nucleotide_alignment(report, collection_dir=collection_dir, threads=threads, overwrite=overwrite, timing_log=timing_log)

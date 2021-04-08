@@ -79,10 +79,10 @@ def export_json(work_dir, webapp_data_dir, collection_id, collection_name=''):
         os.makedirs(exp_dir_current + "/set")
     set_result.append({'group': 'phylo_heatmap', 'data': export_amr_heatmap(report, exp_dir_current)})
     set_result.append({'group': 'pan_sum',
-                       'data': export_pangenome_summary(report['roary'] + '/summary_statistics.txt',
+                       'data': export_pangenome_summary(report['pan_genome'] + '/summary_statistics.txt',
                                                         exp_dir_current)})
     set_result.append({'group': 'pan_cluster',
-                       'data': export_pangenome_cluster(report['roary'] + '/gene_presence_absence.csv.gz',
+                       'data': export_pangenome_cluster(report['pan_genome'] + '/gene_presence_absence.csv.gz',
                                                         exp_dir_current)})
     set_result.append(
         {'group': 'phylogeny_tree', 'data': export_phylogeny_tree(report['phylogeny'] + '/core_gene_alignment.treefile')})

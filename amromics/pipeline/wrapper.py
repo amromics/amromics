@@ -696,7 +696,7 @@ def run_gene_phylogeny(report, collection_dir, threads=8, overwrite=False, timin
     alignment_dir = os.path.join(collection_dir, 'alignments')
     if not os.path.exists(alignment_dir):
         os.makedirs(alignment_dir)
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.Rtab'   
+    gene_cluster_file = report['rtab']
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
     
@@ -716,10 +716,7 @@ def run_gene_phylogeny(report, collection_dir, threads=8, overwrite=False, timin
             if (not overwrite) and os.path.isfile(iqtree_output):
                 continue
 
-            gene_aln_file_roary = os.path.join(report['roary'],'pan_genome_sequences', gene_id + '.fa.aln')
             gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
-            if os.path.isfile(gene_aln_file_roary):
-                shutil.move(gene_aln_file_roary,gene_aln_file)
             if not os.path.isfile(gene_aln_file):
                 logger.info('{} does not exist'.format(gene_aln_file))
                 continue
@@ -764,7 +761,7 @@ def get_gene_sequences(report, collection_dir, threads=8, overwrite=False, timin
     -------
     """
     logger.info('Getting sequences of gene clusters')
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.csv.gz'
+    gene_cluster_file = report['spreadsheet']
     dict_nucleotide = {}
     for sample in report['samples']:
         with gzip.open(os.path.join(sample['annotation'], sample['id'] + '.ffn.gz'), 'rt') as fn:
@@ -836,7 +833,7 @@ def run_protein_alignment(report, collection_dir, threads=8, overwrite=False, ti
     """
     alignment_dir = os.path.join(collection_dir, 'alignments')
 
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.Rtab'   
+    gene_cluster_file = report['rtab']   
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
@@ -892,7 +889,7 @@ def create_nucleotide_alignment(report, collection_dir, threads=8, overwrite=Fal
     logger.info('Creating nucleotide alignment')
     alignment_dir = os.path.join(collection_dir, 'alignments')
     
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.Rtab'   
+    gene_cluster_file = report['rtab']  
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
     
@@ -970,7 +967,7 @@ def create_core_gene_alignment(report, collection_dir, threads=8, overwrite=Fals
         logger.info('Core gene alignment exists and input has not changed, skipping')
         return report
 
-    gene_cluster_file = report['roary'] + '/gene_presence_absence.Rtab'   
+    gene_cluster_file = report['rtab']  
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
@@ -978,10 +975,9 @@ def create_core_gene_alignment(report, collection_dir, threads=8, overwrite=Fals
     for sample in report['samples']:
         seq_dict[sample['id']]= ''
     sample_list = seq_dict.keys()
-    number_sample = len(sample_list)
     for gene_id, row in gene_df.iterrows():
         # Only run if it is core gene
-        if row.sum() != number_sample :
+        if len(row[row == 0]) != 0:
             continue
         gene_id = re.sub(r'\W+', '', gene_id)
         gene_dir = os.path.join(alignment_dir, gene_id)
