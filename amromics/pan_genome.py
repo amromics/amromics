@@ -524,7 +524,7 @@ def create_orthologs(cds_ids, paralog_cds_ids, cluster_column):
     # check for "leftovers", remove if absent
     cur.excecute('SELECT id FROM Cds WHERE splitcluster_id = ?', (splitcluster_id,))
     try:
-        x = cur.fetchone()[0]
+        cur.fetchone()[0]
     except:
         cur.execute('DELETE FROM Splitcluster WHERE id=?', (splitcluster_id,))
 
@@ -587,75 +587,88 @@ def annotate_cluster(report):
     -------
     """
     cur.execute('SELECT id FROM Splitcluster')
+    count = 1
     for (splitcluster_id,) in cur:
-        cluster_new_name = cluster_name
-        cluster_product = None
-        gene_name_count = {}
-        max_number = 0
-        gene_id_list = clusters[cluster_name]
-        cur.execute('SELECT gene_id FROM Cds WHERE splitcluster_id=?',(splitcluster_id,))
+        # update cluster name
+        cur.execute('''
+        SELECT 
+            gene_id,
+            COUNT(gene_id) AS num_gene 
+        FROM Cds 
+        WHERE splitcluster_id=? 
+        GROUP BY gene_id
+        ORDER BY num_gene DESC
+        LIMIT 1
+        ''',(splitcluster_id,))
+        try:
+            gene_id = cur.fetchone()[0]
+            cur.execute('''
+            UPDATE Splitcluster
+            SET name=(SELECT name FROM Gene WHERE id=?)
+            WHERE id=?  
+            ''', (gene_id, splitcluster_id))
+        except:
+            cluster_name = 'group_' + str(count)
+            count += 1
+            cur.execute('''
+            UPDATE Splitcluster
+            SET name=?
+            WHERE id=?  
+            ''', (cluster_name, splitcluster_id))
 
-        for gene_id in gene_id_list:
-            if 'name' in gene_annotation[gene_id]:
-                gene_name = gene_annotation[gene_id]['name']
-                gene_name_count[gene_name] = gene_name_count.get(gene_name, 1) + 1
-                if gene_name_count[gene_name] > max_number:
-                    cluster_new_name = gene_name
-                    max_number = gene_name_count[gene_name]
-                    if 'product' in gene_annotation[gene_id]:
-                        cluster_product = gene_annotation[gene_id]['product']
-        if cluster_product == None:
-            cluster_product =[]
-            for gene_id in gene_id_list:
-                if 'product' in gene_annotation[gene_id]:
-                    gene_product = gene_annotation[gene_id]['product']
-                    if gene_product not in cluster_product:
-                        cluster_product.append(gene_product)
-            if len(cluster_product) > 0:
-                cluster_product = ', '.join(cluster_product)
-            else:
-                cluster_product = 'unknown'
-        # check if cluster_new_name is already exist
-        if cluster_new_name in annotated_clusters:
-            cluster_new_name += '_' + datetime.now().strftime("%M%S%f")
-        annotated_clusters[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
-    report['annotated_clusters'] = annotated_clusters
-    return report
+        # update cluster product
+        cur.execute('''
+        SELECT 
+            product_id,
+            COUNT(product_id) AS num_product 
+        FROM Cds 
+        WHERE splitcluster_id=? 
+        GROUP BY product_id
+        ORDER BY num_product DESC
+        LIMIT 1
+        ''',(splitcluster_id,))
+        try:
+            product_id = cur.fetchone()[0]
+            cur.execute('''
+            UPDATE Splitcluster
+            SET product_id=?
+            WHERE id=?  
+            ''', (product_id, splitcluster_id))
+        except:
+            pass
 
 
 def create_spreadsheet(report):
     spreadsheet_file = os.path.join(report['pan_genome'], 'gene_presence_absence.csv.gz')
-    annotated_clusters = report['annotated_clusters']
-    gene_annotation = report['gene_annotation']
     with gzip.open(spreadsheet_file, 'wt') as fh:
         writer = csv.writer(fh, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         # write header
         header = ['Gene', 'Non-unique Gene name', 'Annotation', 'No. isolates', 'No. sequences', 'Avg sequences per isolate', 'Genome Fragment','Order within Fragment', 'Accessory Fragment','Accessory Order with Fragment', 'QC','Min group size nuc', 'Max group size nuc', 'Avg group size nuc' ]
-        for sample in report['samples']:
-            header.append(sample['id'])
+        cur.execute('SELECT name FROM Sample')
+        for (sample_name,) in cur:
+            header.append(sample_name)
         writer.writerow(header)
 
         # write row
-        for cluster in annotated_clusters:
-            sample_dict = {}
-            for gene in annotated_clusters[cluster]['gene_id']:
-                sample_id = gene_annotation[gene]['sample_id']
-                if sample_id not in sample_dict:
-                    sample_dict[sample_id] = []
-                sample_dict[sample_id].append(gene)
-            
+        cur.execute('SELECT id, name, product FROM Splitcluster')
+        for (splitcluster_id, splitcluster_name, splitcluster_product) in cur:
             row = []
             # Gene
-            row.append(cluster)
+            row.append(splitcluster_name)
             # Non-unique Gene name
             row.append("")
             # Annotation
-            row.append(annotated_clusters[cluster]['product'])
+            if splitcluster_product = None:
+                row.append("")
+            else:
+                row.append(splitcluster_product)
             # No. isolates
-            row.append(len(sample_dict))
+            cur.execute('SELECT sample_id FROM Cds WHERE splitcluster_id=? GROUP BY sample_id',(splitcluster_id,))
+            row.append(len(cur.fetchone()))
             # No. sequences
-            row.append(len(annotated_clusters[cluster]['gene_id']))
+            cur.execute('SELECT count(id) FROM Cds WHERE splitcluster_id=?',(splitcluster_id,))
+            row.append(cur.fetchone()[0])
             # Avg sequences per isolate
             row.append("")
             # Genome Fragment
@@ -675,13 +688,17 @@ def create_spreadsheet(report):
             # Avg group size nuc
             row.append("")
             # sample columns
-            for sample in report['samples']:
-                sample_id = sample['id']
-                if sample_id in sample_dict:
-                    gene_list = sample_dict[sample_id]
-                    row.append('\t'.join(gene_list))
+            cur.execute('SELECT id, name FROM Sample')
+            for (sample_id, sample_name) in cur:
+                cur.execute('SELECT name FROM Cds WHERE splitcluster_id=? AND sample_id=?', (splitcluster_id, sample_id))
+                result = cur.fetchall()
+                if len(result) == 0:
+                     row.append('')
                 else:
-                    row.append('')
+                    cds_names = []
+                    for (cds_name,) in result:
+                        cds_names.append(cds_name)
+                    row.append('\t'.join(gene_list))
             writer.writerow(row)
     report['spreadsheet'] = spreadsheet_file
     return report
@@ -689,33 +706,27 @@ def create_spreadsheet(report):
 
 def create_rtab(report):
     rtab_file = os.path.join(report['pan_genome'], 'gene_presence_absence.Rtab')
-    annotated_clusters = report['annotated_clusters']
-    gene_annotation = report['gene_annotation']
     with open(rtab_file, 'w') as fh:
         writer = csv.writer(fh, delimiter='\t')
 
         # write header
         header = ['Gene']
-        for sample in report['samples']:
-            header.append(sample['id'])
+        cur.execute('SELECT name FROM Sample')
+        for (sample_name,) in cur:
+            header.append(sample_name)
         writer.writerow(header)
 
         # write row
-        for cluster in annotated_clusters:
+        cur.execute('SELECT id, name FROM Splitcluster')
+        for (splitcluster_id, splitcluster_name) in cur:
             row = []
             # Gene
-            row.append(cluster)
+            row.append(splitcluster_name)
             # Samples
-            sample_dict = {}
-            for gene in annotated_clusters[cluster]['gene_id']:
-                sample_id = gene_annotation[gene]['sample_id']
-                if sample_id not in sample_dict:
-                    sample_dict[sample_id] = []
-                sample_dict[sample_id].append(gene)
-            for sample in report['samples']:
-                sample_id = sample['id']
-                gene_list = sample_dict.get(sample_id, [])
-                row.append(len(gene_list))
+            cur.execute('SELECT id, name FROM Sample')
+            for (sample_id, sample_name) in cur:
+                cur.execute('SELECT id FROM Cds WHERE splitcluster_id=? AND sample_id=?', (splitcluster_id, sample_id))
+                row.append(len(cur.fetchall()))
             writer.writerow(row)
     report['rtab'] = rtab_file
     return report
@@ -777,7 +788,6 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
 
-
     # create database
     conn = sqlite3.connect(os.path.join(pan_genome_folder, 'pan_genome.sqlite'))
     cur = conn.cursor()
@@ -802,14 +812,12 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
         CREATE TABLE IF NOT EXISTS Cluster (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             name            TEXT UNIQUE,
-            gene_id         INTEGER,
             product_id      INTEGER,
             paralogs        INTEGER DEFAULT 1
         );
         CREATE TABLE IF NOT EXISTS Spitcluster (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             name            TEXT UNIQUE,
-            gene_id         INTEGER,
             product_id      INTEGER,
             paralogs        INTEGER DEFAULT 0
         );        
@@ -843,26 +851,13 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     report = all_against_all_blast(report, threads=threads, timing_log=timing_log)
     report = cluster_with_mcl(report, threads=threads, timing_log=timing_log)
     report = reinflate_clusters(report)
-    #del report['cd_hit_cluster']
-    #del report['excluded_cluster']
     report = split_paralogs(report)
-    #del report['inflated_unsplit_clusters']
-    report = label_cluster(report)
-    #del report['split_clusters']
     report = annotate_cluster(report)
-    #del report['labeled_clusters']
     report = create_spreadsheet(report)
     report = create_rtab(report)
     report = create_summary(report)
 
-    json.dump(report['gene_annotation'], open(temp_dir+'/gene_annotation', 'w'), indent=4, sort_keys=True)
-    json.dump(report['inflated_unsplit_clusters'], open(temp_dir+'/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['split_clusters'], open(temp_dir+'/split_clusters', 'w'), indent=4, sort_keys=True)
-    json.dump(report['annotated_clusters'], open(temp_dir+'/annotated_clusters', 'w'), indent=4, sort_keys=True)
-
     # clean
-    del report['gene_annotation']
-    del report['annotated_clusters']
     del report['blast_result_file']
     del report['cd_hit_cluster_fasta']
     del report['combined_faa_file']
@@ -872,8 +867,6 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
         del sample['extracted_fna_file']
         del sample['faa_file']
     #shutil.rmtree(temp_dir)
-
-    json.dump(report, open('dev/report_output.json', 'w'), indent=4, sort_keys=True)
 
     return report
 
