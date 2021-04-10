@@ -437,133 +437,199 @@ def reinflate_clusters(report):
 
     return report
 
-def find_paralogs(cluster, gene_annotation):
+def find_paralogs(cds_ids):
     samples = {}
-    for gene_id in cluster:
-        sample_id = gene_annotation[gene_id]['sample_id']
+    for (cds_id,) in cds_ids:
+        cur.execute('SELECT sample_id FROM Cds WHERE id = ? LIMIT 1', (cds_id,))
+        sample_id = cur.fetchone()[0]
         if sample_id not in samples:
             samples[sample_id] = []
-        samples[sample_id].append(gene_id)
-    
+        samples[sample_id].append(cds_id)
+
     # pick paralogs with the smallest number of genes
-    smallest_number = 1000000
-    paralog_genes = None
+    smallest_number = 1000000 
+    paralog_cds_ids = None
     for sample_id in samples:
-        genes = samples[sample_id]
-        count = len(genes)
+        sample_cds_ids = samples[sample_id]
+        count = len(sample_cds_ids)
         if count > 1 and count < smallest_number:
-            paralog_genes = genes
+            paralog_cds_ids = sample_cds_ids
             smallest_number = count
 
-    return paralog_genes
+    return paralog_cds_ids
 
-
-def create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_index):
-    # get neighbour gene
-    neighbour_gene_dictionary = {}
-    for gene_id in cluster:
-        match = re.search(r'^(.+_)(\d+)$', gene_id)
-        gene_id_prefix = match.group(1)
-        gene_position = int(match.group(2))
-        before_position = gene_position - 5
-        after_position = gene_position + 5
-        neighbour_genes = []
-        for i in range(before_position, after_position+1):
-            neighbour_gene_id = gene_id_prefix + str(i)
-            if neighbour_gene_id in gene_annotation and neighbour_gene_id != gene_id:
-                neighbour_genes.append(neighbour_gene_id)
-        neighbour_gene_dictionary[gene_id] = neighbour_genes
-
-    # find cluster indices of all the neighbour genes of each paralog gene
-    cluster_indices_around_paralogs = []
-    for p in paralog_genes:
-        neighbours_of_p = neighbour_gene_dictionary[p]
-        cluster_indices_around_p = []
-        for neighbour_gene in neighbours_of_p:
-            cluster_index = gene_to_cluster_index[neighbour_gene]
-            cluster_indices_around_p.append(cluster_index)
-        cluster_indices_around_paralogs.append(cluster_indices_around_p)
-    
-    # create data structure to hold new clusters
-    new_clusters = []
-    for p in paralog_genes:
-        new_clusters.append([p])
-    new_clusters.append([]) # extra "leftovers" list to gather genes that don't share CGN with any paralog gene
-
-    # add other members of the cluster to their closest match
-    for g in cluster:
-        if g in paralog_genes:
-            continue
-
-        neighbour_genes_of_g = neighbour_gene_dictionary[g]
-        if len(neighbour_genes_of_g) == 0:
-            new_clusters[-1].append(g)
-            continue
-
-        # find paralog gene which is closest match with g
-        best_score = 0
-        best_score_index = -1  # -1 is the index of "leftovers" list
-        for p,_ in enumerate(paralog_genes):
-            cluster_indices_around_p = cluster_indices_around_paralogs[p]
-            score_of_p = 0
-            for neighbour_gene in neighbour_genes_of_g:
-                cluster_index = gene_to_cluster_index[neighbour_gene]
-                if cluster_index in cluster_indices_around_p:
-                    score_of_p += 1
-            score_of_p = score_of_p / len(neighbour_genes_of_g)
-            if score_of_p > best_score:
-                best_score = score_of_p
-                best_score_index = p
-
-        new_clusters[best_score_index].append(g)
-
-    # check for "leftovers", remove if absent
-    if len(new_clusters[-1]) == 0:
-        del new_clusters[-1]
-    
-    return new_clusters
+def find_neighbour(cds_id):
+    cur.execute('SELECT contig_id, position FROM Cds WHERE id = ? LIMIT 1', (cds_id,))
+    (contig_id, position) = cur.fetchone()
+    pos_list = range(position-5, position)
+    pos_list.extend(range(position+1, position+6))
+    cur.execute('SELECT id FROM Cds WHERE contig_id = ? AND position IN ({})'.format(
+        ','.join(['?'] * len(pos_list)), 
+        (contig_id, pos_list)))
+    neighbours = []
+    for (cds_id,) in cur:
+        neighbours.append(cds_id)
+    return neighbours
 
 
 def split_paralogs(report):
+    cur.execute('SELECT id FROM Cluster WHERE paralogs=1')
+    for (cluster_id,) in cur:
+        cur.execute('SELECT id FROM Cds WHERE cluster_id = ?', (cluster_id,))
+        cds_ids = cur.fetchall()
+        if len(cds_ids) == 1:
+            cds_id = cds_ids[0][0]
+            cur.execute('INSERT Splitcluster DEFAULT VALUES')
+            conn.commit()
+            splitcluster_id = cur.lastrowid
+            cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
+            cur.execute('UPDATE Cluster SET paralogs=0 WHERE id=?', (cluster_id,))
+            continue
+        # check paralogs
+        paralog_cds_ids = find_paralogs(cds_ids)
+        if paralog_cds_ids == None:
+            cur.execute('INSERT Splitcluster DEFAULT VALUES')
+            conn.commit()
+            splitcluster_id = cur.lastrowid
+            cur.execute('UPDATE Cluster SET paralogs=0 WHERE id=?', (cluster_id,))
+            for (cds_id,) in cds_ids:
+                cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
+            continue
+        # create new cluster
+        for cds_id in paralog_cds_ids:
+            cur.execute('INSERT Splitcluster (paralogs) VALUES (1)')
+            conn.commit()
+            splitcluster_id = cur.lastrowid
+            cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
+        
+        # create left over cluster
+        cur.execute('INSERT Splitcluster (paralogs) VALUES (1)')
+        conn.commit()
+        splitcluster_id = cur.lastrowid
+
+        # add other members of the cluster to their closest match
+        for cds_id in cds_ids:
+            if cds_id in paralog_cds_ids:
+                continue
+
+            neighbour_of_cds = find_neighbour(cds_id)
+            if len(neighbour_of_cds) == 0:
+                cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
+                continue
+
+            # find paralog gene which is closest match with g
+            best_score = 0
+            belong = None
+            for paralog_cds_id in paralog_cds_ids:
+                neighbour_of_paralog = find_neighbour(paralog_cds_id)
+                cur.execute('SELECT cluster_id FROM Cds WHERE id IN ({})'.format(
+                    ','.join(['?'] * len(neighbour_of_paralog)), 
+                    (neighbour_of_paralog,)))
+                clusters_around_p = []
+                for (i,) in cur:
+                    cluster_indices_around_p.append(i)
+                
+                score_of_p = 0
+                for neighbour_cds_id in neighbour_of_cds:
+                    cur.execute('SELECT cluster_id FROM Cds WHERE id = ? LIMIT 1', (neighbour_cds_id,))
+                    a = cur.fetchone()[0]
+                    if a in clusters_around_p:
+                        score_of_p += 1
+                score_of_p = score_of_p / len(neighbour_of_cds)
+                if score_of_p > best_score:
+                    best_score = score_of_p
+                    belong = paralog_cds_id
+
+            if belong == None:
+                cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
+            else:
+                cur.execute('''UPDATE Cds SET splitcluster_id=(
+                    SELECT splitcluster_id FROM Cds WHERE id = ?
+                ) WHERE id=?''', (belong, cds_id,))
+
+        # check for "leftovers", remove if absent
+        cur.excecute('SELECT id FROM Cds WHERE splitcluster_id = ?', (splitcluster_id,))
+        try:
+            x = cur.fetchone()[0]
+        except:
+            cur.execute('DELETE FROM Splitcluster WHERE id=?', (splitcluster_id,))
+
     # run iteratively
     for i in range(50):
-        any_paralogs = 0
-        for cluster in in_clusters:
-            if len(cluster) == 1:
-                out_clusters.append(cluster)
+        cur.execute('SELECT id FROM Splitcluster WHERE paralogs=1')
+        for (old_splitcluster_id,) in cur:
+            cur.execute('SELECT id FROM Cds WHERE splitcluster_id = ?', (old_splitcluster_id,))
+            cds_ids = cur.fetchall()
+            if len(cds_ids) == 1:
+                cds_id = cds_ids[0][0]
+                cur.execute('UPDATE Splitcluster SET paralogs=0 WHERE id=?', (old_splitcluster_id,))
                 continue
-            first_gene = cluster[0]
-            if first_gene in clusters_not_paralogs:
-                out_clusters.append(cluster)
-                continue
-
             # check paralogs
-            paralog_genes = find_paralogs(cluster, gene_annotation)
-
-            if paralog_genes == None:
-                clusters_not_paralogs.append(first_gene)
-                out_clusters.append(cluster)
+            paralog_cds_ids = find_paralogs(cds_ids)
+            if paralog_cds_ids == None:
+                cur.execute('UPDATE Splitcluster SET paralogs=0 WHERE id=?', (old_splitcluster_id,))
                 continue
+
+            # delete old cluster
+            cur.execute('DELETE FROM Splitcluster WHERE id=?', (old_splitcluster_id,))
+
+            # create new cluster
+            for cds_id in paralog_cds_ids:
+                cur.execute('INSERT Splitcluster (paralogs) VALUES (1)')
+                conn.commit()
+                splitcluster_id = cur.lastrowid
+                cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
             
-            # convert in_clusters so we can find the cluster index of gene
-            gene_to_cluster_index = {}
-            for index, genes in enumerate(in_clusters):
-                for gene in genes:
-                    gene_to_cluster_index[gene] = index
+            # create left over cluster
+            cur.execute('INSERT Splitcluster (paralogs) VALUES (1)')
+            conn.commit()
+            splitcluster_id = cur.lastrowid
 
-            # split paralogs
-            orthologs_clusters = create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_index)
-            out_clusters.extend(orthologs_clusters)
-            any_paralogs = 1
+            # add other members of the cluster to their closest match
+            for cds_id in cds_ids:
+                if cds_id in paralog_cds_ids:
+                    continue
+                neighbour_of_cds = find_neighbour(cds_id)
+                if len(neighbour_of_cds) == 0:
+                    cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
+                    continue
+                # find paralog gene which is closest match with g
+                best_score = 0
+                belong = None
+                for paralog_cds_id in paralog_cds_ids:
+                    neighbour_of_paralog = find_neighbour(paralog_cds_id)
+                    cur.execute('SELECT splitcluster_id FROM Cds WHERE id IN ({})'.format(
+                        ','.join(['?'] * len(neighbour_of_paralog)), 
+                        (neighbour_of_paralog,)))
+                    clusters_around_p = []
+                    for (i,) in cur:
+                        cluster_indices_around_p.append(i)
+                    
+                    score_of_p = 0
+                    for neighbour_cds_id in neighbour_of_cds:
+                        cur.execute('SELECT splitcluster_id FROM Cds WHERE id = ? LIMIT 1', (neighbour_cds_id,))
+                        a = cur.fetchone()[0]
+                        if a in clusters_around_p:
+                            score_of_p += 1
+                    score_of_p = score_of_p / len(neighbour_of_cds)
+                    if score_of_p > best_score:
+                        best_score = score_of_p
+                        belong = paralog_cds_id
 
-        # check if next iteration is required
-        if any_paralogs == 0:
-            break
+                if belong == None:
+                    cur.execute('UPDATE Cds SET splitcluster_id=? WHERE id=?', (splitcluster_id, cds_id))
+                else:
+                    cur.execute('''UPDATE Cds SET splitcluster_id=(
+                        SELECT splitcluster_id FROM Cds WHERE id = ?
+                    ) WHERE id=?''', (belong, cds_id,))
 
-    split_clusters = out_clusters
-    report['split_clusters'] = split_clusters
-    del report['inflated_unsplit_clusters']
-    return report
+            # check for "leftovers", remove if absent
+            cur.excecute('SELECT id FROM Cds WHERE splitcluster_id = ?', (splitcluster_id,))
+            try:
+                x = cur.fetchone()[0]
+            except:
+                cur.execute('DELETE FROM Splitcluster WHERE id=?', (splitcluster_id,))
+
 
 def label_cluster(report):
     """
@@ -802,20 +868,22 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
             product_id      INTEGER,
             dna             TEXT,
             protein         TEXT,
-            cluster_id      INTEGER
+            cluster_id      INTEGER,
+            splitcluster_id      INTEGER
         );
         CREATE TABLE IF NOT EXISTS Cluster (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             name            TEXT UNIQUE,
             gene_id         INTEGER,
             product_id      INTEGER,
-            paralogs        INTEGER
+            paralogs        INTEGER DEFAULT 1
         );
-        CREATE TABLE IF NOT EXISTS Split_cluster (
+        CREATE TABLE IF NOT EXISTS Spitcluster (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             name            TEXT UNIQUE,
             gene_id         INTEGER,
-            product_id      INTEGER
+            product_id      INTEGER,
+            paralogs        INTEGER DEFAULT 0
         );        
         CREATE TABLE IF NOT EXISTS Gene (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
