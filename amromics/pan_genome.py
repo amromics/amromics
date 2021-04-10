@@ -288,9 +288,23 @@ def run_cd_hit_iterative(report, threads, timing_log):
                     SeqIO.write(seq_record, fh, 'fasta')
         shutil.move(cluster_filtered_faa_file, combined_faa_file)
 
+    # insert into database
+    for cluster in excluded_cluster:
+        cur.execute('INSERT INTO Cluster DEFAULT VALUES')
+        conn.commit()
+        cluster_id = cur.lastrowid
+        for cds_name in cluster:
+            cur.execute('UPDATE Cds SET cluster_id=? WHERE name=?', (cluster_id, cds_name))
+    
+    for repre_cds_name in clusters:
+        cur.execute('INSERT INTO Cluster DEFAULT VALUES')
+        conn.commit()
+        cluster_id = cur.lastrowid
+        cur.execute('UPDATE Cds SET cluster_id=? WHERE name=?', (cluster_id, repre_cds_name))
+        for cds_name in clusters[repre_cds_name]:
+            cur.execute('UPDATE Cds SET cluster_id=? WHERE name=?', (cluster_id, cds_name))
+
     report['cd_hit_cluster_fasta'] = cd_hit_cluster_fasta
-    report['excluded_cluster'] = excluded_cluster
-    report['cd_hit_cluster'] = clusters
     return report
 
 
@@ -406,38 +420,21 @@ def reinflate_clusters(report):
     -------
     -------
     """
-    inflated_clusters = []
-    clusters = report['cd_hit_cluster']
 
-    # Inflate genes from cdhit which were sent to mcl
     mcl_file = report['uninflated_mcl_clusters']
     with open(mcl_file, 'r') as fh:
         for line in fh:
-            inflated_genes = []
             line = line.rstrip('\n')
-            genes = line.split('\t')
-            for gene in genes:
-                inflated_genes.append(gene)
-                if gene in clusters:
-                    inflated_genes.extend(clusters[gene])
-                    del clusters[gene]
-            inflated_clusters.append(inflated_genes)
+            cur.execute('INSERT INTO Cluster DEFAULT VALUES')
+            conn.commit()
+            new_cluster_id = cur.lastrowid
+            cds_names = line.split('\t')
+            for cds_name in cds_names:
+                cur.execute('SELECT cluster_id FROM Cds WHERE name = ? LIMIT 1', (cds_name,))
+                old_cluster_id = cur.fetchone()[0]
+                cur.execute('UPDATE Cds SET cluster_id=? WHERE cluster_id=?', (new_cluster_id, old_cluster_id))
+                cur.execute('DELETE FROM Cluster WHERE id=?', (old_cluster_id,))
 
-    # Inflate any clusters that were in the clusters file but not sent to mcl
-    for gene in clusters:
-        inflated_genes = []
-        inflated_genes.append(gene)
-        inflated_genes.extend(cluster[gene])
-        inflated_clusters.append(inflated_genes)
-
-    # Add clusters which were excluded
-    excluded_cluster = report['excluded_cluster']
-    for cluster in excluded_cluster:
-        inflated_clusters.append(cluster)
-
-    report['inflated_unsplit_clusters'] = inflated_clusters
-    del report['cd_hit_cluster']
-    del report['excluded_cluster']
     return report
 
 def find_paralogs(cluster, gene_annotation):
@@ -528,16 +525,8 @@ def create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_in
 
 
 def split_paralogs(report):
-    gene_annotation = report['gene_annotation']
-    unsplit_clusters = report['inflated_unsplit_clusters']
-
-    clusters_not_paralogs = []
-
     # run iteratively
-    out_clusters = unsplit_clusters
-    for i in range(5):
-        in_clusters = out_clusters
-        out_clusters = []
+    for i in range(50):
         any_paralogs = 0
         for cluster in in_clusters:
             if len(cluster) == 1:
@@ -796,7 +785,7 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
 
 
     # create database
-    conn = splite3.connect(os.path.join(pan_genome_folder, 'pan_genome.splite'))
+    conn = sqlite3.connect(os.path.join(pan_genome_folder, 'pan_genome.sqlite'))
     cur = conn.cursor()
     cur.executescript('''
         CREATE TABLE IF NOT EXISTS Cds (
@@ -812,18 +801,21 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
             gene_id         INTEGER,
             product_id      INTEGER,
             dna             TEXT,
-            protein         TEXT
+            protein         TEXT,
+            cluster_id      INTEGER
         );
         CREATE TABLE IF NOT EXISTS Cluster (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             name            TEXT UNIQUE,
             gene_id         INTEGER,
-            product_id      INTEGER
+            product_id      INTEGER,
+            paralogs        INTEGER
         );
-        CREATE TABLE IF NOT EXISTS Links (
-            cluster_id      INTEGER,
-            cds_id          INTEGER,
-            UNIQUE (cluster_id, cds_id)
+        CREATE TABLE IF NOT EXISTS Split_cluster (
+            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            name            TEXT UNIQUE,
+            gene_id         INTEGER,
+            product_id      INTEGER
         );        
         CREATE TABLE IF NOT EXISTS Gene (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
