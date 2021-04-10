@@ -166,13 +166,16 @@ def extract_proteins(report, timing_log=None):
                 seq_record.id = headers[0]
                 seq_record.name = ''
                 seq_record.description = ''
+                dna = str(seq_record.seq)
                 seq_record.seq = seq_record.seq.translate(table=11)
+                protein = str(seq_record.seq)
+                cur.execute('UPDATE Cds SET dna =?, protein=? WHERE name=?', (dna, protein, headers[0]))
                 SeqIO.write(seq_record, faa_hd, 'fasta')
+        cur.commit()
         sample['bed'] = bed_file
         sample['extracted_fna_file'] = extracted_fna_file
         sample['faa_file'] = faa_file
     
-    report['gene_annotation'] = gene_annotation
     return report
 
 
