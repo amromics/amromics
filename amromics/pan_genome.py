@@ -4,6 +4,7 @@ import re
 import json
 import gzip
 import csv
+import sqlite3
 from datetime import datetime
 import logging
 from Bio import SeqIO
@@ -11,6 +12,7 @@ import pandas as pd
 from amromics.utils import run_command
 
 logger = logging.getLogger(__name__)
+
 
 
 def parse_gff_file(ggf_file, bed_out_file, fasta_out_file, sample_id, dictionary):
@@ -738,6 +740,51 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
         os.makedirs(pan_genome_folder)
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
+
+
+    # create database
+    conn = splite3.connect(os.path.join(pan_genome_folder, 'pan_genome.splite'))
+    cur = conn.cursor()
+    cur.executescript('''
+        CREATE TABLE IF NOT EXISTS Cds (
+            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            cds             TEXT UNIQUE,
+            start           INTEGER,
+            end             INTEGER,
+            length          INTEGER,
+            name_id         INTEGER,
+            sample_id       INTEGER,
+            contig_id       INTEGER,
+            product_id      INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS Cluster (
+            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            name            TEXT UNIQUE,
+            name_id         INTEGER,
+            product_id      INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS Links (
+            cluster_id      INTEGER,
+            cds_id          INTEGER,
+            UNIQUE (cluster_id, cds_id)
+        );        
+        CREATE TABLE IF NOT EXISTS Name (
+            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            name            TEXT UNIQUE
+        );
+        CREATE TABLE IF NOT EXISTS Sample (
+            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            sample          TEXT UNIQUE
+        );
+        CREATE TABLE IF NOT EXISTS Contig (
+            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            contig          TEXT UNIQUE
+        );
+        CREATE TABLE IF NOT EXISTS Product (
+            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            product         TEXT UNIQUE
+        )
+    ''')
 
     report = extract_proteins(report, timing_log=timing_log)
     report = combine_proteins(report, timing_log=timing_log)
