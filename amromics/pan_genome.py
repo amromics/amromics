@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 
-def parse_gff_file(ggf_file, bed_out_file, fasta_out_file, sample_id, dictionary):
+def parse_gff_file(ggf_file, bed_out_file, fasta_out_file, sample_name):
     """
     Parse gff file, create a bed file and return a dictionary contain gen id 
     and gene annotation. Filter out small genes(<18 base)
@@ -25,8 +25,8 @@ def parse_gff_file(ggf_file, bed_out_file, fasta_out_file, sample_id, dictionary
     -------
     """
     found_fasta = 0
-    last_seq_id = None
-    count = 1
+    last_contig_name = None
+    pos = 0
     with gzip.open(ggf_file,'rt') as in_fh, open(bed_out_file, 'w') as bed_fh, open(fasta_out_file, 'w') as fasta_fh:
         for line in in_fh:
             if found_fasta == 1:
@@ -45,37 +45,89 @@ def parse_gff_file(ggf_file, bed_out_file, fasta_out_file, sample_id, dictionary
             #filter out small genes (<18 base)
             start = int(cells[3])
             end = int(cells[4])
-            if end - start < 18:
+            length = end - start
+            if length < 18:
                 continue
 
-            seq_id = cells[0]
+            contig_name = cells[0]
+            if contig_name != last_contig_name:
+                pos = 0
+                last_contig_name = contig_name
+            pos += 1
             
-            if seq_id != last_seq_id:
-                count = 1
-                last_seq_id = seq_id
-            gene_id = sample_id + '_' + seq_id + '_' + str(count)
-            count = count + 1
-            
-            #gene_id = re.findall(r"ID=(.+?);",cells[8])
-            #gene_id = gene_id[0]
-            #if gene_id in dictionary:
-            #    gene_id = gene_id + datetime.now().strftime("%M%S%f")
+            cds_name = re.findall(r"ID=(.+?);",cells[8])
+            cds_name = cds_name[0]
             
             trand = cells[6]
-            row = [seq_id, str(start -1), str(end), gene_id, '1', trand]
+            row = [contig_name, str(start -1), str(end), cds_name, '1', trand]
             bed_fh.write('\t'.join(row)+ '\n')
 
-            # create annotation dictionary
-            dictionary[gene_id] = {}
-            dictionary[gene_id]['sample_id'] = sample_id
+            # Contig table
+            cur.execute('SELECT id FROM Contig WHERE name = ? LIMIT 1', (contig_name,))
+            try:
+                contig_id = cur.fetchone()[0]
+            except:
+                cur.execute('INSERT OR IGNORE INTO Contig (name) VALUES (?)', (contig_name,))
+                conn.commit()
+                if cur.rowcount != 1 :
+                    print('Error inserting contig: ',contig_name)
+                    continue
+                contig_id = cur.lastrowid
+            
+            # Cds table  
+            cur.execute('SELECT id FROM Sample WHERE name = ? LIMIT 1', (sample_name,))
+            sample_id = cur.fetchone()[0]
+
+            cur.execute('SELECT id FROM Cds WHERE name = ? LIMIT 1', (cds_name,))
+            try:
+                cds_id = cur.fetchone()[0]
+                cds_name += '_' + datetime.now().strftime("%M%S%f")
+            except:
+                pass
+            cur.execute('''INSERT OR IGNORE INTO Cds 
+                            (name, sample_id, contig_id, position, trand, start, end, length) 
+                            VALUES (?,?,?,?,?,?,?,?)''', 
+                            (cds_name, sample_id, contig_id, pos, trand, start, end, length)
+                        )
+            conn.commit()
+            if cur.rowcount != 1 :
+                print('Error inserting cds: ',cds_name)
+                continue
+            cds_id = cur.lastrowid
+
+            # Gene table
             gene_name = re.findall(r"Name=(.+?);",cells[8])
             if len(gene_name) != 0:
                 gene_name = gene_name[0]
-                dictionary[gene_id]['name'] = gene_name
-            gene_product = re.findall(r"product=(.+?)$",cells[8])
-            if len(gene_product) != 0:
-                gene_product = gene_product[0]
-                dictionary[gene_id]['product'] = gene_product
+                cur.execute('SELECT id FROM Gene WHERE name = ? LIMIT 1', (gene_name,))
+                try:
+                    gene_id = cur.fetchone()[0]
+                except:
+                    cur.execute('INSERT OR IGNORE INTO Gene (name) VALUES (?)', (gene_name,))
+                    conn.commit()
+                    if cur.rowcount != 1 :
+                        print('Error inserting gene: ',gene_name)
+                        continue
+                    gene_id = cur.lastrowid
+                cur.execute('UPDATE Cds SET gene_id=? WHERE id=?', (gene_id, cds_id))
+                conn.commit()
+            
+            # Product table
+            product_name = re.findall(r"product=(.+?)$",cells[8])
+            if len(product_name) != 0:
+                product_name = product_name[0]
+                cur.execute('SELECT id FROM Product WHERE name = ? LIMIT 1', (product_name,))
+                try:
+                    product_id = cur.fetchone()[0]
+                except:
+                    cur.execute('INSERT OR IGNORE INTO Product (name) VALUES (?)', (product_name,))
+                    conn.commit()
+                    if cur.rowcount != 1 :
+                        print('Error inserting product: ',product_name)
+                        continue
+                    product_id = cur.lastrowid
+                cur.execute('UPDATE Cds SET product_id=? WHERE id=?', (product_id, cds_id))
+                conn.commit()
 
 
 def extract_proteins(report, timing_log=None):
@@ -90,7 +142,6 @@ def extract_proteins(report, timing_log=None):
     temp_dir = os.path.join(report['temp_dir'], 'samples')
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
-    gene_annotation = {}
     for sample in report['samples']:
         sample_id = sample['id']
         sample_dir = os.path.join(temp_dir, sample_id)
@@ -100,7 +151,7 @@ def extract_proteins(report, timing_log=None):
         ggf_file = os.path.join(sample['annotation'], sample_id + '.gff.gz')
         fna_file = os.path.join(sample_dir, sample_id + '.fna')
         bed_file = os.path.join(sample_dir, sample_id + '.bed')
-        parse_gff_file(ggf_file, bed_file, fna_file, sample_id, gene_annotation)
+        parse_gff_file(ggf_file, bed_file, fna_file, sample_id)
         # extract nucleotide region
         extracted_fna_file = os.path.join(sample_dir, sample_id +'.extracted.fna')
         cmd = f"bedtools getfasta -s -fi {fna_file} -bed {bed_file} -fo {extracted_fna_file} -name > /dev/null 2>&1"
@@ -747,19 +798,23 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     cur.executescript('''
         CREATE TABLE IF NOT EXISTS Cds (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            cds             TEXT UNIQUE,
+            name            TEXT UNIQUE,
+            sample_id       INTEGER,
+            contig_id       INTEGER,
+            position        INTEGER,
+            trand           TEXT,
             start           INTEGER,
             end             INTEGER,
             length          INTEGER,
-            name_id         INTEGER,
-            sample_id       INTEGER,
-            contig_id       INTEGER,
-            product_id      INTEGER
+            gene_id         INTEGER,
+            product_id      INTEGER,
+            dna             TEXT,
+            protein         TEXT
         );
         CREATE TABLE IF NOT EXISTS Cluster (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             name            TEXT UNIQUE,
-            name_id         INTEGER,
+            gene_id         INTEGER,
             product_id      INTEGER
         );
         CREATE TABLE IF NOT EXISTS Links (
@@ -767,23 +822,29 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
             cds_id          INTEGER,
             UNIQUE (cluster_id, cds_id)
         );        
-        CREATE TABLE IF NOT EXISTS Name (
+        CREATE TABLE IF NOT EXISTS Gene (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
             name            TEXT UNIQUE
         );
         CREATE TABLE IF NOT EXISTS Sample (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            sample          TEXT UNIQUE
+            name            TEXT UNIQUE
         );
         CREATE TABLE IF NOT EXISTS Contig (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            contig          TEXT UNIQUE
+            name            TEXT UNIQUE
         );
         CREATE TABLE IF NOT EXISTS Product (
             id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            product         TEXT UNIQUE
+            name            TEXT UNIQUE
         )
     ''')
+    conn.commit()
+
+    for sample in report['samples']:
+        sample_name = sample['id']
+        cur.execute('INSERT OR IGNORE INTO Sample (name) VALUES (?)', (sample_name,))
+    conn.commit()
 
     report = extract_proteins(report, timing_log=timing_log)
     report = combine_proteins(report, timing_log=timing_log)
