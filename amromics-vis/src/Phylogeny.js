@@ -47,7 +47,7 @@ export class Phylogeny {
     this.type_select.addEventListener("change", this.changeType.bind(this));
     //Event.observe(this.contig_select, 'change', changeContig.bind(this));
     control_select.appendChild(this.type_select);
-  
+
     this.meta_select = document.createElement('select');
     this.meta_select.style.border="1px solid #aaa";
     this.meta_select.style.borderRadius="3px";
@@ -79,7 +79,7 @@ export class Phylogeny {
       "green",
       "red",
       "yellow",
-      
+
       "peru",
       "chocolate",
       "pink",
@@ -151,6 +151,7 @@ export class Phylogeny {
     this.tree = Phylocanvas.createTree("phy_tree");
     this.tree.branchColour = this.props.color;
     this.tree.collapsedColour = this.props.color;
+
     //this.tree.setTreeType(this.type);
     this.tree.alignLabels = true;
     // this.tree.showLabels = false;
@@ -158,9 +159,18 @@ export class Phylogeny {
     this.tree.setTextSize(20);
     this.tree.lineWidth = 1;
     this.tree.setTreeType(this.type);
+    console.log(this.newick_tree);
+    ///////this.tree.showBranchLengthLabels =true;
+    this.tree.showBootstrap = true;
+    this.tree.showInternalNodeLabels = this.tree.showBootstrap;
+	  this.tree.internalLabelStyle.colour = this.tree.branchColour;
+	  this.tree.internalLabelStyle.font = this.tree.font;
+	  this.tree.internalLabelStyle.textSize = this.tree.textSize/2;
     this.tree.load(this.newick_tree);
+  //  this.tree.showBootstrap=true;
+    //this.tree.displayLabels();
     //console.log(this.tree.leaves);
-   
+
 
   }
   changeType(){
@@ -215,7 +225,7 @@ export class Phylogeny {
       legend.appendChild(box);
       legend.appendChild(text);
       this.legend_container.appendChild(legend);
-      
+
     }
     this.legend_container.style.height="100px";
   }
