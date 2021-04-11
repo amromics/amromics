@@ -57,6 +57,19 @@ export class AlignmentViewer {
     var control_option = document.createElement('div');
     this.control_gene.style.margin = "10px";
     this.control_gene.style.float = "right";
+    var control_option_display_lenght = document.createElement('input');
+    control_option_display_lenght.setAttribute("type", "checkbox");
+    control_option_display_lenght.setAttribute("id", "ch_length");
+    control_option_display_lenght.setAttribute("name", "ch_length");
+    control_option_display_lenght.setAttribute("checked", "true");
+    control_option_display_lenght.setAttribute("value", "display");
+
+    control_option_display_lenght.addEventListener("change", this.onChangeViewBranchLenght.bind(this));
+    control_option.appendChild(control_option_display_lenght);
+    var label_checkbox_tree_length = document.createElement('label');
+    label_checkbox_tree_length.innerHTML = "Display branch lenght";
+    control_option.appendChild(label_checkbox_tree_length);
+
     var control_option_radio_nucl = document.createElement('input');
     control_option_radio_nucl.setAttribute("type", "radio");
     control_option_radio_nucl.setAttribute("name", "view");
@@ -76,6 +89,9 @@ export class AlignmentViewer {
     label_radio_button_prot.innerHTML = "Protein";
     control_option.appendChild(control_option_radio_prot);
     control_option.appendChild(label_radio_button_prot);
+
+
+
     control_div.appendChild(control_option);
     this.container.appendChild(control_div);
     this.container.appendChild(this.treeview);
@@ -83,11 +99,12 @@ export class AlignmentViewer {
     this.zoom_lv = 3;
     this.current_type="nucl";
     this.active_names=[];
+    this.display_branch_length=true;
   }
 
   load(genelabel, phylotree, alignment,type,mlst) {
 
-    console.log(alignment);
+    //console.log(alignment);
     this.control_gene.innerHTML = genelabel;
     this.samples = alignment;
     this.phylotree=phylotree;
@@ -103,7 +120,7 @@ export class AlignmentViewer {
 
     if(this.current_type=='nucl'){
       for (var i = 0; i < this.samples.length; i++) {
-        console.log(this.samples[i].seq);
+        //console.log(this.samples[i].seq);
         var arr = [...this.samples[i].seq];
         list_sample.push(this.samples[i].sample);
         taxa.push({
@@ -122,8 +139,9 @@ export class AlignmentViewer {
     }
     else{
       for (var i = 0; i < this.samples.length; i++) {
-        var prot_seq=this.translateDNA2Prot(this.samples[i].seq);
-        console.log(prot_seq);
+      //  var prot_seq=this.translateDNA2Prot(this.samples[i].seq);
+      //  console.log(prot_seq);
+        var prot_seq=this.samples[i].protein;
         var arr = [...prot_seq];
         list_sample.push(this.samples[i].sample);
         taxa.push({
@@ -140,7 +158,7 @@ export class AlignmentViewer {
         }
       }
     }
-    console.log(this.data);
+    //console.log(this.data);
     for (var i = 1; i <= maxpos; i++) {
       this.pos.push(i);
     }
@@ -156,11 +174,12 @@ export class AlignmentViewer {
       height = cell_h * list_sample.length + margin.top + margin.bottom;
 
     var newick_raw = phylotree;
-   
-    
 
-   
+
+
+
     var newick = NewickTools.parse(newick_raw);
+  //  console.log(newick);
     //estimate length of sample name, by average length plus 10
     var numchar=0;
     var listsamples=Object.keys(NewickTools.dfs(newick));
@@ -185,6 +204,7 @@ export class AlignmentViewer {
     nodes.height = 0;
     stack.push(nodes);
     var max_heigth = 0;
+    var min_height_not_zero=1;
     var max_depth = 0;
     //travel to cal height of nodes
     let count = 0;
@@ -194,7 +214,7 @@ export class AlignmentViewer {
     while (stack.length > 0) {
       var n = stack.pop();
       n.id = count;
-
+      //console.log(n);
       count++;
       if (n.children != undefined) {
         for (var i = 0; i < n.children.length; i++) {
@@ -203,6 +223,7 @@ export class AlignmentViewer {
         }
       } else {
         if (n.height > max_heigth) max_heigth = n.height;
+        if (n.height < min_height_not_zero && n.height>0) min_height_not_zero = n.height;
         if (n.depth > max_depth) max_depth = n.depth;
         this.node_leaf.push(n);
         this.arr_sample_from_tree.push(
@@ -228,15 +249,20 @@ export class AlignmentViewer {
           stack.push(n.children[i]);
         }
         //setup node by depth
+
         n.ay = n.depth * distance_per_depth;
       } else {
         n.ax = count * cell_h;
         count++;
         //setup node by depth
         n.ay = max_depth * distance_per_depth;
+
       }
       //setup node by heigth
       //n.ay = n.height * unit_distance;
+      //console.log(this.display_branch_length);
+      if(this.display_branch_length)
+        n.ay = this.logscale(min_height_not_zero,max_heigth,width_tree,n.height);
     }
     for (var d = max_depth; d >= 0; d--) {
       stack = [];
@@ -265,6 +291,15 @@ export class AlignmentViewer {
     // moves the 'group' element to the top left margin
     //var height_rect = height / node_leaf.length / 2;
 
+  }
+  logscale(min_value,max_value,max_scale,v){
+    if (v==0) return 0;
+    //change range to make sure all value greater 1
+    let mul=Math.pow(10,-Math.log10(min_value));
+    max_value=mul*max_value;
+    v=mul*v;
+    let k=max_scale/Math.log10(max_value);
+    return k*Math.log10(v);
   }
   setOptions(options) {
     this.props.width = options.width;
@@ -603,7 +638,7 @@ export class AlignmentViewer {
         .domain(y_data)
         .padding(0.01);
       // create a tooltip
-  
+
     svg2
         .append("g")
         .attr(
@@ -632,6 +667,11 @@ export class AlignmentViewer {
   onChangeType(){
     this.current_type=document.querySelector('input[name="view"]:checked').value;
     this.load(this.genelabel,this.phylotree,this.samples );
+    this.draw();
+  }
+  onChangeViewBranchLenght(){
+    this.display_branch_length=document.getElementById("ch_length").checked;
+    this.load(this.genelabel,this.phylotree,this.samples);
     this.draw();
   }
   translateDNA2Prot(dna_seq) {
@@ -678,11 +718,11 @@ export class AlignmentViewer {
         //console.log(result);
 
       }
-        
-      
+
+
 
     }
-      
+
     return result;
   }
 }
