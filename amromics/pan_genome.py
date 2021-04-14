@@ -4,7 +4,6 @@ import re
 import json
 import gzip
 import csv
-import sqlite3
 from datetime import datetime
 import logging
 from Bio import SeqIO
@@ -13,56 +12,8 @@ from amromics.utils import run_command
 
 logger = logging.getLogger(__name__)
 
-def create_tables(report, cur):
-    cur.executescript('''
-        CREATE TABLE IF NOT EXISTS Cds (
-            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            name            TEXT UNIQUE,
-            sample_id       INTEGER,
-            contig_id       INTEGER,
-            position        INTEGER,
-            trand           TEXT,
-            start           INTEGER,
-            end             INTEGER,
-            length          INTEGER,
-            gene_id         INTEGER,
-            product_id      INTEGER,
-            dna             TEXT,
-            protein         TEXT,
-            cluster_id      INTEGER,
-            unsplitcluster  INTEGER
-        );
-        CREATE TABLE IF NOT EXISTS Cluster (
-            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            name            TEXT UNIQUE,
-            product_id      INTEGER,
-            paralogs        INTEGER DEFAULT 1
-        );
-        CREATE TABLE IF NOT EXISTS Gene (
-            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            name            TEXT UNIQUE
-        );
-        CREATE TABLE IF NOT EXISTS Sample (
-            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            name            TEXT UNIQUE
-        );
-        CREATE TABLE IF NOT EXISTS Contig (
-            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            name            TEXT UNIQUE
-        );
-        CREATE TABLE IF NOT EXISTS Product (
-            id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            name            TEXT UNIQUE
-        )
-    ''')
 
-    for sample in report['samples']:
-        sample_name = sample['id']
-        cur.execute('INSERT OR IGNORE INTO Sample (name) VALUES (?)', (sample_name,))
-    
-    return report
-
-def parse_gff_file(cur, ggf_file, bed_out_file, fasta_out_file, sample_name):
+def parse_gff_file(ggf_file, bed_out_file, fasta_out_file, sample_id, dictionary):
     """
     Parse gff file, create a bed file and return a dictionary contain gen id 
     and gene annotation. Filter out small genes(<18 base)
@@ -72,8 +23,8 @@ def parse_gff_file(cur, ggf_file, bed_out_file, fasta_out_file, sample_name):
     -------
     """
     found_fasta = 0
-    last_contig_name = None
-    pos = 0
+    last_seq_id = None
+    count = 1
     with gzip.open(ggf_file,'rt') as in_fh, open(bed_out_file, 'w') as bed_fh, open(fasta_out_file, 'w') as fasta_fh:
         for line in in_fh:
             if found_fasta == 1:
@@ -92,74 +43,41 @@ def parse_gff_file(cur, ggf_file, bed_out_file, fasta_out_file, sample_name):
             #filter out small genes (<18 base)
             start = int(cells[3])
             end = int(cells[4])
-            length = end - start
-            if length < 18:
+            if end - start < 18:
                 continue
 
-            contig_name = cells[0]
-            if contig_name != last_contig_name:
-                pos = 0
-                last_contig_name = contig_name
-            pos += 1
+            seq_id = cells[0]
             
-            cds_name = re.findall(r"ID=(.+?);",cells[8])
-            cds_name = cds_name[0]
+            #if seq_id != last_seq_id:
+            #    count = 1
+            #    last_seq_id = seq_id
+            #gene_id = sample_id + '_' + seq_id + '_' + str(count)
+            #count = count + 1
+            
+            gene_id = re.findall(r"ID=(.+?);",cells[8])
+            gene_id = gene_id[0]
+            #if gene_id in dictionary:
+            #    gene_id = gene_id + datetime.now().strftime("%M%S%f")
             
             trand = cells[6]
-            row = [contig_name, str(start -1), str(end), cds_name, '1', trand]
+            row = [seq_id, str(start -1), str(end), gene_id, '1', trand]
             bed_fh.write('\t'.join(row)+ '\n')
 
-            # Contig table
-            cur.execute('SELECT id FROM Contig WHERE name = ? LIMIT 1', (contig_name,))
-            try:
-                contig_id = cur.fetchone()[0]
-            except:
-                cur.execute('INSERT OR IGNORE INTO Contig (name) VALUES (?)', (contig_name,))
-                contig_id = cur.lastrowid
-            
-            # Cds table  
-            cur.execute('SELECT id FROM Sample WHERE name = ? LIMIT 1', (sample_name,))
-            sample_id = cur.fetchone()[0]
-
-            cur.execute('SELECT id FROM Cds WHERE name = ? LIMIT 1', (cds_name,))
-            try:
-                cds_id = cur.fetchone()[0]
-                cds_name += '_' + datetime.now().strftime("%M%S%f")
-            except:
-                pass
-            cur.execute('''INSERT OR IGNORE INTO Cds 
-                            (name, sample_id, contig_id, position, trand, start, end, length) 
-                            VALUES (?,?,?,?,?,?,?,?)''', 
-                            (cds_name, sample_id, contig_id, pos, trand, start, end, length)
-                        )
-            cds_id = cur.lastrowid
-
-            # Gene table
+            # create annotation dictionary
+            dictionary[gene_id] = {}
+            dictionary[gene_id]['sample_id'] = sample_id
             gene_name = re.findall(r"Name=(.+?);",cells[8])
             if len(gene_name) != 0:
                 gene_name = gene_name[0]
-                cur.execute('SELECT id FROM Gene WHERE name = ? LIMIT 1', (gene_name,))
-                try:
-                    gene_id = cur.fetchone()[0]
-                except:
-                    cur.execute('INSERT OR IGNORE INTO Gene (name) VALUES (?)', (gene_name,))
-                    gene_id = cur.lastrowid
-                cur.execute('UPDATE Cds SET gene_id=? WHERE id=?', (gene_id, cds_id))
-            
-            # Product table
-            product_name = re.findall(r"product=(.+?)$",cells[8])
-            if len(product_name) != 0:
-                product_name = product_name[0]
-                cur.execute('SELECT id FROM Product WHERE name = ? LIMIT 1', (product_name,))
-                try:
-                    product_id = cur.fetchone()[0]
-                except:
-                    cur.execute('INSERT OR IGNORE INTO Product (name) VALUES (?)', (product_name,))
-                    product_id = cur.lastrowid
-                cur.execute('UPDATE Cds SET product_id=? WHERE id=?', (product_id, cds_id))
+                dictionary[gene_id]['name'] = gene_name
+            gene_product = re.findall(r"product=(.+?)$",cells[8])
+            if len(gene_product) != 0:
+                gene_product = gene_product[0]
+                dictionary[gene_id]['product'] = gene_product
+            dictionary[gene_id]['contig'] = seq_id
 
 
-def extract_proteins(report, cur, timing_log=None):
+def extract_proteins(report, timing_log=None):
     """
     Take in GFF file and create protein sequences in FASTA format.
     Create json file contain annotation information of each gene_id
@@ -171,6 +89,7 @@ def extract_proteins(report, cur, timing_log=None):
     temp_dir = os.path.join(report['temp_dir'], 'samples')
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
+    gene_annotation = {}
     for sample in report['samples']:
         sample_id = sample['id']
         sample_dir = os.path.join(temp_dir, sample_id)
@@ -180,7 +99,7 @@ def extract_proteins(report, cur, timing_log=None):
         ggf_file = os.path.join(sample['annotation'], sample_id + '.gff.gz')
         fna_file = os.path.join(sample_dir, sample_id + '.fna')
         bed_file = os.path.join(sample_dir, sample_id + '.bed')
-        parse_gff_file(cur, ggf_file, bed_file, fna_file, sample_id)
+        parse_gff_file(ggf_file, bed_file, fna_file, sample_id, gene_annotation)
         # extract nucleotide region
         extracted_fna_file = os.path.join(sample_dir, sample_id +'.extracted.fna')
         cmd = f"bedtools getfasta -s -fi {fna_file} -bed {bed_file} -fo {extracted_fna_file} -name > /dev/null 2>&1"
@@ -195,19 +114,17 @@ def extract_proteins(report, cur, timing_log=None):
                 seq_record.id = headers[0]
                 seq_record.name = ''
                 seq_record.description = ''
-                dna = str(seq_record.seq)
                 seq_record.seq = seq_record.seq.translate(table=11)
-                protein = str(seq_record.seq)
-                cur.execute('UPDATE Cds SET dna =?, protein=? WHERE name=?', (dna, protein, headers[0]))
                 SeqIO.write(seq_record, faa_hd, 'fasta')
         sample['bed'] = bed_file
         sample['extracted_fna_file'] = extracted_fna_file
         sample['faa_file'] = faa_file
     
+    report['gene_annotation'] = gene_annotation
     return report
 
 
-def combine_proteins(report, cur, timing_log=None):
+def combine_proteins(report, timing_log=None):
     """
     Take in multiple FASTA sequences containing proteomes and concat them together 
     and output a FASTA file
@@ -266,7 +183,7 @@ def parse_cluster_file(cd_hit_cluster_file):
     return clusters_new
 
 
-def run_cd_hit_iterative(report, cur, threads, timing_log):
+def run_cd_hit_iterative(report, threads, timing_log):
     """
     Run CD-HIT iteratively
 
@@ -316,21 +233,9 @@ def run_cd_hit_iterative(report, cur, threads, timing_log):
                     SeqIO.write(seq_record, fh, 'fasta')
         shutil.move(cluster_filtered_faa_file, combined_faa_file)
 
-    # insert into database
-    for cluster in excluded_cluster:
-        cur.execute('INSERT INTO Cluster DEFAULT VALUES')
-        cluster_id = cur.lastrowid
-        for cds_name in cluster:
-            cur.execute('UPDATE Cds SET cluster_id=?, unsplitcluster=? WHERE name=?', (cluster_id, cluster_id, cds_name))
-    
-    for repre_cds_name in clusters:
-        cur.execute('INSERT INTO Cluster DEFAULT VALUES')
-        cluster_id = cur.lastrowid
-        cur.execute('UPDATE Cds SET cluster_id=?, unsplitcluster=? WHERE name=?', (cluster_id, cluster_id, repre_cds_name))
-        for cds_name in clusters[repre_cds_name]:
-            cur.execute('UPDATE Cds SET cluster_id=?, unsplitcluster=? WHERE name=?', (cluster_id, cluster_id, cds_name))
-
     report['cd_hit_cluster_fasta'] = cd_hit_cluster_fasta
+    report['excluded_cluster'] = excluded_cluster
+    report['cd_hit_cluster'] = clusters
     return report
 
 
@@ -438,7 +343,7 @@ def cluster_with_mcl(report, threads, timing_log):
     return report
 
 
-def reinflate_clusters(report, cur):
+def reinflate_clusters(report):
     """
     Take the clusters file from cd-hit and use it to reinflate the output of MCL
 
@@ -446,147 +351,196 @@ def reinflate_clusters(report, cur):
     -------
     -------
     """
+    inflated_clusters = []
+    clusters = report['cd_hit_cluster']
 
+    # Inflate genes from cdhit which were sent to mcl
     mcl_file = report['uninflated_mcl_clusters']
     with open(mcl_file, 'r') as fh:
         for line in fh:
+            inflated_genes = []
             line = line.rstrip('\n')
-            cur.execute('INSERT INTO Cluster DEFAULT VALUES')
-            new_cluster_id = cur.lastrowid
-            cds_names = line.split('\t')
-            for cds_name in cds_names:
-                cur.execute('SELECT cluster_id FROM Cds WHERE name = ? LIMIT 1', (cds_name,))
-                old_cluster_id = cur.fetchone()[0]
-                cur.execute('UPDATE Cds SET cluster_id=?, unsplitcluster=? WHERE cluster_id=?', (new_cluster_id, new_cluster_id, old_cluster_id))
-                cur.execute('DELETE FROM Cluster WHERE id=?', (old_cluster_id,))
+            genes = line.split('\t')
+            for gene in genes:
+                inflated_genes.append(gene)
+                if gene in clusters:
+                    inflated_genes.extend(clusters[gene])
+                    del clusters[gene]
+            inflated_clusters.append(inflated_genes)
 
+    # Inflate any clusters that were in the clusters file but not sent to mcl
+    for gene in clusters:
+        inflated_genes = []
+        inflated_genes.append(gene)
+        inflated_genes.extend(clusters[gene])
+        inflated_clusters.append(inflated_genes)
+
+    # Add clusters which were excluded
+    excluded_cluster = report['excluded_cluster']
+    for cluster in excluded_cluster:
+        inflated_clusters.append(cluster)
+
+    report['inflated_unsplit_clusters'] = inflated_clusters
     return report
 
-def find_paralogs(cds_id_list, cur):
+def find_paralogs(cluster, gene_annotation):
     samples = {}
-    for (cds_id,) in cds_id_list:
-        cur.execute('SELECT sample_id FROM Cds WHERE id = ? LIMIT 1', (cds_id,))
-        sample_id = cur.fetchone()[0]
+    for gene_id in cluster:
+        sample_id = gene_annotation[gene_id]['sample_id']
         if sample_id not in samples:
             samples[sample_id] = []
-        samples[sample_id].append(cds_id)
-
+        samples[sample_id].append(gene_id)
+    
     # pick paralogs with the smallest number of genes
-    smallest_number = 1000000 
-    paralog_cds_id_list = None
+    smallest_number = 1000000
+    paralog_genes = None
     for sample_id in samples:
-        sample_cds_id_list = samples[sample_id]
-        count = len(sample_cds_id_list)
+        genes = samples[sample_id]
+        count = len(genes)
         if count > 1 and count < smallest_number:
-            paralog_cds_id_list = sample_cds_id_list
+            paralog_genes = genes
             smallest_number = count
 
-    return paralog_cds_id_list
-
-def find_neighbour(cds_id, cur):
-    cur.execute('SELECT contig_id, position FROM Cds WHERE id = ? LIMIT 1', (cds_id,))
-    (contig_id, position) = cur.fetchone()
-    pos_list = list(range(position-5, position))
-    pos_list.extend(list(range(position+1, position+6)))
-
-    cur.execute('SELECT id FROM Cds WHERE contig_id = ? AND position IN ({})'.format(
-        ','.join(['?'] * len(pos_list))), (contig_id,) + tuple(pos_list))
-
-    ls = []
-    for (a,) in cur:
-        ls.append(a)
-    return ls
+    return paralog_genes
 
 
-def create_orthologs(cds_id_list, paralog_cds_id_list, cur):
-    # create new cluster
-    for cds_id in paralog_cds_id_list:
-        cur.execute('INSERT INTO Cluster DEFAULT VALUES')
-        new_cluster_id = cur.lastrowid
-        cur.execute('UPDATE Cds SET cluster_id=? WHERE id=?', (new_cluster_id, cds_id))
-        
+def create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_index):
+    # get neighbour gene
+    neighbour_gene_dictionary = {}
+    for gene_id in cluster:
+        match = re.search(r'^(.+_)(\d+)$', gene_id)
+        gene_id_prefix = match.group(1)
+        gene_position = int(match.group(2))
+        before_position = gene_position - 5
+        after_position = gene_position + 5
+        contig = gene_annotation[gene_id]['contig']
+        neighbour_genes = []
+        for i in range(before_position, after_position+1):
+            neighbour_gene_id = gene_id_prefix + '{:0>5}'.format(i)
+            if neighbour_gene_id in gene_annotation and neighbour_gene_id != gene_id and gene_annotation[neighbour_gene_id]['contig'] == contig:
+                neighbour_genes.append(neighbour_gene_id)
+        neighbour_gene_dictionary[gene_id] = neighbour_genes
+
+    # find cluster indices of all the neighbour genes of each paralog gene
+    cluster_indices_around_paralogs = []
+    for p in paralog_genes:
+        neighbours_of_p = neighbour_gene_dictionary[p]
+        cluster_indices_around_p = []
+        for neighbour_gene in neighbours_of_p:
+            cluster_index = gene_to_cluster_index[neighbour_gene]
+            cluster_indices_around_p.append(cluster_index)
+        cluster_indices_around_paralogs.append(cluster_indices_around_p)
     
-    # create left over cluster
-    cur.execute('INSERT INTO Cluster DEFAULT VALUES')
-    left_over_cluster_id = cur.lastrowid
+    # create data structure to hold new clusters
+    new_clusters = []
+    for p in paralog_genes:
+        new_clusters.append([p])
+    new_clusters.append([]) # extra "leftovers" list to gather genes that don't share CGN with any paralog gene
 
     # add other members of the cluster to their closest match
-    for (cds_id,) in cds_id_list:
-        if cds_id in paralog_cds_id_list:
+    for g in cluster:
+        if g in paralog_genes:
             continue
 
-        neighbour_of_cds = find_neighbour(cds_id, cur)
-        if len(neighbour_of_cds) == 0:
-            cur.execute('UPDATE Cds SET cluster_id=? WHERE id=?', (left_over_cluster_id, cds_id))
+        neighbour_genes_of_g = neighbour_gene_dictionary[g]
+        if len(neighbour_genes_of_g) == 0:
+            new_clusters[-1].append(g)
             continue
 
         # find paralog gene which is closest match with g
         best_score = 0
-        belong = None
-        for paralog_cds_id in paralog_cds_id_list:
-            neighbour_of_paralog = find_neighbour(paralog_cds_id, cur)
-            if len(neighbour_of_paralog) == 0:
-                clusters_around_p = []
-            else:
-                cur.execute('SELECT cluster_id FROM Cds WHERE id IN ({})'.format(
-                    ','.join(['?'] * len(neighbour_of_paralog))), tuple(neighbour_of_paralog))
-                clusters_around_p = cur.fetchall()
-            
+        best_score_index = -1  # -1 is the index of "leftovers" list
+        for p,_ in enumerate(paralog_genes):
+            cluster_indices_around_p = cluster_indices_around_paralogs[p]
             score_of_p = 0
-            for neighbour_cds_id in neighbour_of_cds:
-                cur.execute(f'SELECT cluster_id FROM Cds WHERE id = ? LIMIT 1', (neighbour_cds_id,))
-                a = cur.fetchone()
-                if a in clusters_around_p:
+            for neighbour_gene in neighbour_genes_of_g:
+                cluster_index = gene_to_cluster_index[neighbour_gene]
+                if cluster_index in cluster_indices_around_p:
                     score_of_p += 1
-            score_of_p = score_of_p / len(neighbour_of_cds)
+            score_of_p = score_of_p / len(neighbour_genes_of_g)
             if score_of_p > best_score:
                 best_score = score_of_p
-                belong = paralog_cds_id
+                best_score_index = p
 
-        if belong == None:
-            cur.execute('UPDATE Cds SET cluster_id=? WHERE id=?', (left_over_cluster_id, cds_id))
-        else:
-            cur.execute('''
-            UPDATE Cds 
-            SET cluster_id=(
-                SELECT cluster_id FROM Cds WHERE id = ?
-                )
-            WHERE id=?''', (belong, cds_id))
+        new_clusters[best_score_index].append(g)
 
     # check for "leftovers", remove if absent
-    cur.execute('SELECT id FROM Cds WHERE cluster_id = ?', (left_over_cluster_id,))
-    try:
-        cur.fetchone()[0]
-    except:
-        cur.execute('DELETE FROM Cluster WHERE id=?', (left_over_cluster_id,))
+    if len(new_clusters[-1]) == 0:
+        del new_clusters[-1]
+    
+    return new_clusters
 
-def split_paralogs(report, cur):
+
+def split_paralogs(report):
+    gene_annotation = report['gene_annotation']
+    unsplit_clusters = report['inflated_unsplit_clusters']
+
+    clusters_not_paralogs = []
+
+    # run iteratively
+    out_clusters = unsplit_clusters
     for i in range(50):
-        cur.execute('SELECT id FROM Cluster WHERE paralogs=1')
-        result = cur.fetchall() 
-        for (cluster_id,) in result:
-            cur.execute('SELECT id FROM Cds WHERE cluster_id=?', (cluster_id,))
-            cds_id_list = cur.fetchall()
-            if len(cds_id_list) == 1:
-                cur.execute('UPDATE Cluster SET paralogs=0 WHERE id=?', (cluster_id,))
+        in_clusters = out_clusters
+        out_clusters = []
+        any_paralogs = 0
+        for cluster in in_clusters:
+            if len(cluster) == 1:
+                out_clusters.append(cluster)
+                continue
+            first_gene = cluster[0]
+            if first_gene in clusters_not_paralogs:
+                out_clusters.append(cluster)
+                continue
+
+            # check paralogs
+            paralog_genes = find_paralogs(cluster, gene_annotation)
+
+            if paralog_genes == None:
+                clusters_not_paralogs.append(first_gene)
+                out_clusters.append(cluster)
                 continue
             
-            # check paralogs
-            paralog_cds_id_list = find_paralogs(cds_id_list, cur)
-            if paralog_cds_id_list == None:
-                cur.execute('UPDATE Cluster SET paralogs=0 WHERE id=?', (cluster_id,))
-                continue
+            # convert in_clusters so we can find the cluster index of gene
+            gene_to_cluster_index = {}
+            for index, genes in enumerate(in_clusters):
+                for gene in genes:
+                    gene_to_cluster_index[gene] = index
 
             # split paralogs
-            create_orthologs(cds_id_list, paralog_cds_id_list, cur)
+            orthologs_clusters = create_orthologs(cluster, paralog_genes, gene_annotation, gene_to_cluster_index)
+            out_clusters.extend(orthologs_clusters)
+            any_paralogs = 1
 
-            # delete old cluster
-            cur.execute('DELETE FROM Cluster WHERE id=?', (cluster_id,))
+        # check if next iteration is required
+        if any_paralogs == 0:
+            break
 
+    split_clusters = out_clusters
+    report['split_clusters'] = split_clusters
+    return report
+
+def label_cluster(report):
+    """
+    Add labels to the cluster
+
+    Parameters
+    -------
+    -------
+    """
+    unlabeled_clusters = report['split_clusters']
+
+    # Add labels to the clusters
+    labeled_clusters = {}
+    counter = 1
+    for cluster in unlabeled_clusters:
+        labeled_clusters['groups_' + str(counter)] = cluster
+        counter += 1
+
+    report['labeled_clusters'] = labeled_clusters
     return report
 
 
-def annotate_cluster(report, cur):
+def annotate_cluster(report):
     """
     Update the cluster name to the gene name
 
@@ -594,96 +548,76 @@ def annotate_cluster(report, cur):
     -------
     -------
     """
-    cur.execute('SELECT id FROM Cluster')
-    result = cur.fetchall()
-    count = 1
-    for (cluster_id,) in result:
-        # update cluster name
-        cur.execute('''
-        SELECT 
-            gene_id,
-            COUNT(gene_id) AS num_gene 
-        FROM Cds 
-        WHERE cluster_id=? 
-        GROUP BY gene_id
-        ORDER BY num_gene DESC
-        LIMIT 1
-        ''',(cluster_id,))
-        try:
-            gene_id = cur.fetchone()[0]
-            cur.execute('''
-            UPDATE Cluster
-            SET name=(SELECT name FROM Gene WHERE id=?)
-            WHERE id=?  
-            ''', (gene_id, cluster_id))
-        except:
-            cluster_name = 'group_' + str(count)
-            count += 1
-            cur.execute('''
-            UPDATE Cluster
-            SET name=?
-            WHERE id=?  
-            ''', (cluster_name, cluster_id))
-
-        # update cluster product
-        cur.execute('''
-        SELECT 
-            product_id,
-            COUNT(product_id) AS num_product 
-        FROM Cds 
-        WHERE cluster_id=? 
-        GROUP BY product_id
-        ORDER BY num_product DESC
-        LIMIT 1
-        ''',(cluster_id,))
-        try:
-            product_id = cur.fetchone()[0]
-            cur.execute('''
-            UPDATE Cluster
-            SET product_id=?
-            WHERE id=?  
-            ''', (product_id, cluster_id))
-        except:
-            pass
+    clusters = report['labeled_clusters']
+    gene_annotation = report['gene_annotation']
+    annotated_clusters = {}
+    for cluster_name in clusters:
+        cluster_new_name = cluster_name
+        cluster_product = None
+        gene_name_count = {}
+        max_number = 0
+        gene_id_list = clusters[cluster_name]
+        for gene_id in gene_id_list:
+            if 'name' in gene_annotation[gene_id]:
+                gene_name = gene_annotation[gene_id]['name']
+                gene_name_count[gene_name] = gene_name_count.get(gene_name, 1) + 1
+                if gene_name_count[gene_name] > max_number:
+                    cluster_new_name = gene_name
+                    max_number = gene_name_count[gene_name]
+                    if 'product' in gene_annotation[gene_id]:
+                        cluster_product = gene_annotation[gene_id]['product']
+        if cluster_product == None:
+            cluster_product =[]
+            for gene_id in gene_id_list:
+                if 'product' in gene_annotation[gene_id]:
+                    gene_product = gene_annotation[gene_id]['product']
+                    if gene_product not in cluster_product:
+                        cluster_product.append(gene_product)
+            if len(cluster_product) > 0:
+                cluster_product = ', '.join(cluster_product)
+            else:
+                cluster_product = 'unknown'
+        # check if cluster_new_name is already exist
+        if cluster_new_name in annotated_clusters:
+            cluster_new_name += '_' + datetime.now().strftime("%M%S%f")
+        annotated_clusters[cluster_new_name] = {'gene_id':gene_id_list, 'product':cluster_product}
+    report['annotated_clusters'] = annotated_clusters
     return report
 
-def create_spreadsheet(report, cur):
+
+def create_spreadsheet(report):
     spreadsheet_file = os.path.join(report['pan_genome'], 'gene_presence_absence.csv.gz')
+    annotated_clusters = report['annotated_clusters']
+    gene_annotation = report['gene_annotation']
     with gzip.open(spreadsheet_file, 'wt') as fh:
         writer = csv.writer(fh, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         # write header
         header = ['Gene', 'Non-unique Gene name', 'Annotation', 'No. isolates', 'No. sequences', 'Avg sequences per isolate', 'Genome Fragment','Order within Fragment', 'Accessory Fragment','Accessory Order with Fragment', 'QC','Min group size nuc', 'Max group size nuc', 'Avg group size nuc' ]
-        cur.execute('SELECT name FROM Sample')
-        result = cur.fetchall()
-        for (sample_name,) in result:
-            header.append(sample_name)
+        for sample in report['samples']:
+            header.append(sample['id'])
         writer.writerow(header)
 
         # write row
-        cur.execute('''
-        SELECT Cluster.id, Cluster.name, Product.name 
-        FROM Cluster JOIN Product
-        ON Cluster.product_id = Product.id
-        ''')
-        result = cur.fetchall()
-        for (cluster_id, cluster_name, cluster_product) in result:
+        for cluster in annotated_clusters:
+            sample_dict = {}
+            for gene in annotated_clusters[cluster]['gene_id']:
+                sample_id = gene_annotation[gene]['sample_id']
+                if sample_id not in sample_dict:
+                    sample_dict[sample_id] = []
+                sample_dict[sample_id].append(gene)
+            
             row = []
             # Gene
-            row.append(cluster_name)
+            row.append(cluster)
             # Non-unique Gene name
             row.append("")
             # Annotation
-            if cluster_product == None:
-                row.append("")
-            else:
-                row.append(cluster_product)
+            row.append(annotated_clusters[cluster]['product'])
             # No. isolates
-            cur.execute('SELECT DISTINCT sample_id FROM Cds WHERE cluster_id=?',(cluster_id,))
-            row.append(len(cur.fetchone()))
+            row.append(len(sample_dict))
             # No. sequences
-            cur.execute('SELECT count(id) FROM Cds WHERE cluster_id=?',(cluster_id,))
-            row.append(cur.fetchone()[0])
+            row.append(len(annotated_clusters[cluster]['gene_id']))
             # Avg sequences per isolate
             row.append("")
             # Genome Fragment
@@ -703,49 +637,47 @@ def create_spreadsheet(report, cur):
             # Avg group size nuc
             row.append("")
             # sample columns
-            cur.execute('SELECT id, name FROM Sample')
-            result =  cur.fetchall()
-            for (sample_id, sample_name) in result:
-                cur.execute('SELECT name FROM Cds WHERE cluster_id=? AND sample_id=?', (cluster_id, sample_id))
-                result = cur.fetchall()
-                if len(result) == 0:
-                     row.append('')
+            for sample in report['samples']:
+                sample_id = sample['id']
+                if sample_id in sample_dict:
+                    gene_list = sample_dict[sample_id]
+                    row.append('\t'.join(gene_list))
                 else:
-                    cds_names = []
-                    for (cds_name,) in result:
-                        cds_names.append(cds_name)
-                    row.append('\t'.join(cds_names))
+                    row.append('')
             writer.writerow(row)
     report['spreadsheet'] = spreadsheet_file
     return report
 
 
-def create_rtab(report, cur):
+def create_rtab(report):
     rtab_file = os.path.join(report['pan_genome'], 'gene_presence_absence.Rtab')
+    annotated_clusters = report['annotated_clusters']
+    gene_annotation = report['gene_annotation']
     with open(rtab_file, 'w') as fh:
         writer = csv.writer(fh, delimiter='\t')
 
         # write header
         header = ['Gene']
-        cur.execute('SELECT name FROM Sample')
-        result =  cur.fetchall()
-        for (sample_name,) in result:
-            header.append(sample_name)
+        for sample in report['samples']:
+            header.append(sample['id'])
         writer.writerow(header)
 
         # write row
-        cur.execute('SELECT id, name FROM Cluster')
-        result =  cur.fetchall()
-        for (cluster_id, cluster_name) in result:
+        for cluster in annotated_clusters:
             row = []
             # Gene
-            row.append(cluster_name)
+            row.append(cluster)
             # Samples
-            cur.execute('SELECT id, name FROM Sample')
-            result =  cur.fetchall()
-            for (sample_id, sample_name) in result:
-                cur.execute('SELECT id FROM Cds WHERE cluster_id=? AND sample_id=?', (cluster_id, sample_id))
-                row.append(len(cur.fetchall()))
+            sample_dict = {}
+            for gene in annotated_clusters[cluster]['gene_id']:
+                sample_id = gene_annotation[gene]['sample_id']
+                if sample_id not in sample_dict:
+                    sample_dict[sample_id] = []
+                sample_dict[sample_id].append(gene)
+            for sample in report['samples']:
+                sample_id = sample['id']
+                gene_list = sample_dict.get(sample_id, [])
+                row.append(len(gene_list))
             writer.writerow(row)
     report['rtab'] = rtab_file
     return report
@@ -803,32 +735,33 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
         os.makedirs(pan_genome_folder)
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
-    
-    database_file = os.path.join(pan_genome_folder, 'pan_genome.sqlite')
-    if os.path.isfile(database_file):
-        os.remove(database_file)
 
-    # connect to database
-    conn = sqlite3.connect(database_file)
-    cur = conn.cursor()
-
-    report = create_tables(report, cur)
-    report = extract_proteins(report, cur, timing_log=timing_log)
-    report = combine_proteins(report, cur, timing_log=timing_log)
-    report = run_cd_hit_iterative(report, cur, threads=threads, timing_log=timing_log)
+    report = extract_proteins(report, timing_log=timing_log)
+    report = combine_proteins(report, timing_log=timing_log)
+    report = run_cd_hit_iterative(report, threads=threads, timing_log=timing_log)
     report = all_against_all_blast(report, threads=threads, timing_log=timing_log)
     report = cluster_with_mcl(report, threads=threads, timing_log=timing_log)
-    report = reinflate_clusters(report, cur)
-    report = split_paralogs(report, cur)
-    report = annotate_cluster(report, cur)
-    report = create_spreadsheet(report, cur)
-    report = create_rtab(report, cur)
+    report = reinflate_clusters(report)
+    #del report['cd_hit_cluster']
+    #del report['excluded_cluster']
+    report = split_paralogs(report)
+    #del report['inflated_unsplit_clusters']
+    report = label_cluster(report)
+    #del report['split_clusters']
+    report = annotate_cluster(report)
+    #del report['labeled_clusters']
+    report = create_spreadsheet(report)
+    report = create_rtab(report)
     report = create_summary(report)
 
-    conn.commit()
-    conn.close()
+    json.dump(report['gene_annotation'], open(temp_dir+'/gene_annotation', 'w'), indent=4, sort_keys=True)
+    json.dump(report['inflated_unsplit_clusters'], open(temp_dir+'/inflated_unsplit_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['split_clusters'], open(temp_dir+'/split_clusters', 'w'), indent=4, sort_keys=True)
+    json.dump(report['annotated_clusters'], open(temp_dir+'/annotated_clusters', 'w'), indent=4, sort_keys=True)
 
     # clean
+    del report['gene_annotation']
+    del report['annotated_clusters']
     del report['blast_result_file']
     del report['cd_hit_cluster_fasta']
     del report['combined_faa_file']
@@ -839,6 +772,8 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
         del sample['faa_file']
     #shutil.rmtree(temp_dir)
 
+    json.dump(report, open('dev/report_output.json', 'w'), indent=4, sort_keys=True)
+
     return report
 
     
@@ -847,7 +782,7 @@ if __name__ == '__main__':
     report = run_pan_genome_analysis(
         report, 
         collection_dir='dev', 
-        threads=4, 
+        threads=8, 
         overwrite=True, 
         timing_log='/home/ted/ubuntu/AMR/amromics-vis/dev/time.log'
     )
