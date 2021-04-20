@@ -196,9 +196,9 @@ def run_cd_hit_iterative(report, threads, timing_log):
     temp_dir = report['temp_dir']
     combined_faa_file = report['combined_faa_file']
 
-    combined_faa_file2 = os.path.join(temp_dir, 'combined_2.faa')
-    shutil.copyfile(combined_faa_file, combined_faa_file2)
-    report['combined_faa_file2'] = combined_faa_file2
+    remain_faa_file = os.path.join(temp_dir, 'remain.faa')
+    shutil.copyfile(combined_faa_file, remain_faa_file)
+    report['remain_faa_file'] = remain_faa_file
 
     cd_hit_cluster_fasta = os.path.join(temp_dir, 'cluster')
     cd_hit_cluster_file = os.path.join(temp_dir, 'cluster.clstr')
@@ -212,7 +212,7 @@ def run_cd_hit_iterative(report, threads, timing_log):
     step = 0.005
     percent_match = 1
     while percent_match >= lower:
-        cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_fasta} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
+        cmd = f'cd-hit -i {remain_faa_file} -o {cd_hit_cluster_fasta} -s {percent_match} -c {percent_match} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
         ret = run_command(cmd, timing_log)
         if ret != 0:
             raise Exception('Error running cd-hit')
@@ -235,15 +235,15 @@ def run_cd_hit_iterative(report, threads, timing_log):
                 full_cluster_gene_names.extend(this_cluster)
                 excluded_cluster.append(this_cluster)
 
-        cluster_filtered_faa_file = combined_faa_file + '.filtered'
+        cluster_filtered_faa_file = remain_faa_file + '.filtered'
         with open(cluster_filtered_faa_file, 'w') as fh:
-            for seq_record in SeqIO.parse(combined_faa_file, "fasta"):
+            for seq_record in SeqIO.parse(remain_faa_file, "fasta"):
                 if seq_record.id not in full_cluster_gene_names:
                     SeqIO.write(seq_record, fh, 'fasta')
-        shutil.move(cluster_filtered_faa_file, combined_faa_file)
+        shutil.move(cluster_filtered_faa_file, remain_faa_file)
         percent_match -= step
 
-    cmd = f'cd-hit -i {combined_faa_file} -o {cd_hit_cluster_fasta} -s {lower} -c {lower} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
+    cmd = f'cd-hit -i {remain_faa_file} -o {cd_hit_cluster_fasta} -s {lower} -c {lower} -T {threads} -M 0 -g 1 -d 256 > /dev/null'
     ret = run_command(cmd, timing_log)
     if ret != 0:
         raise Exception('Error running cd-hit')
@@ -736,7 +736,7 @@ def create_summary(report):
 def create_representative_fasta(report):
     unsplit_clusters = report['inflated_unsplit_clusters']
     gene_annotation = report['gene_annotation']
-    combined_fasta = report['combined_faa_file2']
+    combined_fasta = report['combined_faa_file']
     representative_fasta = os.path.join(report['pan_genome'], 'representative.fasta')
 
     representative_list = []
@@ -785,26 +785,27 @@ def run_pan_genome_analysis(report, collection_dir='.', threads=8, overwrite=Fal
     report = all_against_all_blast(report, threads=threads, timing_log=timing_log)
     report = cluster_with_mcl(report, threads=threads, timing_log=timing_log)
     report = reinflate_clusters(report)
-    #del report['cd_hit_cluster']
-    #del report['excluded_cluster']
     report = split_paralogs(report)
-    #del report['inflated_unsplit_clusters']
     report = label_cluster(report)
-    #del report['split_clusters']
     report = annotate_cluster(report)
-    #del report['labeled_clusters']
     report = create_spreadsheet(report)
     report = create_rtab(report)
     report = create_summary(report)
     report = create_representative_fasta(report)
 
     # clean
+    #del report['cd_hit_cluster']
+    #del report['excluded_cluster']
+    #del report['inflated_unsplit_clusters']
+    #del report['split_clusters']
+    #del report['labeled_clusters']
     #del report['gene_annotation']
     #del report['annotated_clusters']
     #del report['blast_result_file']
     #del report['cd_hit_cluster_fasta']
     #del report['cd_hit_cluster_file']
     #del report['combined_faa_file']
+    #del report['remain_faa_file']
     #del report['uninflated_mcl_clusters']
     #for sample in report['samples']:
     #    del sample['bed']
@@ -824,6 +825,7 @@ if __name__ == '__main__':
         threads=4, 
         overwrite=True
     )
+    temp_dir = report['temp_dir']
     json.dump(report['gene_annotation'], open(temp_dir+'/gene_annotation', 'w'), indent=4, sort_keys=True)
     json.dump(report['cd_hit_cluster'], open(temp_dir+'/cd_hit_cluster', 'w'), indent=4, sort_keys=True)
     json.dump(report['excluded_cluster'], open(temp_dir+'/excluded_cluster', 'w'), indent=4, sort_keys=True)
