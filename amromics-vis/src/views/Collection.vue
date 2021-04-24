@@ -109,6 +109,10 @@ tr.shown td.details-control {
       <div class="header">Genes Alignment</div>
       <AlignmentComp :alignmentData="alignmentData" />
     </div>
+     <div class="container margin20" style="clear:both;" v-if="alignmentData">
+      <div class="header">Compare gene tree and core genes tree</div>
+      <GeneFlowTreeView  :species_tree="phylogenyData" :alignmentData="alignmentData"  />
+    </div>
     <div
       class="container margin20"
       style="clear:both;margin-bottom:30px;"
@@ -130,6 +134,7 @@ import GeneDistributionChart from "@/components/GeneDistributionChart";
 import PhylogenyBrowser from "@/components/PhylogenyBrowser";
 import Heatmap from "@/components/Heatmap";
 import AlignmentComp from "@/components/AlignmentComp";
+import GeneFlowTreeView from "@/components/GeneFlowTreeView";
 import SampleAPI from "@/api/SampleAPI";
 
 import Chart from "chart.js";
@@ -151,7 +156,8 @@ export default {
     GeneDistributionChart,
     PhylogenyBrowser,
     Heatmap,
-    AlignmentComp
+    AlignmentComp,
+    GeneFlowTreeView
   },
   data() {
     return {
