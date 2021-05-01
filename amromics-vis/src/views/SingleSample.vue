@@ -166,9 +166,9 @@ Antimicrobial resistance genes
       <td>{{item.gene}}</td>
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
-      <td>{{item.accession}}</td>
-      <td>{{item.resistance.replace(/\//g,' ')}}</td>
-        <td>{{item.product}}</td>
+      <td>{{item.accession.replace(/:/g,': ')}}</td>
+      <td>{{item.resistance.replace(/;/g,' ')}}</td>
+        <td>{{item.product.replace(/_/g,' ')}}</td>
     </tr>
   </tbody>
 </table>
