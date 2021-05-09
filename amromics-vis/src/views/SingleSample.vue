@@ -166,11 +166,24 @@ Antimicrobial resistance genes
       <td>{{item.gene}}</td>
       <td>{{item.identity}}</td>
       <td>{{item.db}}</td>
-      <td>{{item.accession}}</td>
-      <td>{{item.resistance.replace(/\//g,' ')}}</td>
-        <td>{{item.product}}</td>
+      <td>{{item.accession.replace(/:/g,': ')}}</td>
+      <td>{{item.resistance.replace(/;/g,' ')}}</td>
+        <td>{{item.product.replace(/_/g,' ')}}</td>
     </tr>
   </tbody>
+  <tfoot>  
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+        </tfoot>
 </table>
 </div>
 <div v-if="loaded" class="container">
@@ -312,8 +325,44 @@ export default {
         dom: 'Bfrtip',
         buttons: [
            'csv', 'excel', 'pdf'
-        ]
+        ],
+        initComplete: function () {
+            this.api().columns().every( function () {
+                var column = this;
+                console.log(column);
+                if (column.index()==5 || column.index()==0){
+                     var select = $('<select><option value=""></option></select>')
+                    .appendTo( $(column.footer()).empty() )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+ 
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+ 
+                    column.data().unique().sort().each( function ( d, j ) {
+                      select.append( '<option value="'+d+'">'+d+'</option>' )
+                    } );
+                    if(column.index()==5){
+                      select.val('ncbi');
+                      select.change();
+                    }
+                    
+
+                }
+               
+            } );
+        }
       });
+
+
+
+
+
+
       $('#virulome_table').DataTable({
          dom: 'Bfrtip',
         buttons: [

@@ -7,4 +7,6 @@ import DistributionChart from './DistributionChart'
 import Phylogeny from './Phylogeny'
 import PhyloHeatmap from './PhyloHeatmap'
 import AlignmentViewer from './AlignmentViewer'
-export { N50Chart,Browser,ContigCircos,PanPieChart,DistributionChart,Phylogeny,PhyloHeatmap,AlignmentViewer }
+import GeneFlowTree from './GeneFlowTree'
+export { N50Chart,Browser,ContigCircos,PanPieChart,DistributionChart,Phylogeny,PhyloHeatmap,AlignmentViewer,GeneFlowTree }
+

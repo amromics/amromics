@@ -67,17 +67,27 @@ export class Browser {
     this.contig_select.id="select_contig";
     this.contig_select.addEventListener("change", this.changeContigSelect.bind(this));
 
+    var control_search = document.createElement('div');
+    control_search.style.margin = "10px";
+    control_search.style.float = "left";
+    this.control_search_input = document.createElement('input');
+    this.control_search_input.id="search_gene";
+    this.control_search_input.addEventListener("change", this.changeSearch.bind(this));
+
+
     this.control_loading = document.createElement('div');
     this.control_loading.style.margin = "10px";
     this.control_loading.style.float = "left";
     this.control_loading.innerText="";
    
     //Event.observe(this.contig_select, 'change', changeContig.bind(this));
+    control_search.appendChild(this.control_search_input);
     control_select.appendChild(this.contig_select);
     control_zoom.appendChild(control_zoom_out);
     control_zoom.appendChild(control_zoom_in);
     control_div.appendChild(control_zoom);
     control_div.appendChild(control_select);
+    control_div.append(control_search);
     control_div.appendChild(this.control_loading);
     var content_div = document.createElement('div');
     content_div.style.width = (this.props.width) + "px";
@@ -563,6 +573,19 @@ export class Browser {
     this.contig_select.value=contig;
     this.drawAgain();
 
+    
+  }
+  changeSearch(){
+    var keysearch=document.getElementById("search_gene").value;
+    if(keysearch.length>1){
+      for(var i=0;i<this.knowngenes.length;i++){
+        if(this.knowngenes[i].name.includes(keysearch)){
+          this.changeContig(this.knowngenes[i].contig);
+          this.locatePosition(this.knowngenes[i].start);
+          break;
+        }
+      }
+    }    
   }
   zoomIn() {
     //console.log(this.zoomOut);
