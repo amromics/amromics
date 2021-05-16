@@ -1,0 +1,1 @@
+{"group": [{"name": "Core genes", "des": "(99% <= strains <= 100%)", "num": "3121"}, {"name": "Soft core genes", "des": "(95% <= strains < 99%)", "num": "1120"}, {"name": "Shell genes", "des": "(15% <= strains < 95%)", "num": "1587"}, {"name": "Cloud genes", "des": "(0% <= strains < 15%)", "num": "4651"}], "total": "10479"}
