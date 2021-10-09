@@ -78,10 +78,10 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     sample['plasmid']  = amr.detect_plasmid(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
     if extraStep:
         sample['pmlst']=amr.detect_pmlst(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
-    if extraStep:
-        sample['is']=amr.detect_insertion_sequence(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
-    if extraStep:
-        sample['integron']=amr.detect_integron(sample['id'],sample['assembly'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
+    # if extraStep:
+    #     sample['is']=amr.detect_insertion_sequence(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
+    # if extraStep:
+    #     sample['integron']=amr.detect_integron(sample['id'],sample['assembly'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
     #sample=detect_prophage(sample, base_dir=base_dir, threads=threads)
     sample['execution_end'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return sample
