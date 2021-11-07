@@ -158,17 +158,6 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
                 threads=threads,
                 outfile=ret_out
             )
-        elif read_data['genus'] in organisms:
-            cmd = 'amrfinder -d {database} -p {faa_file} -O {genus}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile}'\
-            .format(
-                database=db,
-                faa_file=faa_file,
-                genus=read_data['genus'],
-                fna_file=fna_file,
-                gff_file=gff_file,
-                threads=threads,
-                outfile=ret_out
-            )
         else:
             cmd = 'amrfinder -d {database} -p {faa_file} -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile}'\
             .format(
