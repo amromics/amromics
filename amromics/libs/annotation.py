@@ -41,6 +41,7 @@ def annotate_prokka(prefix_name,assembly,genus=None,species=None, strain=None,gr
     if not genus ==None and genus:
         cmd += ' --genus ' +genus
     if not species  ==None and species:
+        species = species.replace(' ','_')
         cmd += ' --species ' + species
     if not strain  ==None and strain:
         cmd += ' --strain ' + strain
