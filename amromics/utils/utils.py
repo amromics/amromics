@@ -111,7 +111,7 @@ def software_version(software_list=None):
         'multiqc':'multiqc --version',
         'quast':'quast -v',
         #taxonomy
-        'kraken2':'kraken2 -v',
+        'kraken2':'kraken2 -v | head -n 1',
         # Annotations
         'prokka': 'prokka -version 2>&1',
         'mlst': 'mlst --version  2>&1',
@@ -121,7 +121,7 @@ def software_version(software_list=None):
         # Pangenome tools
         'roary': 'roary --version 2>&1 | tail -n 1',
         'parsnp': 'parsnp --version 2>&1 | tail -1',
-        'iqtree':'iqtree --version',
+        'iqtree':'iqtree --version | head -n 1',
         # misc
         'trimmomatic': 'trimmomatic -version 2>&1',
         'isescan':'isescan.py --version',

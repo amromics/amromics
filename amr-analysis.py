@@ -33,7 +33,7 @@ def version_func(args):
         'mlst',
         'abricate',
         'roary',
-        'parsnp',
+#        'parsnp',
         'iqtree',
         'fastqc',
         'kraken2',
@@ -202,41 +202,41 @@ def main(arguments=sys.argv[1:]):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     version_cmd.set_defaults(func=version_func)
 
-    pa_cmd = subparsers.add_parser(
+    pg_cmd = subparsers.add_parser(
         'pg',
         description='Pan-genome analysis of a collection',
         help='Pan-genome analysis of a collection',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    pa_cmd.set_defaults(func=pan_genome_analysis_func)
-    pa_cmd.add_argument('-t', '--threads', help='Number of threads to use, 0 for all', default=0, type=int)
-    pa_cmd.add_argument('-m', '--memory', help='Amount of memory in Gb to use', default=30, type=float)
-    pa_cmd.add_argument('-c', '--collection-id', help='Collection ID', required=True, type=str)
-    pa_cmd.add_argument('-n', '--collection-name', help='Collection name', type=str, default='')
-    pa_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
-    pa_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
-    pa_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
-    pa_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
-    pa_cmd = subparsers.add_parser(
+    pg_cmd.set_defaults(func=pan_genome_analysis_func)
+    pg_cmd.add_argument('-t', '--threads', help='Number of threads to use, 0 for all', default=0, type=int)
+    pg_cmd.add_argument('-m', '--memory', help='Amount of memory in Gb to use', default=30, type=float)
+    pg_cmd.add_argument('-c', '--collection-id', help='Collection ID', required=True, type=str)
+    pg_cmd.add_argument('-n', '--collection-name', help='Collection name', type=str, default='')
+    pg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
+    pg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
+    pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
+    pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
+    
+    sg_cmd = subparsers.add_parser(
         'sg',
         description='Single-genome analysis',
         help='Single-genome analysis of a collection',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    pa_cmd.set_defaults(func=single_genome_analysis_func)
-    pa_cmd.add_argument('-t', '--threads', help='Number of threads to use, 0 for all', default=0, type=int)
-    pa_cmd.add_argument('-m', '--memory', help='Amount of memory in Gb to use', default=30, type=float)
-    pa_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
-    pa_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
-    pa_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
-    pa_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
+    sg_cmd.set_defaults(func=single_genome_analysis_func)
+    sg_cmd.add_argument('-t', '--threads', help='Number of threads to use, 0 for all', default=0, type=int)
+    sg_cmd.add_argument('-m', '--memory', help='Amount of memory in Gb to use', default=30, type=float)
+    sg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
+    sg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
+    sg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
+    sg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
 
-    pa_cmd = subparsers.add_parser(
+    db_cmd = subparsers.add_parser(
         'download_db',
         description='Single-genome analysis',
         help='Setup db',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    pa_cmd.set_defaults(func=setup_db)
+    db_cmd.set_defaults(func=setup_db)
 
 
     args = parser.parse_args(arguments)
