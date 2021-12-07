@@ -218,7 +218,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
         return assembly_file
 
     cmd = 'flye --threads {threads} --out-dir {path_out} --{input_type} {reads}'.format(
-        threads=threads, path_out=path_out, input_type=input_type, reads=' '.join(reads['long-read']))
+        threads=threads, path_out=path_out, input_type=input_type, reads=reads['long-read'])
     if gsize:
         cmd +=' -g {gsize}'.format(gsize=gsize)
     

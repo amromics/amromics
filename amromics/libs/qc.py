@@ -32,7 +32,7 @@ def qc_reads(prefix_name, reads,base_dir = '.', threads=0, timing_log=None, **ka
         if fastqc_ret != 0:
             return None
     elif 'long-read' in reads:
-        cmd = 'fastqc -t {threads} -o {outdir} {reads}'.format(threads=threads, outdir=out_fastqc, reads=' '.join(reads['long-read']))
+        cmd = 'fastqc -t {threads} -o {outdir} {reads}'.format(threads=threads, outdir=out_fastqc, reads=reads['long-read'])
         fastqc_ret = run_command(cmd, timing_log)
         if fastqc_ret != 0:
             return None
@@ -109,7 +109,7 @@ def map_reads_to_assembly_bwamem(prefix_name,assembly,reads, base_dir = '.', thr
     if 'long-read' in reads:
         lr_sam = os.path.join(path_out, prefix_name + '_lr.sam')
         lr_bam = os.path.join(path_out, prefix_name + '_lr.bam')
-        cmd_bwa_lr = cmd + ' ' + ' '.join(reads['long-read']) + ' > ' + lr_sam
+        cmd_bwa_lr = cmd + ' ' + reads['long-read'] + ' > ' + lr_sam
         run_command(cmd_bwa_lr, timing_log)
         cmd_st_lr = 'samtools view -u {sam} | samtools sort -@{threads} -o {bam} - ;samtools index {bam}'.format(
             sam=lr_sam,

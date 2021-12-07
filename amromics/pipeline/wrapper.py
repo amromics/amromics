@@ -40,8 +40,11 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     if sample['input_type'] in ['asm', 'assembly']:
         sample['assembly'] = assembler.get_assembly(sample['id'], sample['files'],base_dir=sample_dir)
     elif sample['input_type'] in ['pacbio-raw', 'pacbio-hifi', 'pacbio-corr','nano-raw', 'nano-hq', 'nano-corr']:
+        read_file = sample['files'].split(';')
+        if len(read_file) > 1:
+            raise Exception('All reads should be put in one file only')
         reads={}
-        reads['long-read'] = sample['files'].split(';')
+        reads['long-read'] = read_file[0]
         sample['assembly'] = assembler.assemble_flye(sample['id'],reads, input_type=sample['input_type'], base_dir=sample_dir, threads=threads,timing_log=timing_log,gsize=sample['gsize'])
     else:
         pe_files = sample['files'].split(';')
