@@ -204,6 +204,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
         Run assembly process for long reads input using flye
         :param prefix_name: sample name, sample id, etc
         :param read: reads
+        :param input_type: type of long reads
         :param base_dir: working directory
         :return: path to assembly file (normailized)
     """
@@ -217,7 +218,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
         return assembly_file
 
     cmd = 'flye --threads {threads} --out-dir {path_out} --{input_type} {reads}'.format(
-        threads=threads, path_out=path_out, input_type=input_type, reads=' '.join(reads['long-read'])
+        threads=threads, path_out=path_out, input_type=input_type, reads=' '.join(reads['long-read']))
     if gsize:
         cmd +=' -g {gsize}'.format(gsize=gsize)
     
@@ -236,6 +237,4 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     
     # clean
     run_command('rm -f ' + os.path.join(path_out, 'assembly.fasta'))
-    run_command('rm -f ' + os.path.join(path_out, 'assembly_graph.gfa'))
-    run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
     return assembly_file

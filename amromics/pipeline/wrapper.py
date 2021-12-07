@@ -42,7 +42,7 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     elif sample['input_type'] in ['pacbio-raw', 'pacbio-hifi', 'pacbio-corr','nano-raw', 'nano-hq', 'nano-corr']:
         reads={}
         reads['long-read'] = sample['files'].split(';')
-        sample['assembly'] = assembler.assemble_flye(sample['id'],reads, input_type=sample['input_type'], base_dir=sample_dir, threads=0,timing_log=timing_log,gsize=sample['gsize'])
+        sample['assembly'] = assembler.assemble_flye(sample['id'],reads, input_type=sample['input_type'], base_dir=sample_dir, threads=threads,timing_log=timing_log,gsize=sample['gsize'])
     else:
         pe_files = sample['files'].split(';')
         reads={}

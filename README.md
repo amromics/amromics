@@ -15,6 +15,7 @@ AMRomics is written in python, it includes the followings dependencies:
  * trimmomatic (0.39)
  * spades (3.15.2)
  * shovill (1.1.0)
+ * flye (2.9)
  * prokka (1.14.6)
  * mlst (2.19.6)
  * abricate (1.0.1 | Database: vfdb ecoli_vf ecoh card megares resfinder argannot ncbi plasmidfinder)
