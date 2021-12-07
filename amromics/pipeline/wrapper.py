@@ -37,19 +37,20 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     #handle assembly input, ignore spades and bwa:
     sample['execution_start'] =  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     reads=None
-    if sample['input_type'] not in ['asm', 'assembly']:
+    if sample['input_type'] in ['asm', 'assembly']:
+        sample['assembly'] = assembler.get_assembly(sample['id'], sample['files'],base_dir=sample_dir)
+    elif sample['input_type'] in ['pacbio-raw', 'pacbio-hifi', 'pacbio-corr','nano-raw', 'nano-hq', 'nano-corr']:
+        reads={}
+        reads['long-read'] = sample['files'].split(';')
+        sample['assembly'] = assembler.assemble_flye(sample['id'],reads, input_type=sample['input_type'], base_dir=sample_dir, threads=0,timing_log=timing_log,gsize=sample['gsize'])
+    else:
         pe_files = sample['files'].split(';')
         reads={}
         if len(pe_files) > 1:
             reads['pe1']=pe_files[0]
             reads['pe2']=pe_files[1]
-
         else:
             reads['se']=pe_files[0]
-    else:
-        sample['assembly'] = assembler.get_assembly(sample['id'], sample['files'],base_dir=sample_dir)
-
-    if not 'assembly' in sample.keys() and not reads==None:
         #if trim  and not 'se' in reads:
         #    reads['pe1'],reads['pe2'] = assembler.trim_pe_trimmomatic(sample['id'],reads,base_dir=sample_dir, timing_log=timing_log,threads=threads)
         #sample = assemble_spades(sample, base_dir=base_dir, threads=0, memory=memory,timing_log=timing_log)

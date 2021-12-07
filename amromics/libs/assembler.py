@@ -199,3 +199,43 @@ def get_assembly(prefix_name,assembly, base_dir, overwrite=False):
 
 
     return assembly_file
+def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite=False, timing_log=None, gsize=None):
+    """
+        Run assembly process for long reads input using flye
+        :param prefix_name: sample name, sample id, etc
+        :param read: reads
+        :param base_dir: working directory
+        :return: path to assembly file (normailized)
+    """
+
+    path_out = os.path.join(base_dir, prefix_name + '_flye')
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
+
+    if not os.path.exists(path_out):
+        os.makedirs(path_out)
+    elif os.path.isfile(assembly_file) and (not overwrite):
+        return assembly_file
+
+    cmd = 'flye --threads {threads} --out-dir {path_out} --{input_type} {reads}'.format(
+        threads=threads, path_out=path_out, input_type=input_type, reads=' '.join(reads['long-read'])
+    if gsize:
+        cmd +=' -g {gsize}'.format(gsize=gsize)
+    
+    ret = run_command(cmd, timing_log)
+    if ret != 0:
+        raise Exception('Error running flye!')
+
+    # Read in list of contigs
+    contigs = list(SeqIO.parse(os.path.join(path_out, 'assembly.fasta'), "fasta"))
+    contigs = sorted(contigs, key=len, reverse=True)
+    with gzip.open(assembly_file, 'wt') as f:
+        for i, contig in enumerate(contigs):
+            contig.id =prefix_name+'_C'+str(i)
+            contig.description = ''
+            SeqIO.write(contig, f, "fasta")
+    
+    # clean
+    run_command('rm -f ' + os.path.join(path_out, 'assembly.fasta'))
+    run_command('rm -f ' + os.path.join(path_out, 'assembly_graph.gfa'))
+    run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
+    return assembly_file
