@@ -105,16 +105,3 @@ def map_reads_to_assembly_bwamem(prefix_name,assembly,reads, base_dir = '.', thr
         )
         run_command(cmd_st_se, timing_log)
         return se_bam
-    
-    if 'long-read' in reads:
-        lr_sam = os.path.join(path_out, prefix_name + '_lr.sam')
-        lr_bam = os.path.join(path_out, prefix_name + '_lr.bam')
-        cmd_bwa_lr = cmd + ' ' + reads['long-read'] + ' > ' + lr_sam
-        run_command(cmd_bwa_lr, timing_log)
-        cmd_st_lr = 'samtools view -u {sam} | samtools sort -@{threads} -o {bam} - ;samtools index {bam}'.format(
-            sam=lr_sam,
-            threads=threads,
-            bam=lr_bam
-        )
-        run_command(cmd_st_lr, timing_log)
-        return lr_bam

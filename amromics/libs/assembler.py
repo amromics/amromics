@@ -236,5 +236,15 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
             SeqIO.write(contig, f, "fasta")
     
     # clean
-    run_command('rm -f ' + os.path.join(path_out, 'assembly.fasta'))
+    run_command('rm -rf ' + os.path.join(path_out, '00-assembly'))
+    run_command('rm -rf ' + os.path.join(path_out, '10-consensus'))
+    run_command('rm -rf ' + os.path.join(path_out, '20-repeat'))
+    run_command('rm -rf ' + os.path.join(path_out, '30-contigger'))
+    run_command('rm -rf ' + os.path.join(path_out, '40-polishing'))
+    run_command('rm -f ' + os.path.join(path_out, 'params.json'))
+    run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gfa'))
+    run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gv'))
+    run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
+    run_command('gzip ' + os.path.join(path_out, 'flye.log'))
+    
     return assembly_file
