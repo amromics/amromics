@@ -242,6 +242,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     run_command('rm -rf ' + os.path.join(path_out, '30-contigger'))
     run_command('rm -rf ' + os.path.join(path_out, '40-polishing'))
     run_command('rm -f ' + os.path.join(path_out, 'params.json'))
+    run_command('rm -f ' + os.path.join(path_out, 'assembly.fasta'))
     run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gfa'))
     run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gv'))
     run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
