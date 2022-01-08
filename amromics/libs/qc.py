@@ -20,11 +20,22 @@ def qc_reads(prefix_name, reads,base_dir = '.', threads=0, timing_log=None, **ka
     out_fastqc = os.path.join(base_dir, prefix_name + '_fastqc')
     if not os.path.exists(out_fastqc):
         os.makedirs(out_fastqc)
-    cmd = 'fastqc -t {threads} -o {outdir} {pe1} {pe2}'.format(threads=threads, outdir=out_fastqc, pe1=reads['pe1'], pe2=reads['pe2'])
-    fastqc_ret = run_command(cmd, timing_log)
-
-    if fastqc_ret != 0:
-        return None
+    
+    if 'pe1' in reads and 'pe2' in reads:
+        cmd = 'fastqc -t {threads} -o {outdir} {pe1} {pe2}'.format(threads=threads, outdir=out_fastqc, pe1=reads['pe1'], pe2=reads['pe2'])
+        fastqc_ret = run_command(cmd, timing_log)
+        if fastqc_ret != 0:
+            return None
+    elif 'se' in reads:
+        cmd = 'fastqc -t {threads} -o {outdir} {reads}'.format(threads=threads, outdir=out_fastqc, reads=reads['se'])
+        fastqc_ret = run_command(cmd, timing_log)
+        if fastqc_ret != 0:
+            return None
+    elif 'long-read' in reads:
+        cmd = 'fastqc -t {threads} -o {outdir} {reads}'.format(threads=threads, outdir=out_fastqc, reads=reads['long-read'])
+        fastqc_ret = run_command(cmd, timing_log)
+        if fastqc_ret != 0:
+            return None
     out_multiqc = os.path.join(base_dir, prefix_name + '_multiqc')
     if not os.path.exists(out_multiqc):
         os.makedirs(out_multiqc)

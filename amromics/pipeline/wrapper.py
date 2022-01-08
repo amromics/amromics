@@ -37,26 +37,32 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     #handle assembly input, ignore spades and bwa:
     sample['execution_start'] =  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     reads=None
-    if sample['input_type'] not in ['asm', 'assembly']:
+    if sample['input_type'] in ['asm', 'assembly']:
+        sample['assembly'] = assembler.get_assembly(sample['id'], sample['files'],base_dir=sample_dir)
+    elif sample['input_type'] in ['pacbio-raw', 'pacbio-hifi', 'pacbio-corr','nano-raw', 'nano-hq', 'nano-corr']:
+        read_file = sample['files'].split(';')
+        if len(read_file) > 1:
+            raise Exception('All reads should be put in one file only')
+        reads={}
+        reads['long-read'] = read_file[0]
+        sample['assembly'] = assembler.assemble_flye(sample['id'],reads, input_type=sample['input_type'], base_dir=sample_dir, threads=threads,timing_log=timing_log,gsize=sample['gsize'])
+    elif sample['input_type'] in ['Illumina paired-end', 'Illumina single-end', 'Illumina']:
         pe_files = sample['files'].split(';')
         reads={}
-        if len(pe_files) > 1:
+        if len(pe_files) == 1:
+            reads['se']=pe_files[0]
+        elif len(pe_files) == 2:
             reads['pe1']=pe_files[0]
             reads['pe2']=pe_files[1]
-
         else:
-            reads['se']=pe_files[0]
-    else:
-        sample['assembly'] = assembler.get_assembly(sample['id'], sample['files'],base_dir=sample_dir)
-
-    if not 'assembly' in sample.keys() and not reads==None:
+            raise Exception('There should be one or two input files')
         #if trim  and not 'se' in reads:
         #    reads['pe1'],reads['pe2'] = assembler.trim_pe_trimmomatic(sample['id'],reads,base_dir=sample_dir, timing_log=timing_log,threads=threads)
         #sample = assemble_spades(sample, base_dir=base_dir, threads=0, memory=memory,timing_log=timing_log)
         sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
-    if extraStep and not reads==None :
-        sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
-    if extraStep  and not reads==None:
+    # if extraStep and not reads==None :
+    #     sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
+    if extraStep and not reads==None:
         sample['qc'] =qc.qc_reads(sample['id'],reads, base_dir=sample_dir, threads=0, timing_log=timing_log)
     #QUAST to check quality
     if extraStep:

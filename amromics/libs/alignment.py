@@ -272,7 +272,6 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
     for sample in samples:
         seq_dict[sample]= ''
     sample_list = seq_dict.keys()
-    print(sample_list)
     for gene_id, row in gene_df.iterrows():
         # Only run if it is core gene
         if len(row[row == 0]) != 0:
@@ -330,12 +329,12 @@ def get_gene_sequences(roary_folder,ffn_folder, collection_dir, threads=8, overw
         if ffn_file.endswith('.gz'):
             with gzip.open(ffn_file_path, 'rt') as fn:
                 for seq_record in SeqIO.parse(fn, 'fasta'):
-                    seq_record.seq = seq_record.seq[:-3]
+                    seq_record.seq = seq_record.seq
                     seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
                     dict_nucleotide[seq_record.id] = seq_record
         else:
             for seq_record in SeqIO.parse(ffn_file_path, 'fasta'):
-                seq_record.seq = seq_record.seq[:-3]
+                seq_record.seq = seq_record.seq
                 seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
                 dict_nucleotide[seq_record.id] = seq_record
 

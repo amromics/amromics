@@ -24,3 +24,4 @@
  quast==5.0.2
  ncbi-amrfinderplus==3.10.1
  isescan==1.7.2.3
+ flye=2.9
