@@ -211,7 +211,12 @@ def init_function(args):
     wrapper.run_init_pipeline(
         samples, collection_dir, temp_dir, baseDir, args, timing_log, resume)
 
+    # write sample file
+    sample_file = os.path.join(collection_dir, 'samples.txt')
+    if os.path.exists(sample_file):
+        os.remove(sample_file) # remove existing file
     write_sample_file(samples, collection_dir)
+
     shutil.rmtree(temp_dir)
     shutil.rmtree(os.path.join(collection_dir, 'samples'))
     elapsed = datetime.now() - starttime
