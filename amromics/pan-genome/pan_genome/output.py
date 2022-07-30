@@ -326,8 +326,10 @@ def output_gene_info(clusters, gene_dictionary, out_dir):
         writer = csv.writer(fh, delimiter='\t')
         for i, cluster in enumerate(clusters):
             for gene_id in cluster:
+                sample_id = gene_dictionary[gene_id][0]
                 row = []
                 row.append(gene_id)
+                row.append(sample_id)
                 row.append(i)
                 writer.writerow(row)
     elapsed = datetime.now() - starttime
@@ -453,10 +455,10 @@ def read_gene_dictionary(annotation_file):
     # logging.info(f'Import gene annotation -- time taken {str(elapsed)}')
     return gene_dictionary
 
-def write_gene_position(gene_position, out_dir, mode='w'):
+def write_gene_position(gene_position, out_dir):
     # starttime = datetime.now()
     
-    with open(os.path.join(out_dir, 'gene_position.tsv'),mode) as fh:
+    with open(os.path.join(out_dir, 'gene_position.tsv'), 'a') as fh:
         writer = csv.writer(fh, delimiter='\t')
         for sample in gene_position:
             for seq in gene_position[sample]:
