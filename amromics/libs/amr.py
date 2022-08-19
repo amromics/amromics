@@ -115,11 +115,9 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
             for line in source:
                 if line.startswith('##FASTA'):
                     break
-                if line.startswith('##'):
-                    destination.write( line )
-                else:
-                    newline=line.replace('ID=','Name=')
-                    destination.write( newline )
+                # no longer to replace ID with Name, Amrfinder official support prokka format
+                destination.write( line )
+
         #source.close()
         destination.close()
     gunzip_faa= faa_file;
@@ -132,7 +130,7 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
         gunzip_fna =os.path.join(temp_dir,prefix_name+'.fna')
         cmd = 'gunzip -c {} > {}'.format(fna_file, gunzip_fna)
         run_command(cmd)
-    cmd = 'amrfinder -d {database} -p {faa_file}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile}'\
+    cmd = 'amrfinder -d {database} -p {faa_file}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile} -a prokka'\
     .format(
         database=db,
         faa_file=gunzip_faa,
@@ -148,7 +146,7 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
             organism = species.replace(' ','_')
         organisms = ['Campylobacter', 'Enterococcus_faecalis', 'Enterococcus_faecium', 'Escherichia', 'Klebsiella', 'Salmonella', 'Staphylococcus_aureus', 'Staphylococcus_pseudintermedius', 'Vibrio_cholerae']
         if organism in organisms:
-            cmd = 'amrfinder -d {database} -p {faa_file} -O {organism}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile}'\
+            cmd = 'amrfinder -d {database} -p {faa_file} -O {organism}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile} -a prokka'\
             .format(
                 database=db,
                 faa_file=gunzip_faa,
@@ -159,7 +157,7 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
                 outfile=ret_out
             )
         else:
-            cmd = 'amrfinder -d {database} -p {faa_file} -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile}'\
+            cmd = 'amrfinder -d {database} -p {faa_file} -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile} -a prokka'\
             .format(
                 database=db,
                 faa_file=gunzip_faa,
