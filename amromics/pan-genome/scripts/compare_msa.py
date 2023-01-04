@@ -23,7 +23,7 @@ def create_poa(cluster_id):
 
     matrix_file = os.path.join(baseDir, 'BLOSUM62.mtx')
     result_file = os.path.join(cluster_dir, cluster_id + '.result')
-    cmd = f'abpoa {seq_file} -o {result_file} -r1 -p -c -m 1 2> /dev/null'
+    cmd = f'abpoa {seq_file} -o {result_file} -r1 -p -c -m 1 2> /data/hoan/delete_me/null'
     os.system(cmd)
 
 def create_poa_in_parallel(clusters_id_list):
@@ -117,23 +117,24 @@ if __name__ == "__main__":
     global threads
     threads = 8
 
-    panta_dir = '/home/noideatt/TA/pan-genome'
-    input_dir = '/home/noideatt/TA/data/Kp26/main'
-    out_dir = '/home/noideatt/TA/evaluate_msa/out/Kp20'
+    home_dir = '/data/hoan/amromics/amromics/amromics/'
+    panta_dir = home_dir + 'pan-genome' 
+    input_dir = home_dir + 'data/Kp26/main' # chua file gff sau khi chay prokka P800
+    out_dir = home_dir + 'evaluate_msa/out/Kp20'
     # run_panta(panta_dir, input_dir, out_dir)
 
     # clusters_id_file = '/home/noideatt/TA/evaluate_msa/clusters_id.txt'
     # clusters_id_list = get_gene_list(clusters_id_file)
-    clusters_id_list =  range(0, 9252)
+    clusters_id_list =  range(0, 10) #cluster id
     global clusters_dir
-    clusters_dir = '/home/noideatt/TA/evaluate_msa/out/Kp20'
+    clusters_dir = home_dir + 'evaluate_msa/out/Kp20/clusters' #ket qua cua panta
     global baseDir
     baseDir = panta_dir
-    # create_poa_in_parallel(clusters_id_list)
-    create_mafft_in_parallel(clusters_id_list)
+    create_poa_in_parallel(clusters_id_list)
+    # create_mafft_in_parallel(clusters_id_list)
     # rewrite_mafft(clusters_id_list)
 
 
-    # compare(clusters_id_list)
+    # compare(clusters_id_list) # poa vs mafft
 
     # call_snp_parallel(clusters_id_list)

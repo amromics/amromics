@@ -33,7 +33,7 @@ import amromics.libs.alignment as alignment
 import amromics.libs.phylogeny as phylogeny
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
-def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=50, trim=False,timing_log=None):
+def run_single_sample(sample,extraStep=False, sample_dir='.', threads=16, memory=50, trim=False,timing_log=None):
     #handle assembly input, ignore spades and bwa:
     sample['execution_start'] =  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     reads=None
@@ -53,14 +53,14 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
         #if trim  and not 'se' in reads:
         #    reads['pe1'],reads['pe2'] = assembler.trim_pe_trimmomatic(sample['id'],reads,base_dir=sample_dir, timing_log=timing_log,threads=threads)
         #sample = assemble_spades(sample, base_dir=base_dir, threads=0, memory=memory,timing_log=timing_log)
-        sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log)
+        sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=threads, memory=memory,trim=trim,timing_log=timing_log)
     if extraStep and not reads==None :
-        sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
+        sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
     if extraStep  and not reads==None:
-        sample['qc'] =qc.qc_reads(sample['id'],reads, base_dir=sample_dir, threads=0, timing_log=timing_log)
+        sample['qc'] =qc.qc_reads(sample['id'],reads, base_dir=sample_dir, threads=threads, timing_log=timing_log)
     #QUAST to check quality
     if extraStep:
-        sample['quast']=qc.assembly_eval(sample['id'],sample['assembly'], base_dir=sample_dir, threads=0, timing_log=timing_log)
+        sample['quast']=qc.assembly_eval(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads, timing_log=timing_log)
     if extraStep:
         sample['taxonomy']=taxonomy.species_identification_kraken(sample['id'],sample['assembly'], base_dir=sample_dir, timing_log=timing_log,threads=threads)
     #QUAST to check quantity
