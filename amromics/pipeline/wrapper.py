@@ -73,6 +73,11 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     #FastQC, + MultiQC
     if not 'gram' in sample.keys():
         sample['gram']=None
+    
+    if sample['input_annotation']:
+        #TODO: convert existing annotations to amromics format
+        pass
+
     sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna'],sample['annotation_gbk'] = annotation.annotate_prokka(sample['id'],sample['assembly'],sample['genus'],sample['species'],sample['strain'],sample['gram'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
     sample['mlst']  = taxonomy.detect_mlst(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
     if extraStep:

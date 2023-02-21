@@ -47,6 +47,9 @@ def version_func(args):
 def is_true(t):
     return t.lower() in ['y', 'yes', '1', 'true', 't', 'ok']
 
+def validate_sample(sample):
+    #TODO
+    return sample
 
 def input_file_to_samples(input_file, sep='\t'):
     sample_report = []
@@ -90,8 +93,24 @@ def input_file_to_samples(input_file, sep='\t'):
                 if len(kv.split(':')) == 2:
                     k, v = kv.split(':')
                     mt[k] = v
+        
+        input_assembly = ''
+        if 'assembly' in sample_df.columns:
+            input_assembly = row['assembly'].strip()
+        if input_assembly and (not os.path.isfile(input_assembly)):
+            raise Exception(f'Input assemply file {input_assembly} (sample {sample_id}) not found!')
+
+        input_annotation = ''
+        if 'annotation' in sample_df.columns:
+            input_annotation = row['annotation'].strip()
+        if input_annotation and (not os.path.isfile(input_annotation)):
+            raise Exception(f'Input annotation file {input_annotation} (sample {sample_id}) not found!')
+
         sample = {
             'id': sample_id,
+            'input_reads':[],
+            'input_assembly': input_assembly,
+            'input_annotation': input_annotation,
             'name': row['sample_desc'].strip(),
             'input_type': row['input_type'].strip(),
             'files': ';'.join(input_files),  # Re-join to make sure no white characters slipped in
@@ -103,6 +122,7 @@ def input_file_to_samples(input_file, sep='\t'):
             'updated': False,
             'gsize':row['gsize']
         }
+
         sample_report.append(sample)
     return sample_report
 
