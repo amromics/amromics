@@ -167,6 +167,9 @@ def pan_genome_analysis_func(args):
     threads = args.threads
     memory = args.memory
     timing_log = args.time_log
+    method = args.method
+    if not method:
+        method='roary'
     overwrite = False
 
     if not valid_id(collection_id):
@@ -187,7 +190,7 @@ def pan_genome_analysis_func(args):
     report = pan_genome_analysis(
         samples, work_dir,
         collection_id, collection_name, overwrite=overwrite,
-        threads=threads, memory=memory, timing_log=timing_log)
+        threads=threads, memory=memory, timing_log=timing_log,method=method)
     logger.info('Congratulations, collection {} is done!'.format(collection_id))
 def main(arguments=sys.argv[1:]):
     parser = argparse.ArgumentParser(
@@ -215,8 +218,9 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
     pg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
     pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
+    pg_cmd.add_argument('--method', help='roary or panta', default='roary')
     pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
-    
+
     sg_cmd = subparsers.add_parser(
         'sg',
         description='Single-genome analysis',

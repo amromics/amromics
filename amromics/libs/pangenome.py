@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 import json
 import gzip
-from panta import *
+from amromics.libs.panta import *
 from amromics.utils.command import run_command
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()

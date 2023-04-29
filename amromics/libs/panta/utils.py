@@ -18,7 +18,7 @@ def run_command(cmd, timing_log=None):
     """
     if timing_log is not None:
         cmd = '/usr/bin/time --append -v -o {} bash -c "{}"'.format(timing_log, cmd)
-    #logger.info('Running "{}'.format(cmd))
+    logger.info('Running "{}'.format(cmd))
     ret = os.system(cmd)
     return ret
 
@@ -66,6 +66,49 @@ def parse_cluster_file(cd_hit_cluster_file):
     for cluster_name in clusters:
         clusters_new[clusters[cluster_name]['representative']] = clusters[cluster_name]['gene_names']
     return clusters_new
+
+
+def parse_cluster_file_with_map(cd_hit_cluster_file, map_file=None): 
+    """
+    Parse cdhit cluster file
+    Return:
+        a dictionary of clusters: dict (cluster_name > [gene_id])
+    """
+
+    clusters = {}
+    gene_map = {}
+    count = 0
+    with open(map_file, 'r') as fh:
+        with line in fh:
+            line = line.strip()
+            gene_map[f'{count}'] = line
+            count += 1
+
+    with open(cd_hit_cluster_file, 'r') as fh:
+        for line in fh:
+            line = line.strip()
+            if line[0].startswith('>'):
+                cluster_name = line[1:]
+                clusters[cluster_name] = {'gene_names':[]}                
+            else:
+                _,_, line = line.partition(', >')            
+                gene_name,_,identity = line.partition('... ')
+                gene_name, identity                    
+                if identity == '*':
+                    clusters[cluster_name]['representative'] = gene_map[gene_name]
+                elif identity: # make sure it is a valid string
+                    #percent = float(identity[3:-1])
+                    #percent = re.findall(r'([0-9\.]+)', identity)
+                    #percent = float(percent[0])
+                    clusters[cluster_name]['gene_names'].append(gene_map[gene_name])
+    
+    del gene_map    
+    # convert to a simple dictionary
+    clusters_new = {}
+    for cluster_name in clusters:
+        clusters_new[clusters[cluster_name]['representative']] = clusters[cluster_name]['gene_names']
+    return clusters_new
+
 
 
 def chunk_fasta_file(fasta_file, out_dir):

@@ -199,6 +199,54 @@ def get_assembly(prefix_name,assembly, base_dir, overwrite=False):
 
 
     return assembly_file
+def get_assembly_from_gff(prefix_name,gff, base_dir, overwrite=False):
+    """
+    Get the assembly from user input
+
+    Parameters
+    ----------
+    gff:
+        gff file with assembly
+    sample_dir: str
+        the directory of the sample
+    Returns
+    -------
+        path to assembly file
+    """
+
+    path_out = os.path.join(base_dir, prefix_name + '_assembly')
+    if not os.path.exists(path_out):
+        os.makedirs(path_out)
+
+    open_func = get_open_func(gff)
+    temp_asm=open(os.path.join(path_out,prefix_name+'_temp.fasta'),'w')
+    with open_func(gff, 'rt') as fn:
+        start_fasta=False
+        for line in fn:
+            if start_fasta:
+                temp_asm.write(line)
+            if line.startswith('##FASTA'):
+                #Done reading gff, move on to reading fasta
+                start_fasta=True
+
+    temp_asm.close()
+    with open(os.path.join(path_out,prefix_name+'_temp.fasta'), 'rt') as fn:
+        contigs = list(SeqIO.parse(fn, 'fasta'))
+
+    assembly_file = os.path.join(path_out,prefix_name + '_contigs.fasta.gz')
+    if os.path.isfile(assembly_file) and (not overwrite):
+        logger.info(f'Not overwrite {assembly_file}')
+        return assembly_file
+
+    contigs = sorted(contigs, key=len, reverse=True)
+    with gzip.open(assembly_file, 'wt') as f:
+        for i, contig in enumerate(contigs):
+            contig.id = prefix_name + '_C' + str(i)
+            contig.description = ''
+            SeqIO.write(contig, f, "fasta")
+
+
+    return assembly_file
 def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite=False, timing_log=None, gsize=None):
     """
         Run assembly process for long reads input using flye
@@ -221,7 +269,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
         threads=threads, path_out=path_out, input_type=input_type, reads=reads['long-read'])
     if gsize:
         cmd +=' -g {gsize}'.format(gsize=gsize)
-    
+
     ret = run_command(cmd, timing_log)
     if ret != 0:
         raise Exception('Error running flye!')
@@ -234,7 +282,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
             contig.id =prefix_name+'_C'+str(i)
             contig.description = ''
             SeqIO.write(contig, f, "fasta")
-    
+
     # clean
     run_command('rm -rf ' + os.path.join(path_out, '00-assembly'))
     run_command('rm -rf ' + os.path.join(path_out, '10-consensus'))
@@ -247,5 +295,5 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gv'))
     run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
     run_command('gzip ' + os.path.join(path_out, 'flye.log'))
-    
+
     return assembly_file
