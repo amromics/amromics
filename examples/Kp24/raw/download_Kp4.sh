@@ -19,7 +19,7 @@ done
 for ac in SRR10176979 SRR1185120;do
     if [ ! -f ${ac}.fastq.gz ];then
         echo " Downloading Accession ${ac} ..."
-        fasterq-dump --progress --split-3 ${ac} && gzip ${ac}.fastq
+        fastq-dump   ${ac} && gzip ${ac}.fastq
     else
         echo " Accession ${ac} has been downloaded!"
     fi
