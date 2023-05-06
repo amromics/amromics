@@ -61,7 +61,7 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
         #sample = assemble_spades(sample, base_dir=base_dir, threads=0, memory=memory,timing_log=timing_log)
         sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
     elif sample['input_type'] in ['gff']:
-        sample['annotation_gff'],sample['annotation_ffn']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir)
+        sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir)
         sample['assembly'] = assembler.get_assembly_from_gff(sample['id'], sample['files'],base_dir=sample_dir)
 
     # if extraStep and not reads==None :

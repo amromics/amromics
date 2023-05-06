@@ -74,16 +74,19 @@ def parseGFF(sample_id,gff_file_in,base_dir):
         os.makedirs(path_out)
     annotation_gff= path_out+'/'+str(sample_id)+'.gff.gz'
     annotation_ffn = path_out+'/'+str(sample_id)+'.ffn.gz'
-    annotation_fna=path_out+'/'+str(sample_id)+'.fna'
+    annotation_fna = path_out+'/'+str(sample_id)+'.fna.gz'
+    annotation_faa = path_out+'/'+str(sample_id)+'.faa.gz'
+
     found_fasta = False
     open_func = get_open_func(gff_file_in)
-    fasta_file=open(annotation_fna,'wt')
+    fasta_file=open(path_out+'/'+str(sample_id)+'.fna','w')
+    bed_records = []
     with open_func(gff_file_in,'rt') as in_fh,gzip.open(annotation_gff, 'wt') as gff_re:
         last_cds=""
         id_number=0
 
 
-        bed_records = []
+
         gene_index = 0
         seq_id = None
         suffix = 1
@@ -144,24 +147,36 @@ def parseGFF(sample_id,gff_file_in,base_dir):
             gff_re.write(newline)
             bed_records.append((cells[0].strip(), start - 1, end, gene_id, strand,gene_product))
             gene_index += 1
-        fasta_file.close()
-        seqs = {}
-        #count_contigs=0
-        for seq in read_sequence_file(annotation_fna):
-            seqs[seq.name] = seq
+    fasta_file.close()
+    seqs = {}
+    #count_contigs=0
+    for seq in read_sequence_file(path_out+'/'+str(sample_id)+'.fna'):
+        seqs[seq.name] = seq
         #    count_contigs=count_contigs+1
         #print(count_contigs)
         #print(len(seqs.keys()))
-        gene_seqs = []
-        for bed_record in bed_records:
-            (seq_id, start, end, gene_id, strand,gene_product) = bed_record
-            if seq_id not in seqs.keys():
-                print(seq_id+" not in fna")
-                continue
-            seq = seqs[seq_id]
-            subseq = Seq(str(seq.sequence)[start:end])
-            gene_seq = SeqIO.SeqRecord(seq=subseq,id= gene_id,description=gene_product)
-            gene_seqs.append(gene_seq)
-        with gzip.open(annotation_ffn, 'wt') as ffn_fh:
-            SeqIO.write(gene_seqs, ffn_fh, 'fasta')
-    return annotation_gff,annotation_ffn
+    gene_seqs = []
+    protein_seqs = []
+    for bed_record in bed_records:
+        (seq_id, start, end, gene_id, strand,gene_product) = bed_record
+        if seq_id not in seqs.keys():
+            print(seq_id+" not in fna")
+            continue
+        seq = seqs[seq_id]
+        subseq = Seq(str(seq.sequence)[start:end])
+        gene_seq = SeqIO.SeqRecord(seq=subseq,id= gene_id,description=gene_product)
+        gene_seqs.append(gene_seq)
+        protein_seq = gene_seq.translate(table=11, stop_symbol='')
+        protein_seq.id = gene_id
+        protein_seq.description = gene_product
+        protein_seqs.append(protein_seq)
+    with gzip.open(annotation_ffn, 'wt') as ffn_fh:
+        SeqIO.write(gene_seqs, ffn_fh, 'fasta')
+    with gzip.open(annotation_faa, 'wt') as faa_fh:
+        SeqIO.write(protein_seqs, faa_fh, 'fasta')
+    for file_name in glob.glob(os.path.join(path_out, '*')):
+        ext = file_name[-3:]
+        if ext in ['fna']: # fna?
+            run_command('gzip {}'.format(file_name))
+
+    return annotation_gff,annotation_faa,annotation_ffn,annotation_fna
