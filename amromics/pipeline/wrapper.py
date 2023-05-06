@@ -60,6 +60,10 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
         #    reads['pe1'],reads['pe2'] = assembler.trim_pe_trimmomatic(sample['id'],reads,base_dir=sample_dir, timing_log=timing_log,threads=threads)
         #sample = assemble_spades(sample, base_dir=base_dir, threads=0, memory=memory,timing_log=timing_log)
         sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
+    elif sample['input_type'] in ['gff']:
+        sample['annotation_gff'],sample['annotation_ffn']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir)
+        sample['assembly'] = assembler.get_assembly_from_gff(sample['id'], sample['files'],base_dir=sample_dir)
+
     # if extraStep and not reads==None :
     #     sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
     if extraStep and not reads==None:
@@ -73,7 +77,8 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     #FastQC, + MultiQC
     if not 'gram' in sample.keys():
         sample['gram']=None
-    sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna'],sample['annotation_gbk'] = annotation.annotate_prokka(sample['id'],sample['assembly'],sample['genus'],sample['species'],sample['strain'],sample['gram'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
+    if not 'annotation_gff' in sample.keys() or sample['annotation_gff']==None:
+        sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna'],sample['annotation_gbk'] = annotation.annotate_prokka(sample['id'],sample['assembly'],sample['genus'],sample['species'],sample['strain'],sample['gram'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
     sample['mlst']  = taxonomy.detect_mlst(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
     if extraStep:
         sample['resistome'],sample['point'],sample['virulome'] = amr.detect_amr_amrfinder(sample['id'],sample['annotation_faa'],sample['annotation_fna'],sample['annotation_gff'],sample['genus'],sample['species'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
@@ -91,8 +96,12 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     #sample=detect_prophage(sample, base_dir=base_dir, threads=threads)
     sample['execution_end'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return sample
-def run_collection(report,gff_dir,ffn_dir, base_dir='.',threads=8, overwrite=None,memory=50, timing_log=None):
-    report['roary'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+def run_collection(report,gff_dir,ffn_dir, base_dir='.',threads=8, overwrite=None,memory=50, timing_log=None,method='roary'):
+    #report['roary'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+    if method=='roary':
+        report['roary'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+    if method=='panta':
+        report['roary'] = pangenome.run_panta(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
 #roary_folder,ffn_folder, collection_dir, threads=8, overwrite=False, timing_log=None
     report['alignments'] = alignment.runGeneAlignment(report['roary'], ffn_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
     report['alignments']  = phylogeny.run_gene_phylogeny_iqtree(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)

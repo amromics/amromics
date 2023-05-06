@@ -6,7 +6,7 @@ setup(
     name='amromics',
     version=amromics.__version__,
     description='AMR analysis pipelines',
-    packages=['amromics', 'amromics.pipeline', 'amromics.libs','amromics.utils','amromics.db'],
+    packages=['amromics', 'amromics.pipeline', 'amromics.libs','amromics.utils','amromics.db','amromics.libs.panta'],
     install_requires=[
         'pandas',
         'numpy',

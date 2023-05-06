@@ -222,7 +222,7 @@ def create_nucleotide_alignment(roary_folder, collection_dir, threads=8, overwri
                         codon_pos += 1
                 new_record = SeqRecord(Seq(result), id = seq_id, description = '')
                 SeqIO.write(new_record, fh, 'fasta')
-        
+
         # remove input files
         os.remove(nucleotide_seq_file)
         protein_seq_file = os.path.join(gene_dir, gene_id + '.faa')
@@ -291,7 +291,7 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
                 if sample_name not in sample_list:
                     raise Exception(f'Error concatenating gene alignment: {sample_name} is not a sample id')
                 cluster_dict[sample_name] = str(seq_record.seq)
-        
+
         for sample_name in cluster_dict:
             seq_dict[sample_name] += cluster_dict[sample_name]
 
