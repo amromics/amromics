@@ -146,12 +146,12 @@ def parseGFF(sample_id,gff_file_in,base_dir):
             gene_index += 1
         fasta_file.close()
         seqs = {}
-        count_contigs=0
+        #count_contigs=0
         for seq in read_sequence_file(annotation_fna):
             seqs[seq.name] = seq
-            count_contigs=count_contigs+1
-        print(count_contigs)
-        print(len(seqs.keys()))
+        #    count_contigs=count_contigs+1
+        #print(count_contigs)
+        #print(len(seqs.keys()))
         gene_seqs = []
         for bed_record in bed_records:
             (seq_id, start, end, gene_id, strand,gene_product) = bed_record

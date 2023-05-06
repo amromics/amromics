@@ -6,6 +6,7 @@ import csv
 import pandas as pd
 import json
 import gzip
+from datetime import datetime
 from amromics.libs.panta import *
 from amromics.utils.command import run_command
 logger = logging.getLogger(__name__)
@@ -57,22 +58,22 @@ def run_roary(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=Non
     shutil.rmtree(temp_folder)
 
     return roary_folder
-def run_panta(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=None):
+def run_panta(gff_folder,table=11,diamond=True,evalue=1e-06,identity=0.7,LD=0,AS=0,AL=0,dont_split=False,overwrite=False,threads=0, base_dir='.', timing_log=None):
     starttime = datetime.now()
     out_folder=os.path.join(base_dir,'pangenome/panta')
     temp_dir = os.path.join(base_dir, 'pangenome/temp_panta')
 
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
-    gene_annotation_fn = os.path.join(temp_dir, 'gene_annotation.csv.gz')
-    gene_position_fn = os.path.join(temp_dir, 'gene_position.csv.gz')
+    gene_annotation_fn = os.path.join(temp_dir, 'gene_annotation.csv')
+    gene_position_fn = os.path.join(temp_dir, 'gene_position.csv')
     gff_list = []
     samples=[]
     for filename in os.listdir(gff_folder):
         if filename.endswith('.gz'):
             sample_id = filename.replace('.gff.gz','')
             #gffgz_file = os.path.join(sample['annotation'], sample_id + '.gff.gz')
-            gff_file = os.path.join(temp_folder, sample_id + '.gff')
+            gff_file = os.path.join(temp_dir, sample_id + '.gff')
             if run_command('gunzip -c {} > {}'.format(os.path.join(gff_folder, filename), gff_file)) != 0:
                 raise Exception('Cannot get {}'.format(os.path.join(gff_folder, filename)))
             gff_list.append(gff_file)
@@ -89,14 +90,14 @@ def run_panta(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=Non
             raise Exception(f'{gff} should be a gff3 file')
 
         sample_id = sample_id.replace('-','_')#Make sure that - is not part of sample_id
-        sample_id_list.append(sample_id)
+        #sample_id_list.append(sample_id)
         samples.append({'id':sample_id, 'gff_file':gff, 'assembly':None})
     data_preparation.extract_proteins_tofile(
         samples=samples,
         out_dir=out_folder,
         gene_annotation_fn=gene_annotation_fn,
         gene_position_fn=gene_position_fn,
-        table=args.table,
+        table=table,
         threads=threads)
 
     combined_faa = data_preparation.combine_proteins(
@@ -113,11 +114,11 @@ def run_panta(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=Non
 
     #print(f'Diamond = {args.diamond}')
     blast_result = main_pipeline.pairwise_alignment(
-        diamond=args.diamond,
+        diamond=diamond,
         database_fasta = cd_hit_represent_fasta,
         query_fasta = cd_hit_represent_fasta,
         out_dir = os.path.join(temp_dir, 'blast'),
-        evalue = args.evalue,
+        evalue = evalue,
         threads=threads)
     #blast_result = os.path.join(os.path.join(temp_dir, 'blast'), 'blast_results')
     #TODO check here
@@ -125,10 +126,10 @@ def run_panta(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=Non
     filtered_blast_result = main_pipeline.filter_blast_result(
         blast_result=blast_result,
         out_dir = temp_dir,
-        identity=args.identity,
-        length_difference=args.LD,
-        alignment_coverage_short=args.AS,
-        alignment_coverage_long=args.AL)
+        identity=identity,
+        length_difference=LD,
+        alignment_coverage_short=AS,
+        alignment_coverage_long=AL)
 
     mcl_file = main_pipeline.cluster_with_mcl(
         out_dir = temp_dir,
@@ -144,7 +145,7 @@ def run_panta(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=Non
     split_clusters = post_analysis.split_paralogs(
         gene_position_fn=gene_position_fn,
         unsplit_clusters= inflated_clusters,
-        dontsplit=args.dont_split
+        dontsplit=dont_split
         )
     logger.info(f'len split_clusters = {len(split_clusters)}')
 
@@ -179,3 +180,4 @@ def run_panta(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=Non
 
     elapsed = datetime.now() - starttime
     logger.info(f'Done -- time taken {str(elapsed)}')
+    return out_folder

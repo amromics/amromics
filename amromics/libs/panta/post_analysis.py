@@ -239,7 +239,7 @@ def annotate_cluster(unlabeled_clusters, gene_annotation_fn):
     annotate_cluster_rep = {}
     annotate_cluster_len = {} #cluster_id -> (min, max, mean, number)
 
-
+    print(gene_annotation_fn)
     df_it = pd.read_csv(gene_annotation_fn, na_filter= False, index_col='gene_id', usecols=['gene_id', 'gene_name','gene_product', 'length'], chunksize=chunksize)
     for chunk_df in df_it:
         gene_anno_dict = chunk_df.to_dict('index')
