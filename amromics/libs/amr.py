@@ -130,7 +130,7 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
         gunzip_fna =os.path.join(temp_dir,prefix_name+'.fna')
         cmd = 'gunzip -c {} > {}'.format(fna_file, gunzip_fna)
         run_command(cmd)
-    cmd = 'amrfinder -d {database} -p {faa_file}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile} -a prokka'\
+    cmd = 'amrfinder -d {database} -p {faa_file}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile}'\
     .format(
         database=db,
         faa_file=gunzip_faa,

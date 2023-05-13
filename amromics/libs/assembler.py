@@ -241,8 +241,8 @@ def get_assembly_from_gff(prefix_name,gff, base_dir, overwrite=False):
     contigs = sorted(contigs, key=len, reverse=True)
     with gzip.open(assembly_file, 'wt') as f:
         for i, contig in enumerate(contigs):
-            contig.id = prefix_name + '_C' + str(i)
-            contig.description = ''
+            #contig.id = prefix_name + '_C' + str(i)
+            #contig.description = ''
             SeqIO.write(contig, f, "fasta")
 
 
