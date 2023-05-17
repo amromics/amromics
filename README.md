@@ -1,4 +1,4 @@
-# AMomics   
+# AMRomics   
 
 
 ## Welcome to AMRomics
@@ -43,7 +43,7 @@ mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c default
 2. Optional: install amromics library into conda environment
 ```bash
 source activate amromics
-pip install . --use-feature=in-tree-build 
+pip install .
 ```
 
 ## Usage
