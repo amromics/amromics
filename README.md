@@ -37,7 +37,7 @@ conda create -y -c conda-forge -c defaults --name amromics python=3.10 mamba
 
 source activate amromics
 
-mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c defaults  --file requirements.txt
+mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c rpetit3 -c defaults --file requirements.txt
 
 ```
 2. Optional: install amromics library into conda environment
