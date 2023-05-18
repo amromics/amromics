@@ -43,6 +43,11 @@ def version_func(args):
         'amrfinder'
     ])
 
+def setup_db_func(args):
+    if args.initdb:
+        setup_db()
+    else:
+        setup_minidb()
 
 def is_true(t):
     return t.lower() in ['y', 'yes', '1', 'true', 't', 'ok']
@@ -237,10 +242,11 @@ def main(arguments=sys.argv[1:]):
 
     db_cmd = subparsers.add_parser(
         'download_db',
-        description='Single-genome analysis',
-        help='Setup db',
+        description='Force download and setup databases',
+        help='Force download and setup databases',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    db_cmd.set_defaults(func=setup_db)
+    db_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
+    db_cmd.set_defaults(func=setup_db_func)
 
 
     args = parser.parse_args(arguments)
