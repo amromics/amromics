@@ -285,7 +285,7 @@ def detect_plasmid(prefix_name,assembly,  base_dir='.', threads=0, timing_log=No
     #     return None
 
     element_finder.search_plasmid(sample=assembly,output=oriREP_out,threads=threads)
-    if not os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
+    if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
         os.remove(os.path.join(path_out,prefix_name+'.fasta'))
 
     return oriREP_out

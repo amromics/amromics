@@ -40,7 +40,7 @@ source activate amromics
 mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c rpetit3 -c defaults --file requirements.txt
 
 ```
-2. Optional: install amromics library into conda environment
+2. Recommended: install amromics library into conda environment
 ```bash
 source activate amromics
 pip install .
@@ -54,6 +54,14 @@ source activate amromics
 ```
 
 ### To run the pipeline
+
+It's recommended to have a dedicated location to run AMRomics pipeline, as full related databases will just needed to be setup once
+at the beginning with:
+
+```
+source activate amromics
+amr-analysis.py download_db --initdb True
+```
 
 
 ### Examples
