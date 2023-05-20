@@ -301,7 +301,7 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
             SeqIO.write(new_record, fh, 'fasta')
 
     return phylogeny_folder
-def get_gene_sequences(roary_folder,ffn_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def get_gene_sequences(roary_folder,sample_col,ffn_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Create protein sequences and nucleotide sequences for each gene cluster
 
@@ -337,7 +337,7 @@ def get_gene_sequences(roary_folder,ffn_folder, collection_dir, threads=8, overw
                 seq_record.seq = seq_record.seq
                 seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
                 dict_nucleotide[seq_record.id] = seq_record
-
+    #print (dict_nucleotide)
     # make folder contains sequences for each gene
     alignment_dir = os.path.join(collection_dir, 'alignments')
     if not os.path.exists(alignment_dir):
@@ -346,7 +346,7 @@ def get_gene_sequences(roary_folder,ffn_folder, collection_dir, threads=8, overw
 
     gene_df = pd.read_csv(gene_cluster_file, dtype=str, compression='gzip')
     gene_df.fillna('', inplace=True)
-    sample_columns = list(gene_df.columns)[14:]
+    sample_columns = list(gene_df.columns)[sample_col:]
     for _, row in gene_df.iterrows():
         gene_id = row['Gene']
         gene_id = re.sub(r'\W+', '', gene_id)
@@ -365,9 +365,11 @@ def get_gene_sequences(roary_folder,ffn_folder, collection_dir, threads=8, overw
             if row[sample_column]:
                 # roary can pool together genes from the same sample and tab-separate them
                 for sample_gene in row[sample_column].split('\t'):
+                    if '-' in sample_gene:
+                        sample_gene=sample_gene.split('-')[-1]
                     gene_list.append(sample_gene)
         gene_list = sorted(gene_list)
-
+        #print(gene_list)
         with open(protein_seq_file, 'w') as prot_fh, open(nucleotide_seq_file, 'w') as nucl_fh:
             for sample_gene in gene_list:
                 nu_seq_record = dict_nucleotide[sample_gene]
@@ -377,8 +379,8 @@ def get_gene_sequences(roary_folder,ffn_folder, collection_dir, threads=8, overw
                 SeqIO.write(pro_seq_record, prot_fh, 'fasta')
 
     return alignment_dir
-def runGeneAlignment(roary_folder,ffn_dir, collection_dir, threads=8, overwrite=False, timing_log=None):
-    alignment_dir=get_gene_sequences(roary_folder, ffn_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
+def runGeneAlignment(roary_folder,sample_col,ffn_dir, collection_dir, threads=8, overwrite=False, timing_log=None):
+    alignment_dir=get_gene_sequences(roary_folder,sample_col, ffn_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
     alignment_dir=run_protein_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
     alignment_dir=create_nucleotide_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
     return alignment_dir

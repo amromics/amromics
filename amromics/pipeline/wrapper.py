@@ -58,8 +58,8 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
             raise Exception('There should be one or two input files')
         #if trim  and not 'se' in reads:
         #    reads['pe1'],reads['pe2'] = assembler.trim_pe_trimmomatic(sample['id'],reads,base_dir=sample_dir, timing_log=timing_log,threads=threads)
-        #sample = assemble_spades(sample, base_dir=base_dir, threads=0, memory=memory,timing_log=timing_log)
-        sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
+        sample['assembly'] = assembler.assemble_spades(sample['id'], reads,base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log,trim=trim,gsize=sample['gsize'])
+        #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
     elif sample['input_type'] in ['gff']:
         sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir)
         sample['assembly'] = assembler.get_assembly_from_gff(sample['id'], sample['files'],base_dir=sample_dir)
@@ -69,8 +69,8 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     if extraStep and not reads==None:
         sample['qc'] =qc.qc_reads(sample['id'],reads, base_dir=sample_dir, threads=0, timing_log=timing_log)
     #QUAST to check quality
-    if extraStep:
-        sample['quast']=qc.assembly_eval(sample['id'],sample['assembly'], base_dir=sample_dir, threads=0, timing_log=timing_log)
+    # if extraStep:
+    #     sample['quast']=qc.assembly_eval(sample['id'],sample['assembly'], base_dir=sample_dir, threads=0, timing_log=timing_log)
     if extraStep:
         sample['taxonomy']=taxonomy.species_identification_kraken(sample['id'],sample['assembly'], base_dir=sample_dir, timing_log=timing_log,threads=threads)
     #QUAST to check quantity
@@ -100,10 +100,13 @@ def run_collection(report,gff_dir,ffn_dir, base_dir='.',threads=8, overwrite=Non
     #report['roary'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
     if method=='roary':
         report['roary'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+        report['alignments'] = alignment.runGeneAlignment(report['roary'],14, ffn_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+
     if method=='panta':
         report['roary'] = pangenome.run_panta(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+        report['alignments'] = alignment.runGeneAlignment(report['roary'],8, ffn_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+
 #roary_folder,ffn_folder, collection_dir, threads=8, overwrite=False, timing_log=None
-    report['alignments'] = alignment.runGeneAlignment(report['roary'], ffn_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
     report['alignments']  = phylogeny.run_gene_phylogeny_iqtree(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
     report['phylogeny'] = alignment.create_core_gene_alignment(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
     report['phylogeny']  = phylogeny.run_species_phylogeny_iqtree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)

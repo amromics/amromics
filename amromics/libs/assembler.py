@@ -8,6 +8,7 @@ from Bio import SeqIO
 import amromics.libs.bioseq as bioseq
 from amromics.utils.command import run_command
 from amromics.utils.utils import get_open_func
+from amromics.utils.utils import get_compress_type
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 logger = logging.getLogger(__name__)
 def trim_pe_trimmomatic(prefix_name, reads,threads=0, base_dir='.', timing_log=None, **kargs):
@@ -51,15 +52,36 @@ def trim_pe_trimmomatic(prefix_name, reads,threads=0, base_dir='.', timing_log=N
         return out_p1,out_p2
 
 ###NGS assembly using SPAdes
-def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50, timing_log=None, **kargs):
+def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,overwrite=False, timing_log=None,trim=False,gsize=None, **kargs):
     if threads == 0:
         threads = NUM_CORES_DEFAULT
 
 
     path_out = os.path.join(base_dir, prefix_name + '_spades')
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
     if not os.path.exists(path_out):
         os.makedirs(path_out)
-
+    elif os.path.isfile(assembly_file) and (not overwrite):
+        return assembly_file
+    #TODO: add trimmomatic if needed, add seqtk step
+    if reads['pe1'].endswith('fastq') or reads['pe1'].endswith('fastq.gz') or reads['pe1'].endswith('fasta') or reads['pe1'].endswith('fasta.gz'):
+        pass
+    else:
+        if get_compress_type(reads['pe1'])=='gzip':
+            os.rename(reads['pe1'], reads['pe1']+'.fastq.gz')
+            reads['pe1']= reads['pe1']+'.fastq.gz'
+        else:
+            os.rename(reads['pe1'], reads['pe1']+'.fastq')
+            reads['pe1']= reads['pe1']+'.fastq'
+    if reads['pe2'].endswith('fastq') or reads['pe2'].endswith('fastq.gz') or reads['pe2'].endswith('fasta') or reads['pe2'].endswith('fasta.gz'):
+        pass
+    else:
+        if get_compress_type(reads['pe2'])=='gzip':
+            os.rename(reads['pe2'], reads['pe2']+'.fastq.gz')
+            reads['pe2']= reads['pe2']+'.fastq.gz'
+        else:
+            os.rename(reads['pe2'], reads['pe2']+'.fastq')
+            reads['pe2']= reads['pe2']+'.fastq'
     cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --careful -o {path_out}'.format(
         memory=int(memory), threads=threads, path_out=path_out)
     if 'pe1' in reads and 'pe2' in reads:
@@ -77,8 +99,8 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50, tim
 
     contigs = sorted(contigs, key=len, reverse=True)
     logger.info("Read in {} contigs".format(len(contigs)))
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
-    with open(assembly_file, 'w') as f:
+    #assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
+    with gzip.open(assembly_file, 'wt') as f:
         for i, contig in enumerate(contigs):
             contig.set_desc(contig.get_name())
             contig.set_name(prefix_name + '_C' + str(i+1))
