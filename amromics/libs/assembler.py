@@ -1,4 +1,5 @@
 import os
+from glob import glob
 import shutil
 import csv
 import logging
@@ -11,7 +12,7 @@ from amromics.utils.utils import get_open_func
 from amromics.utils.utils import get_compress_type
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 logger = logging.getLogger(__name__)
-def trim_pe_trimmomatic(prefix_name, reads,threads=0, base_dir='.', timing_log=None, **kargs):
+def trim_trimmomatic(prefix_name, reads,threads=0, base_dir='.', timing_log=None, **kargs):
     """
     read_data is a dictionary with field `sample_id`
     :param read_data:
@@ -23,33 +24,38 @@ def trim_pe_trimmomatic(prefix_name, reads,threads=0, base_dir='.', timing_log=N
     if threads <= 0:
         threads = NUM_CORES_DEFAULT
 
-    out_dir = os.path.join(base_dir, 'trimmomatic_pe')
+    out_dir = os.path.join(base_dir, 'trimmomatic')
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    out_p1 = os.path.join(out_dir, prefix_name + '_R1.fastq.gz')
-    out_p2 = os.path.join(out_dir, prefix_name + '_R2.fastq.gz')
+    TRIMOPT='ILLUMINACLIP:db/trimmomatic.fa:1:30:11 LEADING:3 TRAILING:3 MINLEN:30 TOPHRED33'
+    if 'pe1' in reads and 'pe2' in reads:
+        out_p1 = os.path.join(out_dir, prefix_name + '_R1.fastq.gz')
+        out_p2 = os.path.join(out_dir, prefix_name + '_R2.fastq.gz')
 
-    out_s1 = os.path.join(out_dir, prefix_name + '_S1.fastq')
-    out_s2 = os.path.join(out_dir, prefix_name + '_S2.fastq')
+        cmd = 'trimmomatic PE -threads {threads} -phred33'.format(threads=threads)
+        cmd += ' {in_p1} {in_p2} {out_p1} /dev/null {out_p2} /dev/null {opt}'.format(
+            in_p1=reads['pe1'], in_p2=reads['pe2'],
+            out_p1=out_p1, out_p2=out_p2, opt=TRIMOPT)
+        ret = run_command(cmd, timing_log)
 
-    cmd = 'trimmomatic.sh PE -threads {threads}'.format(threads=threads)
-    cmd += ' {in_p1} {in_p2} {out_p1} {out_s1} {out_p2} {out_s2}'.format(
-        in_p1=reads['pe1'], in_p2=reads['pe2'],
-        out_p1=out_p1, out_s1=out_s1, out_p2=out_p2, out_s2=out_s2)
-    ret = run_command(cmd, timing_log)
-    # Combine single-ended reads into one
-    out_s = os.path.join(out_dir, prefix_name+ '_S.fastq')
-    with open(out_s, 'w') as fn:
-        for seq in bioseq.read_sequence_file(out_s1):
-            fn.write(seq.format_fastq())
-        for seq in bioseq.read_sequence_file(out_s2):
-            fn.write(seq.format_fastq())
+        if ret == 0:
+            return out_p1,out_p2
 
-    if ret == 0:
+    elif 'se' in reads:
+        out_s = os.path.join(out_dir, prefix_name + '_S.fastq.gz')
 
-#        read_data['se'] = out_s
-        return out_p1,out_p2
+        cmd = 'trimmomatic SE -threads {threads} -phred33'.format(threads=threads)
+        cmd += ' {in_s} /dev/null {opt}'.format(
+            in_s=reads['se'], opt=TRIMOPT)
+        ret = run_command(cmd, timing_log)
+
+        if ret == 0:
+            return out_s
+
+    else:
+        raise Exception('ERROR: Trimmomatic only for Illumina PE or SE!')
+
 
 ###NGS assembly using SPAdes
 def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,overwrite=False, timing_log=None,trim=False,gsize=None, **kargs):
@@ -85,26 +91,29 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --careful -o {path_out}'.format(
         memory=int(memory), threads=threads, path_out=path_out)
     if 'pe1' in reads and 'pe2' in reads:
-        cmd += ' --pe1-1 {pe1} --pe1-2 {pe2}'.format(pe1=reads['pe1'], pe2=reads['pe2'])
+        cmd += ' -1 {pe1} -2 {pe2}'.format(pe1=reads['pe1'], pe2=reads['pe2'])
     if 'se' in reads:
-        cmd += ' --s1 {se}'.format(se=reads['se'])
+        cmd += ' -s {se}'.format(se=reads['se'])
 
     ret = run_command(cmd, timing_log)
     if ret != 0:
         return None
 
-    #Read in list of contigs
-    contigs = list(bioseq.read_sequence_file(os.path.join(path_out, 'contigs.fasta')))
-    #TODO: filter based on coverage
+    #remove sub-folder corrected/
+    run_command('rm -rf ' + os.path.join(path_out,'corrected'))
+    run_command('rm -rf ' + os.path.join(path_out,'misc'))
+    run_command('rm -rf ' + os.path.join(path_out,'tmp'))
 
+    # Read in list of contigs
+    contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fasta'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
     logger.info("Read in {} contigs".format(len(contigs)))
     #assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
     with gzip.open(assembly_file, 'wt') as f:
         for i, contig in enumerate(contigs):
-            contig.set_desc(contig.get_name())
-            contig.set_name(prefix_name + '_C' + str(i+1))
-            f.write(contig.format_fasta())
+            contig.id =prefix_name+'_C'+str(i)
+            contig.description = ''
+            SeqIO.write(contig, f, "fasta")
     return assembly_file
 def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, timing_log=None, **kargs):
     if threads == 0:
@@ -125,19 +134,18 @@ def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, timi
     if ret != 0:
         return None
 
-    #Read in list of contigs
-    contigs = list(bioseq.read_sequence_file(assembly_file_raw))
-    #TODO: filter based on coverage
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
+    # Read in list of contigs
+    contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fasta'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
     logger.info("Read in {} contigs".format(len(contigs)))
-
-    with open(assembly_file, 'w') as f:
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
+    with gzip.open(assembly_file, 'wt') as f:
         for i, contig in enumerate(contigs):
-            contig.set_desc(contig.get_name())
-            contig.set_name(prefix_name + '_C' + str(i+1))
-            f.write(contig.format_fasta())
+            contig.id =prefix_name+'_C'+str(i)
+            contig.description = ''
+            SeqIO.write(contig, f, "fasta")
     return assembly_file
+
 def assemble_shovill(prefix_name, reads,base_dir, trim=False, threads=4, memory=50, overwrite=False, timing_log=None,gsize=None):
     """
         Run assembly process for pair-end input using shovill

@@ -45,4 +45,4 @@ samtools
 samclip
 #panaroo
 #PIRATE
-
+aspera-connect

@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 def downloadfile(url,savefile):
     #save the bak file before download new file if file exists
     if os.path.exists(savefile):
-        os.rename(savefile,savefile+'.bak')
+        #os.rename(savefile,savefile+'.bak')
+        print('\nFile {} exist, skip...'.format(savefile))
+        return
     try:
         print('\nDownloading file {}'.format(savefile))
         wget.download(url,savefile)
@@ -377,7 +379,18 @@ def get_integrall_db():
     )
     print (cmd)
     os.system(cmd)
+def get_trim_adapter():
+    adapter_dir='db/'
+    if not os.path.exists(adapter_dir):
+        os.makedirs(adapter_dir)
+    adapter_file=os.path.join(adapter_dir,'trimmomatic.fa')
+    url='https://raw.githubusercontent.com/tseemann/shovill/master/db/trimmomatic.fa'
+    adapter_file=downloadfile(url,adapter_file)
+    print('Adapter for trimmomatic downloaded into ' + adapter_file)
+
+
 def setup_db():
+    get_trim_adapter()
     get_kraken2()
     get_mlst_db()
     get_virulome_db()
@@ -388,5 +401,6 @@ def setup_db():
     get_integron()
     #get_prophage()
 def setup_minidb():
+    get_trim_adapter()
     get_mlst_db()
     get_virulome_db()

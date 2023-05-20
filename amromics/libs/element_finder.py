@@ -108,13 +108,13 @@ def blast(sample,db,output, identity=90, threads=1, mincov=0,dbtype='nucl'):
     #check db is indexed
     #dbfile=os.path.join(db_folder, 'sequences')
 
-
-
+    if sample.endswith('.gz'):
+        cmd = 'zcat {qry}'.format(qry=sample)
+    else:
+        cmd = 'cat {qry}'.format(qry=sample)
 
     # run blastn
-    cmd ='blastn -query {query} -task blastn -dust no -perc_identity {identity} -db {db} -outfmt \'6 qseqid qstart qend qlen sseqid sstart send slen sstrand evalue length pident gaps gapopen stitle\' -num_threads {threads} -evalue 1E-20 -culling_limit 1 > temp.tab'.format(
-
-        query=sample,
+    cmd +='|blastn -task blastn -dust no -perc_identity {identity} -db {db} -outfmt \'6 qseqid qstart qend qlen sseqid sstart send slen sstrand evalue length pident gaps gapopen stitle\' -num_threads {threads} -evalue 1E-20 -culling_limit 1 > temp.tab'.format(
         identity=identity,
         db=db,
         threads=threads
@@ -122,9 +122,7 @@ def blast(sample,db,output, identity=90, threads=1, mincov=0,dbtype='nucl'):
     )
 
     if dbtype=='prot':
-        cmd ='blastp -query {query} -task blastp  -db {db} -outfmt \'6 qseqid qstart qend qlen sseqid sstart send slen sstrand evalue length pident gaps gapopen stitle\' -num_threads {threads} -evalue 1E-20 > temp.tab'.format(
-
-            query=sample,
+        cmd +='|blastp -task blastp  -db {db} -outfmt \'6 qseqid qstart qend qlen sseqid sstart send slen sstrand evalue length pident gaps gapopen stitle\' -num_threads {threads} -evalue 1E-20 > temp.tab'.format(
 
             db=db,
             threads=threads
