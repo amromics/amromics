@@ -43,6 +43,7 @@ trimmomatic
 seqtk
 samtools
 samclip
+mash
 #panaroo
 #PIRATE
 aspera-connect
