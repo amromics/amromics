@@ -56,11 +56,11 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
             reads['pe2']=pe_files[1]
         else:
             raise Exception('There should be one or two input files')
-        if trim:
-            if 'pe1' in reads and 'pe2' in reads:
-                reads['pe1'],reads['pe2'] = assembler.trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
-            elif 'se' in reads:
-                reads['se'] = assembler.trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
+        # if trim:
+        #     if 'pe1' in reads and 'pe2' in reads:
+        #         reads['pe1'],reads['pe2'] = assembler.trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
+        #     elif 'se' in reads:
+        #         reads['se'] = assembler.trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
 
         sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
         #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])

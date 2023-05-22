@@ -88,7 +88,12 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
         else:
             os.rename(reads['pe2'], reads['pe2']+'.fastq')
             reads['pe2']= reads['pe2']+'.fastq'
-    cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --careful -o {path_out}'.format(
+    if trim:
+        if 'pe1' in reads and 'pe2' in reads:
+            reads['pe1'],reads['pe2']=trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
+        elif 'se' in reads:
+            reads['se'] = trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
+    cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --isolate --disable-gzip-output -o {path_out}'.format(
         memory=int(memory), threads=threads, path_out=path_out)
     if 'pe1' in reads and 'pe2' in reads:
         cmd += ' -1 {pe1} -2 {pe2}'.format(pe1=reads['pe1'], pe2=reads['pe2'])
