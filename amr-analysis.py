@@ -32,7 +32,7 @@ def version_func(args):
         'prokka',
         'mlst',
         'abricate',
-        'roary',
+#        'roary',
 #        'parsnp',
         'iqtree',
         'fastqc',
@@ -174,7 +174,7 @@ def pan_genome_analysis_func(args):
     timing_log = args.time_log
     method = args.method
     if not method:
-        method='roary'
+        method='panta'
     overwrite = False
 
     if not valid_id(collection_id):
@@ -223,7 +223,7 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
     pg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
     pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
-    pg_cmd.add_argument('--method', help='roary or panta', default='roary')
+    pg_cmd.add_argument('--method', help='panta or roary', default='panta')
     pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
 
     sg_cmd = subparsers.add_parser(
