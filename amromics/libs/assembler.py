@@ -12,50 +12,6 @@ from amromics.utils.utils import get_open_func
 from amromics.utils.utils import get_compress_type
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 logger = logging.getLogger(__name__)
-def trim_trimmomatic(prefix_name, reads,threads=0, base_dir='.', timing_log=None, **kargs):
-    """
-    read_data is a dictionary with field `sample_id`
-    :param read_data:
-    :param threads:
-    :param base_dir:
-    :param kargs:
-    :return:
-    """
-    if threads <= 0:
-        threads = NUM_CORES_DEFAULT
-
-    out_dir = os.path.join(base_dir, 'trimmomatic')
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-
-    TRIMOPT='ILLUMINACLIP:db/trimmomatic.fa:1:30:11 LEADING:3 TRAILING:3 MINLEN:30 TOPHRED33'
-    if 'pe1' in reads and 'pe2' in reads:
-        out_p1 = os.path.join(out_dir, prefix_name + '_R1.fastq.gz')
-        out_p2 = os.path.join(out_dir, prefix_name + '_R2.fastq.gz')
-
-        cmd = 'trimmomatic PE -threads {threads} -phred33'.format(threads=threads)
-        cmd += ' {in_p1} {in_p2} {out_p1} /dev/null {out_p2} /dev/null {opt}'.format(
-            in_p1=reads['pe1'], in_p2=reads['pe2'],
-            out_p1=out_p1, out_p2=out_p2, opt=TRIMOPT)
-        ret = run_command(cmd, timing_log)
-
-        if ret == 0:
-            return out_p1,out_p2
-
-    elif 'se' in reads:
-        out_s = os.path.join(out_dir, prefix_name + '_S.fastq.gz')
-
-        cmd = 'trimmomatic SE -threads {threads} -phred33'.format(threads=threads)
-        cmd += ' {in_s} /dev/null {opt}'.format(
-            in_s=reads['se'], opt=TRIMOPT)
-        ret = run_command(cmd, timing_log)
-
-        if ret == 0:
-            return out_s
-
-    else:
-        raise Exception('ERROR: Trimmomatic only for Illumina PE or SE!')
-
 
 ###NGS assembly using SPAdes
 def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,overwrite=False, timing_log=None,trim=False,gsize=None, **kargs):
@@ -69,31 +25,11 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
         return assembly_file
-    #TODO: add trimmomatic if needed, add seqtk step
-    if reads['pe1'].endswith('fastq') or reads['pe1'].endswith('fastq.gz') or reads['pe1'].endswith('fasta') or reads['pe1'].endswith('fasta.gz'):
-        pass
-    else:
-        if get_compress_type(reads['pe1'])=='gzip':
-            os.rename(reads['pe1'], reads['pe1']+'.fastq.gz')
-            reads['pe1']= reads['pe1']+'.fastq.gz'
-        else:
-            os.rename(reads['pe1'], reads['pe1']+'.fastq')
-            reads['pe1']= reads['pe1']+'.fastq'
-    if reads['pe2'].endswith('fastq') or reads['pe2'].endswith('fastq.gz') or reads['pe2'].endswith('fasta') or reads['pe2'].endswith('fasta.gz'):
-        pass
-    else:
-        if get_compress_type(reads['pe2'])=='gzip':
-            os.rename(reads['pe2'], reads['pe2']+'.fastq.gz')
-            reads['pe2']= reads['pe2']+'.fastq.gz'
-        else:
-            os.rename(reads['pe2'], reads['pe2']+'.fastq')
-            reads['pe2']= reads['pe2']+'.fastq'
-    if trim:
-        if 'pe1' in reads and 'pe2' in reads:
-            reads['pe1'],reads['pe2']=trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
-        elif 'se' in reads:
-            reads['se'] = trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
-    cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --isolate --disable-gzip-output -o {path_out}'.format(
+   
+    #rename reads zip/unzip now move to preprocess.py
+
+    #cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --isolate --disable-gzip-output -o {path_out}'.format(
+    cmd = 'spades.py -m {memory} -t {threads} --only-assembler --isolate --cov-cutoff auto -o {path_out}'.format(
         memory=int(memory), threads=threads, path_out=path_out)
     if 'pe1' in reads and 'pe2' in reads:
         cmd += ' -1 {pe1} -2 {pe2}'.format(pe1=reads['pe1'], pe2=reads['pe2'])
@@ -104,8 +40,8 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     if ret != 0:
         return None
 
-    #remove sub-folder corrected/
-    run_command('rm -rf ' + os.path.join(path_out,'corrected'))
+    #remove intermediate sub-folder
+    #run_command('rm -rf ' + os.path.join(path_out,'corrected'))
     run_command('rm -rf ' + os.path.join(path_out,'misc'))
     run_command('rm -rf ' + os.path.join(path_out,'tmp'))
 

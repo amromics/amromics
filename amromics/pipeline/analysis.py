@@ -28,7 +28,7 @@ def prepareDataCollectionAnalysis(report,collection_dir):
 
     return temp_folder,gff_dir,ffn_dir
 
-def single_genome_analysis(samples, work_dir, threads=0, memory=8, timing_log=None):
+def single_genome_analysis(samples, work_dir, overwrite=False, threads=0, memory=8, timing_log=None):
     # TODO: move the analysis in single_genome_analysis_func here
     for sample in samples:
         sample_id = sample['id']
@@ -36,7 +36,7 @@ def single_genome_analysis(samples, work_dir, threads=0, memory=8, timing_log=No
         if not os.path.exists(sample_dir):
             os.makedirs(sample_dir)
         wrapper.run_single_sample(
-            sample, sample_dir=sample_dir, threads=threads,
+            sample, sample_dir=sample_dir, threads=threads, overwrite=overwrite,
             memory=memory,trim=sample['trim'], timing_log=timing_log)
 
         with open(os.path.join(sample_dir, sample_id + '_dump.json'), 'w') as fn:

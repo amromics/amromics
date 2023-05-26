@@ -32,14 +32,14 @@ quast==5.2.0
 #skesa==2.4.0
 spades==3.15.5
 sra-tools==3.0.3
-#shovill dependencies
-megahit
-bwa
-flash
-kmc
-lighter
-pilon
-trimmomatic
+##shovill dependencies
+#megahit
+#bwa
+#flash
+#kmc
+#lighter
+#pilon
+#trimmomatic
 seqtk
 samtools
 samclip

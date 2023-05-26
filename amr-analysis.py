@@ -145,6 +145,7 @@ def single_genome_analysis_func(args):
     threads = args.threads
     memory = args.memory
     timing_log = args.time_log
+    overwrite=args.overwrite
     if threads <= 0:
         threads = multiprocessing.cpu_count()
     #auto setup db if db not exists
@@ -155,7 +156,7 @@ def single_genome_analysis_func(args):
             setup_minidb()
     # run single sample pipeline
     samples = input_file_to_samples(args.input)
-    single_genome_analysis(samples, work_dir, threads, memory, timing_log)
+    single_genome_analysis(samples, work_dir, overwrite, threads, memory, timing_log)
     return samples
 
 
@@ -175,7 +176,8 @@ def pan_genome_analysis_func(args):
     method = args.method
     if not method:
         method='panta'
-    overwrite = False
+    #overwrite = False
+    overwrite=args.overwrite
 
     if not valid_id(collection_id):
         raise Exception('{} invalid: collection ID can only contain alpha-numerical or underscore charactors'.format(collection_id))
@@ -191,7 +193,7 @@ def pan_genome_analysis_func(args):
     samples = input_file_to_samples(args.input)
 
     # First run single analysis
-    samples = single_genome_analysis(samples, work_dir, threads=threads, memory=memory, timing_log=timing_log)
+    samples = single_genome_analysis(samples, work_dir, overwrite=overwrite, threads=threads, memory=memory, timing_log=timing_log)
     report = pan_genome_analysis(
         samples, work_dir,
         collection_id, collection_name, overwrite=overwrite,
@@ -224,6 +226,7 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
     pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
     pg_cmd.add_argument('--method', help='panta or roary', default='panta')
+    pg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
     pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
 
     sg_cmd = subparsers.add_parser(
@@ -237,6 +240,7 @@ def main(arguments=sys.argv[1:]):
     sg_cmd.add_argument('-m', '--memory', help='Amount of memory in Gb to use', default=30, type=float)
     sg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
     sg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
+    sg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
     sg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
     sg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
 

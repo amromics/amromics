@@ -21,6 +21,7 @@ import amromics.libs.mlst as mlst
 import amromics.libs.amr as amr
 import amromics.libs.annotation as annotation
 import amromics.libs.assembler as assembler
+import amromics.libs.preprocess as preprocess
 import amromics.libs.qc as qc
 import amromics.libs.taxonomy as taxonomy
 from Bio import SeqIO
@@ -33,7 +34,7 @@ import amromics.libs.alignment as alignment
 import amromics.libs.phylogeny as phylogeny
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
-def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=50, trim=False,timing_log=None):
+def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=50, trim=False, overwrite=None, timing_log=None):
     #handle assembly input, ignore spades and bwa:
     sample['execution_start'] =  datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     reads=None
@@ -56,13 +57,20 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
             reads['pe2']=pe_files[1]
         else:
             raise Exception('There should be one or two input files')
-        # if trim:
-        #     if 'pe1' in reads and 'pe2' in reads:
-        #         reads['pe1'],reads['pe2'] = assembler.trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
-        #     elif 'se' in reads:
-        #         reads['se'] = assembler.trim_trimmomatic(sample['id'],reads, base_dir=sample_dir, timing_log=timing_log,threads=threads)
-
-        sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
+        #preprocesing
+        preprocess.rename_reads(reads)
+        if trim:
+            if 'pe1' in reads and 'pe2' in reads:
+                reads['pe1'],reads['pe2'] = preprocess.trim_fastp(sample['id'],reads, overwrite=overwrite, base_dir=sample_dir, timing_log=timing_log,threads=threads)
+            elif 'se' in reads:
+                reads['se'] = preprocess.trim_fastp(sample['id'],reads, base_dir=sample_dir, overwrite=overwrite, timing_log=timing_log,threads=threads)
+        #estimate gsize if not provided
+        if sample['gsize']==None:
+            sample['gsize']=preprocess.estimate_gsize_mash(sample['id'],reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
+        #subsampling to 100X if needed
+        reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
+        #run assembly by spades
+        sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
         #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
     elif sample['input_type'] in ['gff']:
         sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir)
