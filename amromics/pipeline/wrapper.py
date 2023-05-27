@@ -63,10 +63,12 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
             if 'pe1' in reads and 'pe2' in reads:
                 reads['pe1'],reads['pe2'] = preprocess.trim_fastp(sample['id'],reads, overwrite=overwrite, base_dir=sample_dir, timing_log=timing_log,threads=threads)
             elif 'se' in reads:
-                reads['se'] = preprocess.trim_fastp(sample['id'],reads, base_dir=sample_dir, overwrite=overwrite, timing_log=timing_log,threads=threads)
+                reads['se'] = preprocess.trim_fastp(sample['id'],reads,
+                        base_dir=sample_dir, overwrite=overwrite, timing_log=timing_log,threads=threads)
         #estimate gsize if not provided
         if sample['gsize']==None:
-            sample['gsize']=preprocess.estimate_gsize_mash(sample['id'],reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
+            sample['gsize']=preprocess.estimate_gsize_mash(sample['id'], reads,
+                    base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory,timing_log=timing_log)
         #subsampling to 100X if needed
         reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
         #run assembly by spades

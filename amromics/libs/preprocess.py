@@ -115,7 +115,7 @@ def trim_fastp(prefix_name, reads,threads=0, base_dir='.', overwrite=False, timi
     else:
         raise Exception('ERROR: Fastp only for Illumina PE or SE!')
 
-def estimate_gsize_mash(prefix_name, reads, threads=0, base_dir='.', timing_log=None,**kargs):
+def estimate_gsize_mash(prefix_name, reads, overwrite=False, threads=0, base_dir='.', timing_log=None,**kargs):
     ##estimate genome size
     #gsize=$(mash sketch -p 8 -o /dev/null -k 21 -m 5 -r fastp/SRR1616936_1.fastq.gz 2>&1 | awk -F: '/Estimated genome size/{printf("%d",$2)}')
     
@@ -123,16 +123,22 @@ def estimate_gsize_mash(prefix_name, reads, threads=0, base_dir='.', timing_log=
         threads = NUM_CORES_DEFAULT
 
     mash_log = os.path.join(base_dir, prefix_name + '_mash.log')
-    if 'pe1' in reads and 'pe2' in reads:
-        in1 = reads['pe1']
-    elif 'se' in reads:
-        in1 = reads['se']
+    ret=0
+    if os.path.isfile(mash_log) and (not overwrite):
+        print("mash results exist for {}! skip running mash sketch...".format(prefix_name))
     else:
-        raise Exception('ERROR: Mash (gsize est.) only for Illumina PE or SE!')
+        mash_out = os.path.join(base_dir, prefix_name + '_mash.out')
+        if 'pe1' in reads and 'pe2' in reads:
+            in1 = reads['pe1']
+        elif 'se' in reads:
+            in1 = reads['se']
+        else:
+            raise Exception('ERROR: Mash (gsize est.) only for Illumina PE or SE!')
 
-    cmd='mash sketch -p {threads} -o /dev/null -k 21 -m 5 -r {in1} 2>&1 > {mash_log}'.format(
-            threads=threads, in1=in1, mash_log=mash_log)
-    ret=run_command(cmd,timing_log)
+        cmd='mash sketch -o {mash_out} -k 21 -m 5 -r {in1} 2>&1 > {mash_log}'.format(
+                mash_out=mash_out, in1=in1, mash_log=mash_log)
+        cmd+='&&rm -f {mash_out}'.format(mash_out=mash_out)
+        ret=run_command(cmd,timing_log)
 
     if ret != 0:
         print("ERROR: seqtk for {} return non-zero code! skip subsampling by seqtk...".format(prefix_name))
