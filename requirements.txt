@@ -44,6 +44,7 @@ seqtk
 samtools
 samclip
 mash
+fastp
 #panaroo
 #PIRATE
 aspera-connect
