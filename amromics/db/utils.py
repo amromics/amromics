@@ -19,30 +19,52 @@ import wget
 import urllib
 import gzip
 import shutil
+import time
 from zipfile import ZipFile
 import re
 
 logger = logging.getLogger(__name__)
 
 
-
 def downloadfile(url,savefile):
-    #save the bak file before download new file if file exists
+    max_attempts = 5
+    attempts = 1
+    sleeptime = 3 #in seconds, no reason to continuously try if network is down
     if os.path.exists(savefile):
-        #os.rename(savefile,savefile+'.bak')
-        print('\nFile {} exist, skip...'.format(savefile))
-        return
-    try:
-        print('\nDownloading file {}'.format(savefile))
-        wget.download(url,savefile)
-        if os.path.exists(savefile+'.bak'):
-            os.remove(savefile+'.bak')
+        print("{} already exist! skip downloading...".format(savefile))
         return savefile
-    except BaseException as error:
-        print(str(error))
-        if os.path.exists(savefile+'.bak'):
-            os.rename(savefile+'.bak',savefile)
-        return None
+    
+    #while true: #Possibly Dangerous
+    while True:
+        try:
+            print('\nDownloading file {}: {} attempt...'.format(savefile, attempts))
+            wget.download(url,savefile)
+            break
+        except Exception as e:
+            attempts += 1
+            print (str(e))
+            if attempts >= max_attempts:
+                return None
+            else:
+                time.sleep(sleeptime)
+    return savefile
+
+#def downloadfile(url,savefile):
+#    #save the bak file before download new file if file exists
+#    if os.path.exists(savefile):
+#        os.rename(savefile,savefile+'.bak')
+#    try:
+#        print('\nDownloading file {}'.format(savefile))
+#        wget.download(url,savefile)
+#        if os.path.exists(savefile+'.bak'):
+#            os.remove(savefile+'.bak')
+#        return savefile
+#    except BaseException as error:
+#        print(str(error))
+#        if os.path.exists(savefile+'.bak'):
+#            os.rename(savefile+'.bak',savefile)
+#        return None
+
 def get_mlst_db():
     '''
         Download PubMLST from ftp folder, read dbases.xml to get url for downloading
@@ -57,6 +79,7 @@ def get_mlst_db():
     if not os.path.exists(pubmlst_dir):
         os.makedirs(pubmlst_dir)
 
+    ignore_species={'afumigatus','blastocystis','calbicans','cglabrata','ckrusei','ctropicalis','csinensis','kseptempunctata','sparasitica','tvaginalis'}
     for species in root:
         scheme_dir=''
         for profiles in species.iter('profiles'):
@@ -65,20 +88,23 @@ def get_mlst_db():
                     #scheme=os.path.basename(child.text).strip().replace('.txt','')
                     toks = child.text.split("/")
                     scheme_name = toks[toks.index("db")+1].split("_")[1]
-                    scheme_num = toks[toks.index("schemes")+1]
-                    scheme = scheme_name + (("_"+scheme_num) if scheme_num!="1" else "")
-                    scheme_dir=os.path.join(pubmlst_dir,scheme)
-                    if not os.path.exists(scheme_dir):
-                        os.makedirs(scheme_dir)
-                    #print(os.path.basename(child.text).strip())
-                    downloadfile(child.text,os.path.join(scheme_dir,scheme+".txt"))
-        for loci in species.iter('loci'):
-            for locus in loci:
-                for child in locus:
-                    if child.tag=='url':
-                        print(os.path.join(scheme_dir,locus.text.strip()))
-                        downloadfile(child.text,os.path.join(scheme_dir,locus.text.strip()+".tfa"))
-    ignore_species={'afumigatus','blastocystis','calbicans','cglabrata','ckrusei','ctropicalis','csinensis','kseptempunctata','sparasitica','tvaginalis'}
+                    if scheme_name not in ignore_species:
+                        scheme_num = toks[toks.index("schemes")+1]
+                        scheme = scheme_name + (("_"+scheme_num) if scheme_num!="1" else "")
+                        scheme_dir=os.path.join(pubmlst_dir,scheme)
+                        if not os.path.exists(scheme_dir):
+                            os.makedirs(scheme_dir)
+                        #print(os.path.basename(child.text).strip())
+                        downloadfile(child.text,os.path.join(scheme_dir,scheme+".txt"))
+        
+        if scheme_name not in ignore_species:
+            for loci in species.iter('loci'):
+                for locus in loci:
+                    for child in locus:
+                        if child.tag=='url':
+                            print(os.path.join(scheme_dir,locus.text.strip()))
+                            downloadfile(child.text,os.path.join(scheme_dir,locus.text.strip()+".tfa"))
+    
     for rm_species in ignore_species:
         rm_dir=os.path.join(pubmlst_dir,rm_species)
         if os.path.exists(rm_dir):
@@ -305,6 +331,10 @@ def get_kraken2():
         os.makedirs(kraken2_db)
     k2std_zip=os.path.join(kraken2_db,'k2std.tar.gz')
     k2std_unzip=os.path.join(kraken2_db,'k2std')
+    if os.path.exists(os.path.join(k2std_unzip,'hash.k2d')) and os.path.getsize(os.path.join(k2std_unzip,'hash.k2d')) > 8000000000:
+        print("kraken2 db already exist! skip downloading...")
+        return
+
     k2std_zip=downloadfile(url,k2std_zip)
     if not k2std_zip==None:
         shutil.unpack_archive(k2std_zip, k2std_unzip)
@@ -386,8 +416,6 @@ def get_trim_adapter():
     adapter_file=os.path.join(adapter_dir,'trimmomatic.fa')
     url='https://raw.githubusercontent.com/tseemann/shovill/master/db/trimmomatic.fa'
     adapter_file=downloadfile(url,adapter_file)
-    print('Adapter for trimmomatic downloaded into ' + adapter_file)
-
 
 def setup_db():
     get_trim_adapter()

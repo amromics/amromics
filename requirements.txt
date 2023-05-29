@@ -23,7 +23,8 @@ mafft==7.520
 mcl==14.137
 mlst==2.19.0
 multiqc==1.10
-ncbi-amrfinderplus==3.10.40
+#ncbi-amrfinderplus==3.10.40
+ncbi-amrfinderplus==3.11.14
 parasail-python
 prokka==1.14.6
 quast==5.2.0
