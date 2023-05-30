@@ -13,7 +13,6 @@ setup(
         'scipy',
         'pysam',
         #'wget',
-        'httpx',
         'tenacity'
     ],
     scripts=['amr-analysis.py'],

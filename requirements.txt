@@ -9,7 +9,6 @@ scipy
 psutil
 biopython
 pysam
-httpx
 tenacity
 abricate==1.0.1
 blast==2.13.0

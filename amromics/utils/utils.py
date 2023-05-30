@@ -4,34 +4,22 @@ import gzip
 import os
 import sys
 import uuid
-
-import httpx
+import shutil
+import requests
+from requests import HTTPError
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
-import urllib3.exceptions
 
-
+def get_response(retry_state):
+    print(f" Maximum number of retries exceeded. {retry_state} ")
 @retry(
     retry=(
-        retry_if_exception_type(httpx.HTTPError) |
-        retry_if_exception_type(urllib3.exceptions.HTTPError)
+        retry_if_exception_type(HTTPError) 
     ),
-    stop=stop_after_attempt(10),
-    wait=wait_fixed(60),
+    stop=stop_after_attempt(5),
+    wait=wait_fixed(10),
+    retry_error_callback=get_response
 )
-def download_file(url, path, client=None):
-    """
-    Credit: https://alexwlchan.net/
-    Atomically download a file from ``url`` to ``path``.
-
-    If ``path`` already exists, the file will not be downloaded again.
-    This means that different URLs should be saved to different paths.
-
-    This function is meant to be used in cases where the contents of ``url``
-    is immutable -- calling it more than once should always return the same bytes.
-
-    Returns the download path.
-
-    """
+def download_file(url, path):
     # If the URL has already been downloaded, we can skip downloading it again.
     if os.path.exists(path):
         return path
@@ -39,23 +27,17 @@ def download_file(url, path, client=None):
     if os.path.dirname(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    if client is None:
-        client = httpx.Client()
-
     try:
-        with client.stream("GET", url) as resp:
+        with requests.get(url, stream=True, timeout=50) as resp:
             resp.raise_for_status()
 
-            # Download to a temporary path first.  That way, we only get
-            # something at the destination path if the download is successful.
-            #
             # We download to a path in the same directory so we can do an
             # atomic ``os.rename()`` later -- atomic renames don't work
             # across filesystem boundaries.
             tmp_path = f"{path}.{uuid.uuid4()}.tmp"
 
             with open(tmp_path, "wb") as out_file:
-                for chunk in resp.iter_raw():
+                for chunk in resp.iter_content():
                     out_file.write(chunk)
 
     # If something goes wrong, it will probably be retried by tenacity.
@@ -64,8 +46,13 @@ def download_file(url, path, client=None):
     except Exception as exc:
         print(exc, file=sys.stderr)
         raise
-
-    os.rename(tmp_path, path)
+    
+    if get_compress_type(tmp_path)=='gzip':
+        with gzip.open(tmp_path, 'rb') as f_in:
+            with open(path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+    else:
+        os.rename(tmp_path, path)
     return path
 
 def get_compress_type(filepath):
