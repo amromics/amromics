@@ -15,10 +15,9 @@ import os, glob,shutil
 import amromics.libs.bioseq as bioseq
 from collections import OrderedDict
 import xml.etree.ElementTree as ET
-import wget
+#import wget
 import urllib
 import gzip
-import shutil
 import time
 from zipfile import ZipFile
 import re
@@ -300,14 +299,14 @@ def get_kraken2():
     '''
         Get kraken db
     '''
-    #more up-to-date db
-    url='https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20230314.tar.gz'
+    #Must be http, getting from GTDB
+    url='https://bridges.monash.edu/ndownloader/files/16378271'
     #for better download speed
     #url='ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/old/minikraken2_v1_8GB_201904.tgz'
     kraken2_db='db/kraken2/'
     if not os.path.exists(kraken2_db):
         os.makedirs(kraken2_db)
-    k2std_zip=os.path.join(kraken2_db,'k2std.tar.gz')
+    k2std_zip=os.path.join(kraken2_db,'k2std.tar')
     k2std_unzip=os.path.join(kraken2_db,'k2std')
     if os.path.exists(os.path.join(k2std_unzip,'hash.k2d')) and os.path.getsize(os.path.join(k2std_unzip,'hash.k2d')) > 8000000000:
         print("kraken2 db already exist! skip downloading...")

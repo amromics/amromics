@@ -9,6 +9,7 @@ import requests
 from requests import HTTPError
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
+#Todo: download by async: https://hackernoon.com/how-to-speed-up-file-downloads-with-python
 def get_response(retry_state):
     print(f" Maximum number of retries exceeded. {retry_state} ")
 @retry(
@@ -16,7 +17,7 @@ def get_response(retry_state):
         retry_if_exception_type(HTTPError) 
     ),
     stop=stop_after_attempt(5),
-    wait=wait_fixed(10),
+    wait=wait_fixed(30),
     retry_error_callback=get_response
 )
 def download_file(url, path):
@@ -28,7 +29,7 @@ def download_file(url, path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
     try:
-        with requests.get(url, stream=True, timeout=50) as resp:
+        with requests.get(url, stream=True) as resp:
             resp.raise_for_status()
 
             # We download to a path in the same directory so we can do an
@@ -37,7 +38,7 @@ def download_file(url, path):
             tmp_path = f"{path}.{uuid.uuid4()}.tmp"
 
             with open(tmp_path, "wb") as out_file:
-                for chunk in resp.iter_content():
+                for chunk in resp.iter_content(chunk_size=1000000):
                     out_file.write(chunk)
 
     # If something goes wrong, it will probably be retried by tenacity.
