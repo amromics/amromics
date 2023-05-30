@@ -6,7 +6,7 @@
 Revision history:
 ----------------
 2019-08-16: MDC Created
-
+2023-30-05: SHN Modified
 """
 from __future__ import division, print_function, absolute_import
 
@@ -22,34 +22,11 @@ import shutil
 import time
 from zipfile import ZipFile
 import re
-
+from amromics.utils.utils import download_file
 logger = logging.getLogger(__name__)
 
 
-def downloadfile(url,savefile):
-    max_attempts = 5
-    attempts = 1
-    sleeptime = 3 #in seconds, no reason to continuously try if network is down
-    if os.path.exists(savefile):
-        print("{} already exist! skip downloading...".format(savefile))
-        return savefile
-    
-    #while true: #Possibly Dangerous
-    while True:
-        try:
-            print('\nDownloading file {}: {} attempt...'.format(savefile, attempts))
-            wget.download(url,savefile)
-            break
-        except Exception as e:
-            attempts += 1
-            print (str(e))
-            if attempts >= max_attempts:
-                return None
-            else:
-                time.sleep(sleeptime)
-    return savefile
-
-#def downloadfile(url,savefile):
+#def download_file(url,savefile):
 #    #save the bak file before download new file if file exists
 #    if os.path.exists(savefile):
 #        os.rename(savefile,savefile+'.bak')
@@ -95,7 +72,7 @@ def get_mlst_db():
                         if not os.path.exists(scheme_dir):
                             os.makedirs(scheme_dir)
                         #print(os.path.basename(child.text).strip())
-                        downloadfile(child.text,os.path.join(scheme_dir,scheme+".txt"))
+                        download_file(child.text,os.path.join(scheme_dir,scheme+".txt"))
         
         if scheme_name not in ignore_species:
             for loci in species.iter('loci'):
@@ -103,7 +80,7 @@ def get_mlst_db():
                     for child in locus:
                         if child.tag=='url':
                             print(os.path.join(scheme_dir,locus.text.strip()))
-                            downloadfile(child.text,os.path.join(scheme_dir,locus.text.strip()+".tfa"))
+                            download_file(child.text,os.path.join(scheme_dir,locus.text.strip()+".tfa"))
     
     for rm_species in ignore_species:
         rm_dir=os.path.join(pubmlst_dir,rm_species)
@@ -146,7 +123,7 @@ def get_virulome_db():
     vfdb_file_zip=os.path.join(vfdb_dir,'sequences.gz')
     vfdb_file=os.path.join(vfdb_dir,'sequences.fa')
     vfdb_file_out=os.path.join(vfdb_dir,'sequences')
-    vfdb_file_zip=downloadfile('http://www.mgc.ac.cn/VFs/Down/VFDB_setA_nt.fas.gz',vfdb_file_zip)
+    vfdb_file_zip=download_file('http://www.mgc.ac.cn/VFs/Down/VFDB_setA_nt.fas.gz',vfdb_file_zip)
     if not vfdb_file_zip==None:
         with gzip.open(vfdb_file_zip, 'rb') as f_in:
             with open(vfdb_file, 'wb') as f_out:
@@ -187,7 +164,7 @@ def get_plasmidfinder():
     plasmidfinder_zip=os.path.join(plasmidfinder_dir,'plasmidfinder.zip')
     plasmidfinder_unzip=os.path.join(plasmidfinder_dir,'temp')
     plasmidfinder_out=os.path.join(plasmidfinder_dir,'sequences')
-    plasmidfinder_zip=downloadfile(url,plasmidfinder_zip)
+    plasmidfinder_zip=download_file(url,plasmidfinder_zip)
     if not plasmidfinder_zip==None:
 
         with ZipFile(plasmidfinder_zip, 'r') as zipObj:
@@ -236,7 +213,7 @@ def get_pmlst():
     pmlst_zip=os.path.join(pmlst_dir,'pmlst.zip')
     pmlst_unzip=os.path.join(pmlst_dir,'temp')
 
-    pmlst_zip=downloadfile(url,pmlst_zip)
+    pmlst_zip=download_file(url,pmlst_zip)
     pmlst_file=os.path.join(blast_dir,'pmlst.fa')
     try:
         os.remove(pmlst_file)
@@ -285,7 +262,7 @@ def get_integron():
     integron_zip=os.path.join(integron_dir,'integron.zip')
     integron_unzip=os.path.join(integron_dir,'temp')
     integron_out=os.path.join(integron_dir,'sequences')
-    integron_zip=downloadfile(url,integron_zip)
+    integron_zip=download_file(url,integron_zip)
     if not integron_zip==None:
 
         with ZipFile(integron_zip, 'r') as zipObj:
@@ -323,9 +300,10 @@ def get_kraken2():
     '''
         Get kraken db
     '''
-    #url='https://genome-idx.s3.amazonaws.com/kraken/k2_standard_8gb_20200919.tar.gz'
+    #more up-to-date db
+    url='https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20230314.tar.gz'
     #for better download speed
-    url='ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/old/minikraken2_v1_8GB_201904.tgz'
+    #url='ftp://ftp.ccb.jhu.edu/pub/data/kraken2_dbs/old/minikraken2_v1_8GB_201904.tgz'
     kraken2_db='db/kraken2/'
     if not os.path.exists(kraken2_db):
         os.makedirs(kraken2_db)
@@ -335,7 +313,7 @@ def get_kraken2():
         print("kraken2 db already exist! skip downloading...")
         return
 
-    k2std_zip=downloadfile(url,k2std_zip)
+    k2std_zip=download_file(url,k2std_zip)
     if not k2std_zip==None:
         shutil.unpack_archive(k2std_zip, k2std_unzip)
         for (root,dirs,files) in os.walk(k2std_unzip, topdown=True):
@@ -351,7 +329,7 @@ def get_prophage():
     if not os.path.exists(prophage_dir):
         os.makedirs(prophage_dir)
     prophage_file=os.path.join(prophage_dir,'sequences')
-    prophage_file=downloadfile(url,prophage_file)
+    prophage_file=download_file(url,prophage_file)
     with open(integron_out,'w') as f:
         for seq in bioseq.read_sequence_file(prophage_file):
             accession=''
@@ -390,7 +368,7 @@ def get_integrall_db():
     url='http://integrall.bio.ua.pt/?getFastaAll'
     integrall_file=os.path.join(integrall_dir,'integrall.fasta')
     integrall_file_out=os.path.join(integrall_dir,'sequences')
-    integrall_file=downloadfile(url,integrall_file)
+    integrall_file=download_file(url,integrall_file)
     if not integrall_file==None:
         with open(integrall_file_out,'w') as f:
             for seq in bioseq.read_sequence_file(integrall_file):
@@ -415,7 +393,7 @@ def get_trim_adapter():
         os.makedirs(adapter_dir)
     adapter_file=os.path.join(adapter_dir,'trimmomatic.fa')
     url='https://raw.githubusercontent.com/tseemann/shovill/master/db/trimmomatic.fa'
-    adapter_file=downloadfile(url,adapter_file)
+    adapter_file=download_file(url,adapter_file)
 
 def setup_db():
     get_trim_adapter()

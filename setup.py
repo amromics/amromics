@@ -12,7 +12,9 @@ setup(
         'numpy',
         'scipy',
         'pysam',
-        'wget'
+        #'wget',
+        'httpx',
+        'tenacity'
     ],
     scripts=['amr-analysis.py'],
     #entry_points={'console_scripts': ['amromics=scripts/amr-analysis.py']},
