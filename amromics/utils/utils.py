@@ -20,7 +20,7 @@ def get_response(retry_state):
     wait=wait_fixed(30),
     retry_error_callback=get_response
 )
-def download_file(url, path):
+def download_file(url, path, gunzip=False):
     # If the URL has already been downloaded, we can skip downloading it again.
     if os.path.exists(path):
         return path
@@ -48,7 +48,7 @@ def download_file(url, path):
         print(exc, file=sys.stderr)
         raise
     
-    if get_compress_type(tmp_path)=='gzip':
+    if gunzip==True and get_compress_type(tmp_path)=='gzip':
         with gzip.open(tmp_path, 'rb') as f_in:
             with open(path, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
