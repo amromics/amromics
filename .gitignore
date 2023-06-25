@@ -106,3 +106,6 @@ venv.bak/
 
 # OSX
 .DS_Store
+
+# raw fastq
+*.fastq.gz
