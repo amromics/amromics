@@ -6,7 +6,7 @@ import multiprocessing
 import gzip
 from amromics.utils.command import run_command
 from amromics.libs.bioseq import read_sequence_file
-
+from amromics.utils.utils import get_compress_type
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 
