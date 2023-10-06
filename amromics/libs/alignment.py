@@ -300,7 +300,7 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
             new_record = SeqRecord(Seq(seq_dict[sample]), id = sample, description = '')
             SeqIO.write(new_record, fh, 'fasta')
 
-    return phylogeny_folder
+    return core_gene_aln_file
 def get_gene_sequences(roary_folder,sample_col,ffn_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Create protein sequences and nucleotide sequences for each gene cluster
