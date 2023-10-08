@@ -76,7 +76,10 @@ def parseGFF(sample_id,gff_file_in,base_dir):
     annotation_ffn = path_out+'/'+str(sample_id)+'.ffn.gz'
     annotation_fna = path_out+'/'+str(sample_id)+'.fna.gz'
     annotation_faa = path_out+'/'+str(sample_id)+'.faa.gz'
-
+    if os.path.isfile(annotation_gff)  and (not overwrite):
+        # Dont run again if gff/gbk file exists
+        logger.info('GFF files found, skip annotating')
+        return annotation_gff,annotation_faa,annotation_ffn,annotation_fna
     found_fasta = False
     open_func = get_open_func(gff_file_in)
     fasta_file=open(path_out+'/'+str(sample_id)+'.fna','w')
