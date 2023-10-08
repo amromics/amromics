@@ -66,7 +66,7 @@ def annotate_prokka(prefix_name,assembly,genus=None,species=None, strain=None,gr
             os.remove(file_name)
 
     return annotation_gff,annotation_faa,annotation_ffn,annotation_fna,annotation_gbk
-def parseGFF(sample_id,gff_file_in,base_dir):
+def parseGFF(sample_id,gff_file_in,base_dir,overwrite=False):
 
     path_out = os.path.join(base_dir, sample_id+'_prokka' )
 
