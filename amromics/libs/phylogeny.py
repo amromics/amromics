@@ -140,8 +140,14 @@ def run_species_phylogeny_fastree(roary_folder, collection_dir, threads=8, overw
     aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln.gz')
     if not os.path.isfile(aln_file):
         aln_file = os.path.join(report['roary'], 'core_gene_alignment.aln.gz')
+    aln_file_unzip = aln_file.replace('.aln.gz','.aln')
+    op = open(aln_file_unzip,"w")
+
+    with gzip.open(aln_file,"rb") as ip_byte:
+        op.write(ip_byte.read().decode("utf-8")
+    op.close()
     cmd = 'fasttree -gtr -nt  {alignment} > {treefile}'.format(
-        alignment=aln_file, treefile=phylogeny_file)
+        alignment=aln_file_unzip, treefile=phylogeny_file)
     ret = run_command(cmd, timing_log)
     if ret != 0:
         #raise Exception('iqtree fail to create phylogeny tree from core gene alignment!')
