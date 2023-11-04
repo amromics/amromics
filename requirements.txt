@@ -51,3 +51,4 @@ fastp
 #PIRATE
 aspera-connect
 fasttree==2.11
+snp-sites==2.5.1
