@@ -50,3 +50,4 @@ fastp
 #panaroo
 #PIRATE
 aspera-connect
+fasttree==2.11
