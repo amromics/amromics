@@ -44,7 +44,7 @@ def single_genome_analysis(samples, work_dir, overwrite=False, threads=0, memory
     return samples
 
 
-def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, overwrite=False, threads=0, memory=8, timing_log=None,method='roary'):
+def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, overwrite=False, threads=0, memory=8, timing_log=None,method='roary',  genetree=True):
 
     report = {'collection_id': collection_id,
               'collection_name': collection_name,
@@ -85,7 +85,7 @@ def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, 
         json.dump(dataset_sample_ids, fn)
     #report,genome_dir,gff_dir,ffn_dir,reference, base_dir='.', threads=0, memory=50
     temp_folder,gff_dir,ffn_dir=prepareDataCollectionAnalysis(report,collection_dir)
-    report = wrapper.run_collection(report,gff_dir,ffn_dir,overwrite=overwrite,base_dir=collection_dir, threads=threads,timing_log=timing_log,method=method)
+    report = wrapper.run_collection(report,gff_dir,ffn_dir,overwrite=overwrite,base_dir=collection_dir, threads=threads,timing_log=timing_log,method=method, genetree=genetree)
     with open(os.path.join(collection_dir, collection_id + '_dump.json'), 'w') as fn:
         json.dump(report, fn)
 
