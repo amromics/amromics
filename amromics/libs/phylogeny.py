@@ -103,10 +103,50 @@ def run_species_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwr
         alignment=aln_file, prefix=phylogeny_folder+'/core_gene_alignment', threads=threads)
     ret = run_command(cmd, timing_log)
     if ret != 0:
-        raise Exception('iqtree fail to create phylogeny tree from core gene alignment!')
-
+        #raise Exception('iqtree fail to create phylogeny tree from core gene alignment!')
+        return None
     return phylogeny_folder
+def run_species_phylogeny_fastree(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+    """
+    Run iqtree to create phylogeny tree from core gene alignment. If the list of samples has
+    not changed, and none of the samples has changed, the existing tree will be kept unless
+    overwrite is set to True
+    Parameters
+    ----------
+    report: object
+        A report object
+    collection_dir: str
+        working directory of the collection
+    threads: int
+        number of threads to use
+    overwrite: bool
+        whether to overwrite existing result even if input did not change
+    timing_log: str
+        file to log timing
+    Returns
+        report object
+    -------
+    """
+    phylogeny_folder = os.path.join(collection_dir, 'phylogeny')
+    if not os.path.exists(phylogeny_folder):
+        os.makedirs(phylogeny_folder)
+    #report['phylogeny'] = phylogeny_folder
 
+    phylogeny_file = os.path.join(phylogeny_folder, 'core_gene_alignment.treefile')
+    if os.path.isfile(phylogeny_file) and (not overwrite):
+        logger.info('phylogeny tree exists and input has not changed, skip phylogeny analysis')
+        return phylogeny_folder
+
+    aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln.gz')
+    if not os.path.isfile(aln_file):
+        aln_file = os.path.join(report['roary'], 'core_gene_alignment.aln.gz')
+    cmd = 'fasttree -gtr -nt  {alignment} > {treefile}'.format(
+        alignment=aln_file, treefile=phylogeny_file)
+    ret = run_command(cmd, timing_log)
+    if ret != 0:
+        #raise Exception('iqtree fail to create phylogeny tree from core gene alignment!')
+        return None
+    return phylogeny_folder
 
 def run_gene_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
