@@ -32,11 +32,9 @@ The simplest method is installed via conda:
 1. Create a conda environment with all the necessary dependencies: From the repository directory run
 
 ```bash
-
+git clone --recursive https://github.com/amromics/amromics.git
 conda create -y -c conda-forge -c defaults --name amromics python=3.10 mamba
-
 source activate amromics
-
 mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c rpetit3 -c defaults --file requirements.txt
 
 ```
