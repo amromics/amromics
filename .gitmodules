@@ -1,0 +1,3 @@
+[submodule "submodules/panta"]
+	path = submodules/panta
+	url = https://github.com/amromics/panta.git

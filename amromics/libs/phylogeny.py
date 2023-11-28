@@ -144,7 +144,7 @@ def run_species_phylogeny_fastree(roary_folder, collection_dir, threads=8, overw
     op = open(aln_file_unzip,"w")
 
     with gzip.open(aln_file,"rb") as ip_byte:
-        op.write(ip_byte.read().decode("utf-8")
+        op.write(ip_byte.read().decode("utf-8"))
     op.close()
     cmd = 'fasttree -gtr -nt  {alignment} > {treefile}'.format(
         alignment=aln_file_unzip, treefile=phylogeny_file)

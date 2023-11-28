@@ -197,7 +197,7 @@ def pan_genome_analysis_func(args):
     report = pan_genome_analysis(
         samples, work_dir,
         collection_id, collection_name, overwrite=overwrite,
-        threads=threads, memory=memory, timing_log=timing_log,method=method, genetree=args.genetree)
+        threads=threads, memory=memory, timing_log=timing_log,method=method, genetree=args.genetree, progressive=args.progressive)
     logger.info('Congratulations, collection {} is done!'.format(collection_id))
 def main(arguments=sys.argv[1:]):
     parser = argparse.ArgumentParser(
@@ -226,7 +226,8 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
     pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
     pg_cmd.add_argument('--method', help='panta or roary', default='panta')
-    pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=True)
+    pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=False)
+    pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False)
     pg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
     pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
 

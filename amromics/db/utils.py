@@ -72,7 +72,7 @@ def get_mlst_db():
                             os.makedirs(scheme_dir)
                         #print(os.path.basename(child.text).strip())
                         download_file(child.text, os.path.join(scheme_dir,scheme+".txt"), gunzip=True)
-        
+
         if scheme_name not in ignore_species:
             for loci in species.iter('loci'):
                 for locus in loci:
@@ -80,7 +80,7 @@ def get_mlst_db():
                         if child.tag=='url':
                             print(os.path.join(scheme_dir,locus.text.strip()))
                             download_file(child.text, os.path.join(scheme_dir,locus.text.strip()+".tfa"), gunzip=True)
-    
+
     for rm_species in ignore_species:
         rm_dir=os.path.join(pubmlst_dir,rm_species)
         if os.path.exists(rm_dir):

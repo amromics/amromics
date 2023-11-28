@@ -49,5 +49,5 @@ mash
 fastp
 #panaroo
 #PIRATE
-aspera-connect
-fasttree==2.11
+#aspera-connect
+fasttree==2.1.11
