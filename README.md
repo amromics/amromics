@@ -32,11 +32,9 @@ The simplest method is installed via conda:
 1. Create a conda environment with all the necessary dependencies: From the repository directory run
 
 ```bash
-
+git clone --recursive https://github.com/amromics/amromics.git
 conda create -y -c conda-forge -c defaults --name amromics python=3.10 mamba
-
 source activate amromics
-
 mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c rpetit3 -c defaults --file requirements.txt
 
 ```
@@ -45,6 +43,12 @@ mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c rpetit3
 source activate amromics
 pip install .
 ```
+3. Install panta submodule:
+```bash
+cd submodules/panta
+mamba install -y -c conda-forge -c bioconda -c anaconda -c defaults  --file requirements.txt
+pip install . --use-feature=in-tree-build
+```   
 
 ## Usage
 
@@ -60,9 +64,12 @@ at the beginning with:
 
 ```
 source activate amromics
+tar zxvf db.tar.gz
+```
+If you wish to download lastest db:
+```
 amr-analysis.py download_db --initdb True
 ```
-
 
 ### Examples
 
@@ -82,7 +89,10 @@ to the web-app for visualization:
 ```bash
 ./amr-analysis.py pg --time-log k24_time.log  -t 7 -m 25 -c KpClinicalGRBZ -i examples/Kp24/Kp24.tsv --work-dir data/work  -n "Collection of 24 clinical isolates from Greek and Brazil"
 ```
-
+#### Run with progressive mode:
+```bash
+./amr-analysis.py pg --time-log k24_time.log  -t 7 -m 25 -c KpClinicalGRBZ --progressive True -i examples/Kp89/Kp89.tsv --work-dir data/work  -n "Collection of 24+89 clinical isolates from Greek and Brazil"
+```
 
 <!--
 
