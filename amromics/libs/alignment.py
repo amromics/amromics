@@ -10,6 +10,7 @@ import re
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import amromics.libs.bioseq as bioseq
+from amromics.libs.bioseq import read_sequence_file
 from amromics.utils.command import run_command
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
@@ -383,4 +384,72 @@ def runGeneAlignment(roary_folder,sample_col,ffn_dir, collection_dir, threads=8,
     alignment_dir=get_gene_sequences(roary_folder,sample_col, ffn_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
     alignment_dir=run_protein_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
     alignment_dir=create_nucleotide_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
+    return alignment_dir
+def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+    """
+    Call VCFs files between representative seq and other seq
+
+    Parameters
+    ----------
+    pangenome folder: path
+        Path to panta output
+    collection_dir: str
+        working directory of the collection
+    threads: int
+        number of threads to use
+    overwrite: bool
+        whether to overwrite existing result even if input did not change
+    timing_log: str
+        file to log timing
+    Returns
+        alignment folder
+    -------
+    """
+    alignment_dir = os.path.join(collection_dir, 'alignments')
+
+    gene_cluster_file =pangenome_folder + '/gene_presence_absence.Rtab'
+    gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
+    gene_df.fillna('', inplace=True)
+
+    gene_clusters_json=pangenome_folder + '/clusters.json'
+    if not os.path.exists(gene_clusters_json):
+        logger.info('{} does not exist, ignore calling VCFs'.format(gene_clusters_json))
+        return alignment_dir
+    gene_rep_f=open(gene_clusters_json)
+    gene_representative=json.load(gene_rep_f)
+    gene_representative_map={}
+    for k in gene_representative.keys():
+        seq_name=k.split('-')[-1]
+        gene_representative_map[seq_name]=1
+
+    cmds_file = os.path.join(alignment_dir,"align_cmds")
+    with open(cmds_file,'w') as cmds:
+        for gene_id, row in gene_df.iterrows():
+            # Only align if there are at least 2 sequences
+            if row.sum() < 2:
+                continue
+
+            gene_id = re.sub(r'\W+', '', gene_id)
+            gene_dir = os.path.join(alignment_dir, gene_id)
+
+            # check if done before
+            gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
+            if not os.path.isfile(gene_aln_file):
+                continue
+
+            gene_aln_file_unzip = os.path.join(gene_dir, gene_id + '.fna.aln')
+            rep_name=None
+            for seq in read_sequence_file(gene_aln_file_unzip):
+                if gene_representative_map[seq.name]==1:
+                    rep_name=seq.name
+            if rep_name==None:
+                continue
+            cmd = f"unzip -r {gene_aln_file}"
+            run_command(cmd, timing_log)
+            cmd = f"msa2vcf {gene_aln_file_unzip}  rep_name"
+            cmds.write(cmd + '\n')
+
+    cmd = f"parallel --bar -j {threads} -a {cmds_file}"
+    ret = run_command(cmd, timing_log)
+    #report['alignments'] = alignment_dir
     return alignment_dir
