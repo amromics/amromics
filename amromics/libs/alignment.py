@@ -10,6 +10,7 @@ import re
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import amromics.libs.bioseq as bioseq
+import amromics.libs.msa2vcf as msa2vcf
 from amromics.libs.bioseq import read_sequence_file
 from amromics.utils.command import run_command
 logger = logging.getLogger(__name__)
@@ -411,16 +412,7 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
-    gene_clusters_json=pangenome_folder + '/clusters.json'
-    if not os.path.exists(gene_clusters_json):
-        logger.info('{} does not exist, ignore calling VCFs'.format(gene_clusters_json))
-        return alignment_dir
-    gene_rep_f=open(gene_clusters_json)
-    gene_representative=json.load(gene_rep_f)
-    gene_representative_map={}
-    for k in gene_representative.keys():
-        seq_name=k.split('-')[-1]
-        gene_representative_map[seq_name]=1
+
 
     cmds_file = os.path.join(alignment_dir,"align_cmds")
     with open(cmds_file,'w') as cmds:
@@ -439,17 +431,19 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
 
             gene_aln_file_unzip = os.path.join(gene_dir, gene_id + '.fna.aln')
             rep_name=None
+            cmd = f"gzip -dk -f {gene_aln_file}"
+            run_command(cmd, timing_log)
             for seq in read_sequence_file(gene_aln_file_unzip):
-                if gene_representative_map[seq.name]==1:
-                    rep_name=seq.name
+                rep_name=seq.name
+                break
             if rep_name==None:
                 continue
-            cmd = f"unzip -r {gene_aln_file}"
-            run_command(cmd, timing_log)
-            cmd = f"msa2vcf {gene_aln_file_unzip}  rep_name"
-            cmds.write(cmd + '\n')
+            msa2vcf.go(gene_aln_file_unzip,rep_name,gene_dir)
 
-    cmd = f"parallel --bar -j {threads} -a {cmds_file}"
-    ret = run_command(cmd, timing_log)
+            #cmd = f"cd {gene_dir} && msa2vcf {gene_aln_file_unzip}  {rep_name}"
+            #cmds.write(cmd + '\n')
+
+    #cmd = f"parallel --bar -j {threads} -a {cmds_file}"
+    #ret = run_command(cmd, timing_log)
     #report['alignments'] = alignment_dir
     return alignment_dir

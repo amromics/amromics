@@ -121,12 +121,12 @@ def run_collection(report,gff_dir,ffn_dir, base_dir='.',threads=8,progressive=Fa
         if method=='panta':
             report['roary'] = pangenome.run_panta_cmd(gff_dir, threads=threads, base_dir=base_dir,progressive=progressive,overwrite=overwrite,timing_log=timing_log)
             report['alignments'] = alignment.runGeneAlignment(report['roary'],8, ffn_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
-            report['alignments']=runVCFCallingFromGeneAlignment(report['roary'],overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+            report['alignments']=alignment.runVCFCallingFromGeneAlignment(report['roary'],overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
         if genetree:
             report['alignments']  = phylogeny.run_gene_phylogeny_iqtree(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
         report['coregene'] = alignment.create_core_gene_alignment(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
 
-        #report['phylogeny']  = phylogeny.run_species_phylogeny_iqtree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
+        report['phylogeny']  = phylogeny.run_species_phylogeny_iqtree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
         if 'phylogeny' not in report.keys() or report['phylogeny']==None:
 
             report['phylogeny']  = phylogeny.run_species_phylogeny_fastree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)

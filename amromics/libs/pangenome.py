@@ -73,7 +73,7 @@ def run_panta_cmd(gff_folder,table=11,diamond=True,evalue=1e-06,identity=0.7,LD=
                 #raise Exception('Cannot get {}'.format(os.path.join(gff_folder, filename)))
                 logger.info('Cannot get {}'.format(os.path.join(gff_folder, filename)))
     if (str(os.path.isfile(outfile)) == 'True')  and (str(progressive) == 'True'):
-        cmd = f'panta add -g {gff_folder}/*.gff -o {out_folder} -t {threads} -a nucleotide'
+        cmd = f'panta add -g {gff_folder}/*.gff -c {out_folder} -t {threads} -a nucleotide'
         logger.info('Run panta with progressive mode')
     else:
         #panta main [-h] [-g [GFF ...]] [-f TSV] -o OUTDIR [-s] [-b {diamond,blast}] [-i IDENTITY] [--LD LD] [--AL AL] [--AS AS] [-e EVALUE]
