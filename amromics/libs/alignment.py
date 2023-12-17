@@ -102,7 +102,7 @@ def run_alignment_by_parsnp(roary_folder,ffn_dir,base_dir, overwrite=False,  tim
 
 
     return alignment_dir
-def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None, min_cover=0.05):
     """
     Align protein sequence by mafft
 
@@ -118,6 +118,8 @@ def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=Fal
         whether to overwrite existing result even if input did not change
     timing_log: str
         file to log timing
+    min_cover: float
+        Only genes present in at least min_cover%  of samples will run alignment
     Returns
         report object
     -------
@@ -128,13 +130,16 @@ def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=Fal
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
+    min_number=int(min_cover*len(gene_df.columns))
     cmds_file = os.path.join(alignment_dir,"align_cmds")
     with open(cmds_file,'w') as cmds:
         for gene_id, row in gene_df.iterrows():
             # Only align if there are at least 2 sequences
             if row.sum() < 2:
                 continue
-
+            # Only align if the number  of sequences > min_number
+            if row.sum() < min_number:
+                continue
             gene_id = re.sub(r'\W+', '', gene_id)
             gene_dir = os.path.join(alignment_dir, gene_id)
 
@@ -157,7 +162,7 @@ def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=Fal
     return alignment_dir
 
 
-def create_nucleotide_alignment(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def create_nucleotide_alignment(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None,min_cover=0.05):
     """
     Create nucleotide alignment according to protein alignment
 
@@ -183,10 +188,13 @@ def create_nucleotide_alignment(roary_folder, collection_dir, threads=8, overwri
     gene_cluster_file = roary_folder + '/gene_presence_absence.Rtab'
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
-
+    min_number=int(min_cover*len(gene_df.columns))
     for gene_id, row in gene_df.iterrows():
         # Only run if there are at least 2 sequences
         if row.sum() < 2:
+            continue
+        # Only align if the number  of sequences > min_number
+        if row.sum() < min_number:
             continue
         gene_id = re.sub(r'\W+', '', gene_id)
         gene_dir = os.path.join(alignment_dir, gene_id)
