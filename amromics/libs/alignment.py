@@ -11,7 +11,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import amromics.libs.bioseq as bioseq
 import amromics.libs.msa2vcf as msa2vcf
-from amromics.libs.bioseq import read_sequence_file
+from amromics.libs.bioseq import read_sequence_file, write_fasta
 from amromics.utils.command import run_command
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
@@ -415,7 +415,9 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
     -------
     """
     alignment_dir = os.path.join(collection_dir, 'alignments')
-
+    vcf_dir = os.path.join(collection_dir, 'VCFs')
+    if not os.path.exists(vcf_dir):
+        os.makedirs(vcf_dir)
     gene_cluster_file =pangenome_folder + '/gene_presence_absence.Rtab'
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
@@ -423,6 +425,8 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
 
 
     cmds_file = os.path.join(alignment_dir,"align_cmds")
+    map_sample_vcf={}
+    ref_pan=[]
     with open(cmds_file,'w') as cmds:
         for gene_id, row in gene_df.iterrows():
             # Only align if there are at least 2 sequences
@@ -443,13 +447,30 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
             run_command(cmd, timing_log)
             for seq in read_sequence_file(gene_aln_file_unzip):
                 rep_name=seq.name
+                ref_pan.append(seq)
                 break
             if rep_name==None:
                 continue
-            msa2vcf.go(gene_aln_file_unzip,rep_name,gene_dir)
+            map_gene_vcf=msa2vcf.go(gene_aln_file_unzip,rep_name,gene_dir)
+            for g in map_gene_vcf.keys():
+                s=g[:g.rfind('_')]
+                if not s in map_sample_vcf.keys():
+                    map_sample_vcf[s]=[]
+                map_sample_vcf[s].extend(map_gene_vcf[g][5:])
 
             #cmd = f"cd {gene_dir} && msa2vcf {gene_aln_file_unzip}  {rep_name}"
             #cmds.write(cmd + '\n')
+    #print(map_sample_vcf)
+    for s in map_sample_vcf.keys():
+        vcf_file = os.path.join(vcf_dir,s+".vcf")
+
+        with open(vcf_file,'w') as vcf:
+            vcf.write("##fileformat=VCFv4.2\n")
+            vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\t"+s+"\n")
+            for line in map_sample_vcf[s]:
+                vcf.write(line+"\n")
+    print("write "+str(len(ref_pan))+" sequences to "+os.path.join(vcf_dir,"pangenome_reference.fasta"))
+    write_fasta(os.path.join(vcf_dir,"pangenome_reference.fasta"),ref_pan)
 
     #cmd = f"parallel --bar -j {threads} -a {cmds_file}"
     #ret = run_command(cmd, timing_log)

@@ -112,7 +112,7 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
     #sample=detect_prophage(sample, base_dir=base_dir, threads=threads)
     sample['execution_end'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return sample
-def run_collection(report,gff_dir,ffn_dir, base_dir='.',threads=8,progressive=False, overwrite=None,memory=50, timing_log=None,method='roary',genetree=True):
+def run_collection(report,gff_dir,ffn_dir, base_dir='.',threads=8,progressive=False, overwrite=None,memory=50, timing_log=None,method='roary',genetree=True, tree='fasttree'):
     try:
         if method=='roary':
             report['roary'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
@@ -125,8 +125,8 @@ def run_collection(report,gff_dir,ffn_dir, base_dir='.',threads=8,progressive=Fa
         if genetree:
             report['alignments']  = phylogeny.run_gene_phylogeny_iqtree(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
         report['coregene'] = alignment.create_core_gene_alignment(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
-
-        report['phylogeny']  = phylogeny.run_species_phylogeny_iqtree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
+        if tree=='iqtree':
+            report['phylogeny']  = phylogeny.run_species_phylogeny_iqtree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
         if 'phylogeny' not in report.keys() or report['phylogeny']==None:
 
             report['phylogeny']  = phylogeny.run_species_phylogeny_fastree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)

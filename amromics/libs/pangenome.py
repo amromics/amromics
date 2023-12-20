@@ -64,7 +64,7 @@ def run_panta_cmd(gff_folder,table=11,diamond=True,evalue=1e-06,identity=0.7,LD=
     outfile= os.path.join(out_folder, 'gene_presence_absence.csv.gz')
     if os.path.isfile(outfile) and (not overwrite) and (not progressive):
         logger.info('panta has run and the input has not changed, skip run panta')
-        return roary_folder
+        return out_folder
 
     logger.info("progressive="+str(progressive) +str(os.path.isfile(outfile)))
     for filename in os.listdir(gff_folder):

@@ -243,15 +243,17 @@ def go(msa,refname,output_dir,keep_n=False):
     if not refseq:
         print(refname + " not found\n")
         sys.exit(1)
-
+    map_gene_vcf={}
     with open(msa) as f:
         for name, seq, qual in readfq(f):
             if name == refname:
                 continue
             else:
-                print(name)
+                #print(name)
                 snps = update_snps(remove_terminal_gapns(seq.upper()), refseq)
 
                 if snps:
                     vcflines = make_vcf(snps, name, refname, keep_n)
-                    write_vcf(vcflines, name,output_dir)
+                    map_gene_vcf[name]=vcflines
+                    #write_vcf(vcflines, name,output_dir)
+    return map_gene_vcf
