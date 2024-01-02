@@ -193,6 +193,7 @@ def deconvolute_IUPAC(var):
     return var
 
 
+
 def make_vcf(snps, qname, rname, keep_n):
 
     vcflines = []
@@ -203,7 +204,8 @@ def make_vcf(snps, qname, rname, keep_n):
     vcflines.append("##contig=<ID=" + rname + ">")
     vcflines.append("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">")
     vcflines.append("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">")
-    vcflines.append("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\t"+qname)
+    vcflines.append("##FORMAT=<ID=GP,Number=1,Type=String,Description=\"Genotype\">")
+    vcflines.append("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t"+qname)
 
     # variants
     for line in snps:
@@ -215,17 +217,18 @@ def make_vcf(snps, qname, rname, keep_n):
 
          if alt_no_n:
              if not line[1] == alt_no_n:
-                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1;AF="+str(line[6])])
+                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1;AF="+str(line[6]), "GP", "1"])
 
          else:
              if keep_n:
-                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1;AF="+str(line[6])])
+                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1;AF="+str(line[6]), "GP", "1"])
 
          if vcf_line:
              vcflines.append(vcf_line)
 
 
     return vcflines
+
 
 
 def write_vcf(vcflines, qname,output_dir):
@@ -237,23 +240,26 @@ def remove_terminal_gapns(seq):
     return re.sub(r'(N|-)*$', '', seq)
 
 def go(msa,refname,output_dir,keep_n=False):
-
-    refseq = get_ref_seq(msa, refname)
-
-    if not refseq:
-        print(refname + " not found\n")
-        sys.exit(1)
     map_gene_vcf={}
-    with open(msa) as f:
-        for name, seq, qual in readfq(f):
-            if name == refname:
-                continue
-            else:
-                #print(name)
-                snps = update_snps(remove_terminal_gapns(seq.upper()), refseq)
+    try:
+        refseq = get_ref_seq(msa, refname)
 
-                if snps:
-                    vcflines = make_vcf(snps, name, refname, keep_n)
-                    map_gene_vcf[name]=vcflines
-                    #write_vcf(vcflines, name,output_dir)
+        if not refseq:
+            print(refname + " not found\n")
+            sys.exit(1)
+
+        with open(msa) as f:
+            for name, seq, qual in readfq(f):
+                if name == refname:
+                    continue
+                else:
+                    #print(name)
+                    snps = update_snps(remove_terminal_gapns(seq.upper()), refseq)
+
+                    if snps:
+                        vcflines = make_vcf(snps, name, refname, keep_n)
+                        map_gene_vcf[name]=vcflines
+                        write_vcf(vcflines, name,output_dir)
+    except Exception as ex:
+        print(ex)
     return map_gene_vcf
