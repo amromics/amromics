@@ -18,15 +18,15 @@ def prepareDataCollectionAnalysis(report,collection_dir):
     gff_dir=os.path.join(temp_folder,'gff')
     #collect ffn files: annotation files should be named as <sample_id>.ffn
     ffn_dir=os.path.join(temp_folder,'ffn')
-
+    faa_dir=os.path.join(temp_folder,'faa')
 
     for sample in report['samples']:
         print(sample)
         copy_file(sample['annotation_gff'],gff_dir)
-
+        copy_file(sample['annotation_faa'],faa_dir)
         copy_file(sample['annotation_ffn'],ffn_dir)
 
-    return temp_folder,gff_dir,ffn_dir
+    return temp_folder,gff_dir,ffn_dir,faa_dir
 
 def single_genome_analysis(samples, work_dir, overwrite=False, threads=0, memory=8, timing_log=None):
     # TODO: move the analysis in single_genome_analysis_func here
@@ -84,8 +84,8 @@ def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, 
     with open(sample_set_file, 'w') as fn:
         json.dump(dataset_sample_ids, fn)
     #report,genome_dir,gff_dir,ffn_dir,reference, base_dir='.', threads=0, memory=50
-    temp_folder,gff_dir,ffn_dir=prepareDataCollectionAnalysis(report,collection_dir)
-    report = wrapper.run_collection(report,gff_dir,ffn_dir,overwrite=overwrite,base_dir=collection_dir,progressive=progressive, threads=threads,timing_log=timing_log,method=method, genetree=genetree, tree=tree)
+    temp_folder,gff_dir,ffn_dir,faa_dir=prepareDataCollectionAnalysis(report,collection_dir)
+    report = wrapper.run_collection(report,gff_dir,ffn_dir,faa_dir,overwrite=overwrite,base_dir=collection_dir,progressive=progressive, threads=threads,timing_log=timing_log,method=method, genetree=genetree, tree=tree)
     with open(os.path.join(collection_dir, collection_id + '_dump.json'), 'w') as fn:
         json.dump(report, fn)
 

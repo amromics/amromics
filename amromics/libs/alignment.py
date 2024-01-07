@@ -319,7 +319,7 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
             SeqIO.write(new_record, fh, 'fasta')
 
     return core_gene_aln_file
-def get_gene_sequences(roary_folder,sample_col,ffn_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Create protein sequences and nucleotide sequences for each gene cluster
 
@@ -355,6 +355,20 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder, collection_dir, threa
                 seq_record.seq = seq_record.seq
                 seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
                 dict_nucleotide[seq_record.id] = seq_record
+    dict_prot = {}
+    for faa_file in os.listdir(faa_folder):
+        faa_file_path=os.path.join(faa_folder,faa_file)
+        if faa_file.endswith('.gz'):
+            with gzip.open(faa_file_path, 'rt') as fn:
+                for seq_record in SeqIO.parse(fn, 'fasta'):
+                    seq_record.seq = seq_record.seq
+                    seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
+                    dict_prot[seq_record.id] = seq_record
+        else:
+            for seq_record in SeqIO.parse(faa_file_path, 'fasta'):
+                seq_record.seq = seq_record.seq
+                seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
+                dict_prot[seq_record.id] = seq_record
     #print (dict_nucleotide)
     # make folder contains sequences for each gene
     alignment_dir = os.path.join(collection_dir, 'alignments')
@@ -391,12 +405,12 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder, collection_dir, threa
         with open(protein_seq_file, 'w') as prot_fh, open(nucleotide_seq_file, 'w') as nucl_fh:
             for sample_gene in gene_list:
                 nu_seq_record = dict_nucleotide[sample_gene]
-
+                pro_seq_record=dict_prot[sample_gene]
                 #pro_seq = nu_seq_record.seq.translate(table=11)
-                pro_seq, isReversed = translateDNA2Prot(nu_seq_record)
-                pro_seq_record = SeqRecord(pro_seq, id = nu_seq_record.id, description = '')
-                if isReversed:
-                    nu_seq_record.seq=nu_seq_record.seq.reverse_complement()
+                #pro_seq, isReversed = translateDNA2Prot(nu_seq_record)
+                #pro_seq_record = SeqRecord(pro_seq, id = nu_seq_record.id, description = '')
+                #if isReversed:
+                #    nu_seq_record.seq=nu_seq_record.seq.reverse_complement()
                 SeqIO.write(nu_seq_record, nucl_fh, 'fasta')
                 SeqIO.write(pro_seq_record, prot_fh, 'fasta')
 
@@ -413,8 +427,8 @@ def translateDNA2Prot(sr):
     else:
         return prot_d1, False
 
-def runGeneAlignment(roary_folder,sample_col,ffn_dir, collection_dir, threads=8, overwrite=False, timing_log=None):
-    alignment_dir=get_gene_sequences(roary_folder,sample_col, ffn_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
+def runGeneAlignment(roary_folder,sample_col,ffn_dir, faa_dir,collection_dir, threads=8, overwrite=False, timing_log=None):
+    alignment_dir=get_gene_sequences(roary_folder,sample_col, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
     alignment_dir=run_protein_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
     alignment_dir=create_nucleotide_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
     return alignment_dir
@@ -505,23 +519,25 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
             if not os.path.exists(vcf_sample_dir):
                 continue
             vcf_file = os.path.join(vcf_sample_dir,s+".vcf")
-            str_list_query=""
-            for obj in map_sample_vcf[s]:
+            #str_list_query=""
+            #for obj in map_sample_vcf[s]:
                 #print(obj)
-                str_list_query=str_list_query+"\t"+obj["gene"]
+            #    str_list_query=str_list_query+"\t"+obj["gene"]
             with open(vcf_file,'w') as vcf:
                 vcf.write("##fileformat=VCFv4.2\n")
                 vcf.write("##source="+os.path.basename(sys.argv[0])+"\n")
                 vcf.write("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">\n")
                 vcf.write("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">\n")
                 vcf.write("##FORMAT=<ID=GP,Number=1,Type=String,Description=\"Genotype\">\n")
-                vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"+str_list_query+"\n")
+                #vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"+str_list_query+"\n")
+                vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\t"+s+"\n")
                 num_gene=len(map_sample_vcf[s])
                 for i in range(num_gene):
                     for line in map_sample_vcf[s][i]["vcf"]:
                         if line.startswith("#"):
                             continue
-                        vcf.write(line+"\t"+genPresentMark(num_gene,i)+"\n")
+                        #vcf.write(line+"\t"+genPresentMark(num_gene,i)+"\n")
+                        vcf.write(line+"\n")
             run_command('gzip {}'.format(vcf_file))
 
         print("write "+str(len(ref_pan))+" sequences to "+os.path.join(vcf_dir,"pangenome_reference.fasta"))
