@@ -168,8 +168,13 @@ def parseGFF(sample_id,gff_file_in,base_dir,overwrite=False):
         seq = seqs[seq_id]
         subseq = Seq(str(seq.sequence)[start:end])
         gene_seq = SeqIO.SeqRecord(seq=subseq,id= gene_id,description=gene_product)
+
+        if strand=='+' :
+            protein_seq = gene_seq.translate(table=11, stop_symbol='')
+        else:
+            protein_seq = gene_seq.reverse_complement().translate(table=11, stop_symbol='')
+            gene_seq.seq=subseq.reverse_complement()
         gene_seqs.append(gene_seq)
-        protein_seq = gene_seq.translate(table=11, stop_symbol='')
         protein_seq.id = gene_id
         protein_seq.description = gene_product
         protein_seqs.append(protein_seq)

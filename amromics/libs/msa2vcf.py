@@ -204,7 +204,7 @@ def make_vcf(snps, qname, rname, keep_n):
     vcflines.append("##contig=<ID=" + rname + ">")
     vcflines.append("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">")
     vcflines.append("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">")
-    vcflines.append("##FORMAT=<ID=GP,Number=1,Type=String,Description=\"Genotype\">")
+    vcflines.append("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">")
     vcflines.append("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t"+qname)
 
     # variants
@@ -217,11 +217,11 @@ def make_vcf(snps, qname, rname, keep_n):
 
          if alt_no_n:
              if not line[1] == alt_no_n:
-                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1;AF="+str(line[6]), "GP", "1"])
+                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1", "GT", "1"])
 
          else:
              if keep_n:
-                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1;AF="+str(line[6]), "GP", "1"])
+                 vcf_line = '\t'.join([rname, str(line[2] + 1 ), ".", line[1], alt_no_gap, ".", "PASS", "DP=1", "GT", "1"])
 
          if vcf_line:
              vcflines.append(vcf_line)

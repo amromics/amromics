@@ -21,7 +21,7 @@ def prepareDataCollectionAnalysis(report,collection_dir):
     faa_dir=os.path.join(temp_folder,'faa')
 
     for sample in report['samples']:
-        print(sample)
+        #print(sample)
         copy_file(sample['annotation_gff'],gff_dir)
         copy_file(sample['annotation_faa'],faa_dir)
         copy_file(sample['annotation_ffn'],ffn_dir)

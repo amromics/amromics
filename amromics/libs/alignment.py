@@ -466,24 +466,27 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
         cmds_file = os.path.join(alignment_dir,"align_cmds")
         map_sample_vcf={}
         ref_pan=[]
+        map_sample_prot_vcf={}
         with open(cmds_file,'w') as cmds:
             for gene_id, row in gene_df.iterrows():
                 # Only align if there are at least 2 sequences
                 if row.sum() < 2:
                     continue
-
                 gene_id = re.sub(r'\W+', '', gene_id)
                 gene_dir = os.path.join(alignment_dir, gene_id)
-
                 # check if done before
                 #gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
                 gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
                 if not os.path.isfile(gene_aln_file):
                     #continue if gene is not aligned
                     continue
-
+                gene_prot_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
+                if not os.path.isfile(gene_prot_aln_file):
+                    #continue if gene is not aligned
+                    continue
                 #gene_aln_file_unzip = os.path.join(gene_dir, gene_id + '.fna.aln')
                 gene_aln_file_unzip=gene_aln_file
+                gene_prot_aln_file_unzip=gene_prot_aln_file
                 rep_name=None
                 #cmd = f"gzip -dk -f {gene_aln_file}"
                 #run_command(cmd, timing_log)
@@ -509,7 +512,22 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
                     #map_sample_vcf[s].append(os.path.join(vcf_sample_dir,id+".vcf"))
                     vcf_obj={"gene":g,"vcf":map_gene_vcf[g]}
                     map_sample_vcf[s].append(vcf_obj)
+                map_gene_prot_vcf=msa2vcf.go(gene_prot_aln_file_unzip,rep_name,gene_dir)
+                for g in map_gene_prot_vcf.keys():
+                    s=g[:g.rfind('_')]
+                    id=g[g.rfind('_')+1:]
+                    vcf_sample_dir=os.path.join(vcf_dir,s)
+                    if not os.path.exists(vcf_sample_dir):
+                        os.makedirs(vcf_sample_dir)
+                    # with open(vcf_sample_dir+"/"+id +".vcf", 'w') as f:
+                    #     for line in map_gene_vcf[g]:
+                    #         f.write(line+"\n")
 
+                    if not s in map_sample_prot_vcf.keys():
+                         map_sample_prot_vcf[s]=[]
+                    #map_sample_vcf[s].append(os.path.join(vcf_sample_dir,id+".vcf"))
+                    vcf_obj={"gene":g,"vcf":map_gene_prot_vcf[g]}
+                    map_sample_prot_vcf[s].append(vcf_obj)
                 #cmd = f"cd {gene_dir} && msa2vcf {gene_aln_file_unzip}  {rep_name}"
                 #cmds.write(cmd + '\n')
         #print(map_sample_vcf)
@@ -528,7 +546,7 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
                 vcf.write("##source="+os.path.basename(sys.argv[0])+"\n")
                 vcf.write("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">\n")
                 vcf.write("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">\n")
-                vcf.write("##FORMAT=<ID=GP,Number=1,Type=String,Description=\"Genotype\">\n")
+                vcf.write("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n")
                 #vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"+str_list_query+"\n")
                 vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\t"+s+"\n")
                 num_gene=len(map_sample_vcf[s])
@@ -538,8 +556,32 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
                             continue
                         #vcf.write(line+"\t"+genPresentMark(num_gene,i)+"\n")
                         vcf.write(line+"\n")
-            run_command('gzip {}'.format(vcf_file))
-
+            run_command('gzip -f {}'.format(vcf_file))
+        for s in map_sample_prot_vcf.keys():
+            vcf_sample_dir=os.path.join(vcf_dir,s)
+            if not os.path.exists(vcf_sample_dir):
+                continue
+            vcf_file = os.path.join(vcf_sample_dir,s+".prot.vcf")
+            #str_list_query=""
+            #for obj in map_sample_vcf[s]:
+                #print(obj)
+            #    str_list_query=str_list_query+"\t"+obj["gene"]
+            with open(vcf_file,'w') as vcf:
+                vcf.write("##fileformat=VCFv4.2\n")
+                vcf.write("##source="+os.path.basename(sys.argv[0])+"\n")
+                vcf.write("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">\n")
+                vcf.write("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency\">\n")
+                vcf.write("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n")
+                #vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"+str_list_query+"\n")
+                vcf.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\t"+s+"\n")
+                num_gene=len(map_sample_prot_vcf[s])
+                for i in range(num_gene):
+                    for line in map_sample_prot_vcf[s][i]["vcf"]:
+                        if line.startswith("#"):
+                            continue
+                        #vcf.write(line+"\t"+genPresentMark(num_gene,i)+"\n")
+                        vcf.write(line+"\n")
+            run_command('gzip -f {}'.format(vcf_file))
         print("write "+str(len(ref_pan))+" sequences to "+os.path.join(vcf_dir,"pangenome_reference.fasta"))
         write_fasta(os.path.join(vcf_dir,"pangenome_reference.fasta"),ref_pan)
     except Exception as error:
