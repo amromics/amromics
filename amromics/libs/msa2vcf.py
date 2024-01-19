@@ -232,9 +232,11 @@ def make_vcf(snps, qname, rname, keep_n):
 
 
 def write_vcf(vcflines, qname,output_dir):
-    with open(output_dir+"/"+qname +".vcf", 'w') as f:
+    filename=output_dir+"/"+qname +".vcf"
+    with open(filename, 'w') as f:
         for line in vcflines:
             f.write(line+"\n")
+    return filename
 
 def remove_terminal_gapns(seq):
     return re.sub(r'(N|-)*$', '', seq)
@@ -258,8 +260,9 @@ def go(msa,refname,output_dir,keep_n=False):
 
                     if snps:
                         vcflines = make_vcf(snps, name, refname, keep_n)
-                        map_gene_vcf[name]=vcflines
-                        write_vcf(vcflines, name,output_dir)
+                        gene_vcf_file=write_vcf(vcflines, name,output_dir)
+                        map_gene_vcf[name]=gene_vcf_file
+
     except Exception as ex:
-        print(ex)
+        print('Error call vcf '+msa+":"+str(ex))
     return map_gene_vcf
