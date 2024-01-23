@@ -319,6 +319,16 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
             SeqIO.write(new_record, fh, 'fasta')
 
     return core_gene_aln_file
+def writeTempSeqFile(temp_seqs_dir, gene_id,seq):
+
+    if not os.path.exists(temp_seqs_dir):
+        os.makedirs(temp_seqs_dir)
+    temp_file=os.path.join(temp_seqs_dir,gene_id+".fasta")
+    f=open(temp_file,"w")
+    f.write(">"+str(gene_id)+"\n")
+    f.write(seq)
+    f.close()
+    return temp_file
 def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Create protein sequences and nucleotide sequences for each gene cluster
@@ -342,6 +352,8 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
     logger.info('Getting sequences of gene clusters')
     gene_cluster_file = roary_folder + '/gene_presence_absence.csv.gz'
     dict_nucleotide = {}
+    temp_dna_seq_folder=os.path.join(collection_dir,"temp_nucl")
+    temp_prot_seq_folder=os.path.join(collection_dir,"temp_prot")
     for ffn_file in os.listdir(ffn_folder):
         ffn_file_path=os.path.join(ffn_folder,ffn_file)
         if ffn_file.endswith('.gz'):
@@ -349,12 +361,15 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
                 for seq_record in SeqIO.parse(fn, 'fasta'):
                     seq_record.seq = seq_record.seq
                     seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                    dict_nucleotide[seq_record.id] = seq_record
+                    dict_nucleotide[seq_record.id]=writeTempSeqFile(temp_dna_seq_folder,seq_record.id,str(seq_record.seq))
+                    #dict_nucleotide[seq_record.id] = seq_record
         else:
             for seq_record in SeqIO.parse(ffn_file_path, 'fasta'):
                 seq_record.seq = seq_record.seq
                 seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                dict_nucleotide[seq_record.id] = seq_record
+                dict_nucleotide[seq_record.id]=writeTempSeqFile(temp_dna_seq_folder,seq_record.id,str(seq_record.seq))
+
+                #dict_nucleotide[seq_record.id] = seq_record
     dict_prot = {}
     for faa_file in os.listdir(faa_folder):
         faa_file_path=os.path.join(faa_folder,faa_file)
@@ -363,12 +378,14 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
                 for seq_record in SeqIO.parse(fn, 'fasta'):
                     seq_record.seq = seq_record.seq
                     seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                    dict_prot[seq_record.id] = seq_record
+                    #dict_prot[seq_record.id] = seq_record
+                    dict_prot[seq_record.id] = writeTempSeqFile(temp_prot_seq_folder,seq_record.id,str(seq_record.seq))
         else:
             for seq_record in SeqIO.parse(faa_file_path, 'fasta'):
                 seq_record.seq = seq_record.seq
                 seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                dict_prot[seq_record.id] = seq_record
+                dict_prot[seq_record.id] = writeTempSeqFile(temp_prot_seq_folder,seq_record.id,str(seq_record.seq))
+                #dict_prot[seq_record.id] = seq_record
     #print (dict_nucleotide)
     # make folder contains sequences for each gene
     alignment_dir = os.path.join(collection_dir, 'alignments')
@@ -389,8 +406,8 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
         # check if done before
         protein_seq_file = os.path.join(gene_dir, gene_id + '.faa')
         nucleotide_seq_file = os.path.join(gene_dir, gene_id + '.fna')
-        if (not overwrite) and os.path.isfile(protein_seq_file) and os.path.isfile(nucleotide_seq_file):
-            continue
+        #if (not overwrite) and os.path.isfile(protein_seq_file) and os.path.isfile(nucleotide_seq_file):
+        #    continue
 
         gene_list = []
         for sample_column in sample_columns:
@@ -411,9 +428,17 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
                 #pro_seq_record = SeqRecord(pro_seq, id = nu_seq_record.id, description = '')
                 #if isReversed:
                 #    nu_seq_record.seq=nu_seq_record.seq.reverse_complement()
-                SeqIO.write(nu_seq_record, nucl_fh, 'fasta')
-                SeqIO.write(pro_seq_record, prot_fh, 'fasta')
+                for record in SeqIO.parse(nu_seq_record,"fasta"):
+                    SeqIO.write(record, nucl_fh, 'fasta')
+                for record in SeqIO.parse(pro_seq_record,"fasta"):
+                    SeqIO.write(record, prot_fh, 'fasta')
+                #SeqIO.write(nu_seq_record, nucl_fh, 'fasta')
+                #SeqIO.write(pro_seq_record, prot_fh, 'fasta')
 
+    if os.path.exists(temp_dna_seq_folder):
+        shutil.rmtree(temp_dna_seq_folder)
+    if os.path.exists(temp_prot_seq_folder):
+        shutil.rmtree(temp_prot_seq_folder)
     return alignment_dir
 def translateDNA2Prot(sr):
     #print(type(sr))
