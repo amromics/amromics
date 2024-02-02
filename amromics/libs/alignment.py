@@ -13,6 +13,7 @@ import amromics.libs.bioseq as bioseq
 import amromics.libs.msa2vcf as msa2vcf
 from amromics.libs.bioseq import read_sequence_file, write_fasta
 from amromics.utils.command import run_command
+from datetime import datetime
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 def run_alignment_by_parsnp(roary_folder,ffn_dir,base_dir, overwrite=False,  timing_log=None,threads=0):
@@ -424,12 +425,19 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
                 #    SeqIO.write(record, nucl_fh, 'fasta')
                 #for record in SeqIO.parse(pro_seq_record,"fasta"):
                 #    SeqIO.write(record, prot_fh, 'fasta')
-                record_nu_dict = SeqIO.index(nu_seq_record, "fasta")
-                SeqIO.write(record_nu_dict[sample_gene], nucl_fh, 'fasta')
+                #record_nu_dict = SeqIO.index(nu_seq_record, "fasta")
+                #SeqIO.write(record_nu_dict[sample_gene], nucl_fh, 'fasta')
 
-                record_prot_dict = SeqIO.index(pro_seq_record, "fasta")
-                SeqIO.write(record_prot_dict[sample_gene], prot_fh, 'fasta')
-
+                #record_prot_dict = SeqIO.index(pro_seq_record, "fasta")
+                #SeqIO.write(record_prot_dict[sample_gene], prot_fh, 'fasta')
+                for record in SeqIO.parse(nu_seq_record,"fasta"):
+                    if record.id==sample_gene:
+                        SeqIO.write(record, nucl_fh, 'fasta')
+                        break
+                for record in SeqIO.parse(pro_seq_record,"fasta"):
+                    if record.id==sample_gene:
+                        SeqIO.write(record, prot_fh, 'fasta')
+                        break
     if os.path.exists(temp_dna_seq_folder):
         shutil.rmtree(temp_dna_seq_folder)
     if os.path.exists(temp_prot_seq_folder):
@@ -448,9 +456,18 @@ def translateDNA2Prot(sr):
         return prot_d1, False
 
 def runGeneAlignment(roary_folder,sample_col,ffn_dir, faa_dir,collection_dir, threads=8, overwrite=False, timing_log=None):
+    stime = datetime.now()
     alignment_dir=get_gene_sequences(roary_folder,sample_col, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
+    elapsed = datetime.now() - stime
+    logger.info(f'Get gene sequences -- time taken {str(elapsed)}')
+    stime = datetime.now()
     alignment_dir=run_protein_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
+    elapsed = datetime.now() - stime
+    logger.info(f'Protein alignment -- time taken {str(elapsed)}')
+    stime = datetime.now()
     alignment_dir=create_nucleotide_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
+    elapsed = datetime.now() - stime
+    logger.info(f'Nucliotide alignment -- time taken {str(elapsed)}')
     return alignment_dir
 def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
