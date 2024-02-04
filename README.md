@@ -21,55 +21,47 @@ AMRomics is written in python, it includes the followings dependencies:
  * abricate (1.0.1 | Database: vfdb ecoli_vf ecoh card megares resfinder argannot ncbi plasmidfinder)
  * roary (3.13.0) 
  * iqtree (2.1.2)
+ * fasttree
 
 ## Installation
 
 The simplest method is installed via conda:
 
-0. Download and install the appropriate conda, such as anaconda from 
+0. Make sure a conda version is installed in the computer. If not done already, download and install the appropriate conda, such as anaconda from 
    https://repo.anaconda.com/archive/
    
 1. Create a conda environment with all the necessary dependencies: From the repository directory run
-
 ```bash
 git clone --recursive https://github.com/amromics/amromics.git
+cd amromics
 conda create -y -c conda-forge -c defaults --name amromics python=3.10 mamba
 source activate amromics
 mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c rpetit3 -c defaults --file requirements.txt
-
 ```
+
 2. Recommended: install amromics library into conda environment
 ```bash
-source activate amromics
+source activate amromics  #If not have already activated
 pip install .
 ```
 3. Install panta submodule:
 ```bash
 cd submodules/panta
 mamba install -y -c conda-forge -c bioconda -c anaconda -c defaults  --file requirements.txt
-pip install . --use-feature=in-tree-build
+pip install .
+cd ../..
 ```   
-
-## Usage
-
-
+4. Setup MLST database: AMRomics requires a copy of pubMLST database set up on the folder that AMRomics pipeline is run from. We make available the database in the accompanied file `db.tar.gz` updated on Feb 1, 2024. Just unzip the tarball 
 ```bash
-source activate amromics
-```
-
-### To run the pipeline
-
-It's recommended to have a dedicated location to run AMRomics pipeline, as full related databases will just needed to be setup once
-at the beginning with:
-
-```
-source activate amromics
 tar zxvf db.tar.gz
 ```
-If you wish to download lastest db:
+Alternatively, you can update the latest database by running the following command line. Note the running make take some time depending on the bandwidth network and the responsiveness of pubMLST server
 ```
-amr-analysis.py download_db --initdb True
+./amr-analysis.py download_db
 ```
+
+
+## Usage
 
 ### Examples
 
