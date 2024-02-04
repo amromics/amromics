@@ -29,6 +29,7 @@ ncbi-amrfinderplus==3.11.14
 parasail-python
 prokka==1.14.6
 quast==5.2.0
+fasttree
 #roary==3.13.0
 #shovill==1.1.0
 #skesa==2.4.0
