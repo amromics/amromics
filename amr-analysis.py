@@ -106,7 +106,7 @@ def input_file_to_samples(input_file, sep='\t'):
             'trim': row['trim'],
             'metadata': mt,
             'updated': False,
-            'gsize':row['gsize']
+            'gsize':int(row['gsize']) if row['gsize'] else None,
         }
         sample_report.append(sample)
     return sample_report

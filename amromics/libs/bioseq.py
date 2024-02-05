@@ -12,6 +12,7 @@ from __future__ import division, print_function, absolute_import
 
 import gzip
 import bz2
+from functools import partial
 from collections import defaultdict
 
 complement_dict = defaultdict(lambda: 'N')
@@ -216,15 +217,14 @@ class AMRGene():
 #Get the compression type of a file
 #https://stackoverflow.com/questions/13044562/python-mechanism-to-identify-compressed-file-type-and-uncompress
 magic_dict = {
-    "\x1f\x8b\x08": "gz",
-    "\x42\x5a\x68": "bz2",
-    "\x50\x4b\x03\x04": "zip"
+    b"\x1f\x8b\x08": "gz",
+    b"\x42\x5a\x68": "bz2",
+    b"\x50\x4b\x03\x04": "zip"
     }
+
 _magic_max_len = max(len(x) for x in magic_dict)
-
-
-def get_compression_type(filename):
-    with open(filename) as f:
+def get_compression_type(filename):    
+    with open(filename,'rb') as f:
         file_start = f.read(_magic_max_len)
     for magic, filetype in magic_dict.items():
         if file_start.startswith(magic):
@@ -282,13 +282,13 @@ def read_sequence_file(file_name):
     if compression_type is None:
         open_method = open
     elif compression_type == 'gz':
-        open_method = gzip.open
+        open_method = partial(gzip.open, mode='rt')
     elif compression_type == 'bz2':
-        open_method = bz2.BZ2File
+        open_method = partial(bz2.open, mode='rt')
     else:
         raise Exception('Unknown compression type {}'.format(compression_type))
 
-    with open_method(file_name, 'r') as f:
+    with open_method(file_name) as f:
         for name, desc, seq, qual in readfq(f):
             yield Sequence(name, desc=desc, sequence=seq, quality=qual)
 
