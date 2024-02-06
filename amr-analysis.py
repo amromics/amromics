@@ -173,9 +173,11 @@ def pan_genome_analysis_func(args):
     threads = args.threads
     memory = args.memory
     timing_log = args.time_log
-    method = args.method
-    if not method:
-        method='panta'
+    pangenome_method = args.pangenome_method
+    if not pangenome_method:
+        pangenome_method='panta'
+    if pangenome_method == 'roary':
+        raise Exception('roary is no longer supported due to incompatibility of software installation. Please use panta instead!')
     #overwrite = False
     overwrite=args.overwrite
 
@@ -197,7 +199,7 @@ def pan_genome_analysis_func(args):
     report = pan_genome_analysis(
         samples, work_dir,
         collection_id, collection_name, overwrite=overwrite,
-        threads=threads, memory=memory, timing_log=timing_log,method=method, genetree=args.genetree, progressive=args.progressive,tree=args.tree)
+        threads=threads, memory=memory, timing_log=timing_log,method=pangenome_method, genetree=args.genetree, progressive=args.progressive,tree=args.tree_method)
     logger.info('Congratulations, collection {} is done!'.format(collection_id))
 def main(arguments=sys.argv[1:]):
     parser = argparse.ArgumentParser(
@@ -225,10 +227,13 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
     pg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
     pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
-    pg_cmd.add_argument('--method', help='panta or roary', default='panta')
+    
+    pg_cmd.add_argument('--pangenome-method', choices=['panta', 'roary'], default='panta', help='Pangenome method')
+    pg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='spades', help='Short read assembly methods')
+    pg_cmd.add_argument('--tree-method', choices=['fasttree', 'iqtree'], default='fasttree', help='Tree building method')   
+
     pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=False)
-    pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False)
-    pg_cmd.add_argument('--tree', help='fasttree or iqtree', default='fasttree')
+    pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False)    
     pg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
     pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
 

@@ -35,7 +35,7 @@ import amromics.libs.alignment as alignment
 import amromics.libs.phylogeny as phylogeny
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
-def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=50, trim=False, overwrite=None, timing_log=None):
+def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='spades', threads=0, memory=50, trim=False, overwrite=None, timing_log=None):
     #handle assembly input, ignore spades and bwa:
     sample['execution_start'] =  datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     reads=None
@@ -73,12 +73,16 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', threads=0, memory=
         #subsampling to 100X if needed
         reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
         #run assembly by spades
-        sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
+        if assembly_method=='spades':
+            sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
+        elif assembly_method=='skesa':
+            sample['assembly'] = assembler.assemble_skesa(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
+        else:
+            raise Exception(f'Unknown assemblyt method {assembly_method}')
         #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
     elif sample['input_type'] in ['gff']:
         sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir, overwrite=overwrite)
         sample['assembly'] = assembler.get_assembly_from_gff(sample['id'], sample['files'],base_dir=sample_dir)
-
     # if extraStep and not reads==None :
     #     sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
     if extraStep and not reads==None:
