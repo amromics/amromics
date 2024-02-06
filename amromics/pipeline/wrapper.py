@@ -163,4 +163,5 @@ def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progre
         logger.info(f'Run Collection -- time taken {str(elapsed)}')
     except Exception as error:
         logger.error(error)
+        return None
     return report

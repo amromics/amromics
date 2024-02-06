@@ -12,6 +12,7 @@ def copy_file(source_file, dest_dir):
     return dest_file
 def prepareDataCollectionAnalysis(report,collection_dir):
     temp_folder = os.path.join(collection_dir, 'temp_data')
+    #clean up the folder
     if not os.path.isdir(temp_folder):
         os.makedirs(temp_folder)
 

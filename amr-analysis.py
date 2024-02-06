@@ -195,7 +195,7 @@ def pan_genome_analysis_func(args):
     samples = input_file_to_samples(args.input)
 
     # First run single analysis
-    samples = single_genome_analysis(samples, work_dir, overwrite=overwrite, threads=threads, memory=memory, timing_log=timing_log)
+    samples = single_genome_analysis(samples, work_dir, assembly_method=args.assembly_method, overwrite=overwrite, threads=threads, memory=memory, timing_log=timing_log)
     report = pan_genome_analysis(
         samples, work_dir,
         collection_id, collection_name, overwrite=overwrite,
