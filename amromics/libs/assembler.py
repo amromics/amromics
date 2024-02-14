@@ -18,7 +18,6 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     if threads == 0:
         threads = NUM_CORES_DEFAULT
 
-
     path_out = os.path.join(base_dir, prefix_name + '_spades')
     assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
     if not os.path.exists(path_out):
@@ -27,7 +26,6 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
         return assembly_file
    
     #rename reads zip/unzip now move to preprocess.py
-
     #cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --isolate --disable-gzip-output -o {path_out}'.format(
     cmd = 'spades.py -m {memory} -t {threads} --only-assembler --isolate --cov-cutoff auto -o {path_out}'.format(
         memory=int(memory), threads=threads, path_out=path_out)
@@ -43,7 +41,7 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     #remove intermediate sub-folder
     #run_command('rm -rf ' + os.path.join(path_out,'corrected'))
     run_command('rm -rf ' + os.path.join(path_out,'misc'))
-    run_command('rm -rf ' + os.path.join(path_out,'tmp'))
+    run_command('rm -rf ' + os.path.join(path_out,'tmp'))    
 
     # Read in list of contigs
     contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fasta'), "fasta"))
@@ -56,6 +54,8 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
             contig.description = ''
             SeqIO.write(contig, f, "fasta")
     return assembly_file
+
+
 def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, timing_log=None, **kargs):
     if threads == 0:
         threads = NUM_CORES_DEFAULT
@@ -66,7 +66,7 @@ def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, timi
     cmd = 'skesa --memory {memory} --cores {threads} --fastq '.format(
         memory=int(memory), threads=threads)
     if 'pe1' in reads and 'pe2' in reads:
-        cmd += '{pe1} {pe2}'.format(pe1=read_data['pe1'], pe2=read_data['pe2'])
+        cmd += '{pe1} {pe2}'.format(pe1=reads['pe1'], pe2=reads['pe2'])
     if 'se' in reads:
         cmd += '{se}'.format(se=reads['se'])
     assembly_file_raw= os.path.join(path_out, 'contigs.fasta')
