@@ -353,32 +353,49 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
     logger.info('Getting sequences of gene clusters')
     gene_cluster_file = roary_folder + '/gene_presence_absence.csv.gz'
     dict_nucleotide = {}
-    temp_dna_seq_folder=os.path.join(collection_dir,"temp_nucl")
-    temp_prot_seq_folder=os.path.join(collection_dir,"temp_prot")
+    #temp_dna_seq_folder=os.path.join(collection_dir,"temp_nucl")
+    #temp_prot_seq_folder=os.path.join(collection_dir,"temp_prot")
     for ffn_file in os.listdir(ffn_folder):
         ffn_file_path=os.path.join(ffn_folder,ffn_file)
         if ffn_file.endswith('.gz'):
             run_command('gunzip -c {} > {}'.format(ffn_file_path,ffn_file_path.replace('.gz','') ))
             ffn_file_path=ffn_file_path.replace('.gz','')
+            ffn_binfile_path=ffn_file_path.replace('.ffn','.bin')
+            if os.path.exists(ffn_binfile_path):
+                os.remove(ffn_binfile_path)
 
-        for seq_record in SeqIO.parse(ffn_file_path, 'fasta'):
-                #seq_record.seq = seq_record.seq
-                #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                #dict_nucleotide[seq_record.id]=writeTempSeqFile(temp_dna_seq_folder,seq_record.id,str(seq_record.seq))
-            dict_nucleotide[seq_record.id] =ffn_file_path
-                #dict_nucleotide[seq_record.id] = seq_record
+
+            with open(ffn_binfile_path, 'wb') as binary_fh:
+                with open(ffn_file_path, 'r') as fasta_fh:
+                    for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
+                        start_position = binary_fh.tell()
+                        binary_fh.write(seq_record.seq.encode('utf-8'))
+                        end_position = binary_fh.tell()
+                        #seq_record.seq = seq_record.seq
+                        #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
+                        #dict_nucleotide[seq_record.id]=writeTempSeqFile(temp_dna_seq_folder,seq_record.id,str(seq_record.seq))
+                        dict_nucleotide[seq_record.id] =(ffn_binfile_path,start_position, end_position)
+                        #dict_nucleotide[seq_record.id] = seq_record
     dict_prot = {}
     for faa_file in os.listdir(faa_folder):
         faa_file_path=os.path.join(faa_folder,faa_file)
         if faa_file.endswith('.gz'):
             run_command('gunzip -c {} > {}'.format(faa_file_path,faa_file_path.replace('.gz','') ))
             faa_file_path=faa_file_path.replace('.gz','')
-        for seq_record in SeqIO.parse(faa_file_path, 'fasta'):
-                #seq_record.seq = seq_record.seq
-                #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                #dict_prot[seq_record.id] = writeTempSeqFile(temp_prot_seq_folder,seq_record.id,str(seq_record.seq))
-                #dict_prot[seq_record.id] = seq_record
-            dict_prot[seq_record.id] = faa_file_path
+            faa_binfile_path=faa_file_path.replace('.faa','.bin')
+            if os.path.exists(faa_binfile_path):
+                os.remove(faa_binfile_path)
+            with open(faa_binfile_path, 'wb') as binary_fh:
+                with open(faa_file_path, 'r') as fasta_fh:
+                    for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
+                        start_position = binary_fh.tell()
+                        binary_fh.write(seq_record.seq.encode('utf-8'))
+                        end_position = binary_fh.tell()
+                        #seq_record.seq = seq_record.seq
+                        #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
+                        #dict_prot[seq_record.id] = writeTempSeqFile(temp_prot_seq_folder,seq_record.id,str(seq_record.seq))
+                        #dict_prot[seq_record.id] = seq_record
+                        dict_prot[seq_record.id] = (faa_binfile_path,start_position, end_position)
     #print (dict_nucleotide)
     # make folder contains sequences for each gene
     alignment_dir = os.path.join(collection_dir, 'alignments')
@@ -414,8 +431,8 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
         #print(gene_list)
         with open(protein_seq_file, 'w') as prot_fh, open(nucleotide_seq_file, 'w') as nucl_fh:
             for sample_gene in gene_list:
-                nu_seq_record = dict_nucleotide[sample_gene]
-                pro_seq_record=dict_prot[sample_gene]
+                #nu_seq_record = dict_nucleotide[sample_gene]
+                #pro_seq_record=dict_prot[sample_gene]
                 #pro_seq = nu_seq_record.seq.translate(table=11)
                 #pro_seq, isReversed = translateDNA2Prot(nu_seq_record)
                 #pro_seq_record = SeqRecord(pro_seq, id = nu_seq_record.id, description = '')
@@ -430,19 +447,40 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
 
                 #record_prot_dict = SeqIO.index(pro_seq_record, "fasta")
                 #SeqIO.write(record_prot_dict[sample_gene], prot_fh, 'fasta')
-                for record in SeqIO.parse(nu_seq_record,"fasta"):
-                    if record.id==sample_gene:
-                        SeqIO.write(record, nucl_fh, 'fasta')
-                        break
-                for record in SeqIO.parse(pro_seq_record,"fasta"):
-                    if record.id==sample_gene:
-                        SeqIO.write(record, prot_fh, 'fasta')
-                        break
-    if os.path.exists(temp_dna_seq_folder):
-        shutil.rmtree(temp_dna_seq_folder)
-    if os.path.exists(temp_prot_seq_folder):
-        shutil.rmtree(temp_prot_seq_folder)
+                # for record in SeqIO.parse(nu_seq_record,"fasta"):
+                #     if record.id==sample_gene:
+                #         SeqIO.write(record, nucl_fh, 'fasta')
+                #         break
+                # for record in SeqIO.parse(pro_seq_record,"fasta"):
+                #     if record.id==sample_gene:
+                #         SeqIO.write(record, prot_fh, 'fasta')
+                #         break
+                nu_seq_file,start_nu_seq,end_nu_seq = dict_nucleotide[sample_gene]
+                nu_record=SeqRecord(Seq(binary_to_record(nu_seq_file,start_nu_seq,end_nu_seq)), id = sample_gene, description = '')
+                #print(nu_record.seq)
+                SeqIO.write(nu_record, nucl_fh, 'fasta')
+                pro_seq_file,start_pro_seq,end_pro_seq = dict_prot[sample_gene]
+                pro_record=SeqRecord(Seq(binary_to_record(pro_seq_file,start_pro_seq,end_pro_seq)), id = sample_gene, description = '')
+                SeqIO.write(pro_record, prot_fh, 'fasta')
+    # if os.path.exists(temp_dna_seq_folder):
+    #     shutil.rmtree(temp_dna_seq_folder)
+    # if os.path.exists(temp_prot_seq_folder):
+    #     shutil.rmtree(temp_prot_seq_folder)
     return alignment_dir
+def binary_to_record(binary_file, start_position, end_position):
+    record=None
+    with open(binary_file, 'rb') as binary_fh:
+
+        binary_fh.seek(start_position)
+
+
+        data = binary_fh.read(end_position - start_position)
+
+
+        record =data.decode('utf-8')
+
+
+    return record
 def translateDNA2Prot(sr):
     #print(type(sr))
     prot_d1=sr.seq.translate(table=11)

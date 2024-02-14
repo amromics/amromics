@@ -24,6 +24,7 @@ import amromics.libs.assembler as assembler
 import amromics.libs.preprocess as preprocess
 import amromics.libs.qc as qc
 import amromics.libs.taxonomy as taxonomy
+import traceback
 from Bio import SeqIO
 import pandas as pd
 import json
@@ -158,5 +159,6 @@ def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progre
         elapsed = datetime.now() - starttime
         logger.info(f'Run Collection -- time taken {str(elapsed)}')
     except Exception as error:
+        traceback.print_exc()
         logger.error(error)
     return report
