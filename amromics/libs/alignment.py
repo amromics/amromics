@@ -369,7 +369,7 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
                 with open(ffn_file_path, 'r') as fasta_fh:
                     for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
                         start_position = binary_fh.tell()
-                        binary_fh.write(seq_record.seq.encode('utf-8'))
+                        binary_fh.write(str(seq_record.seq).encode('utf-8'))
                         end_position = binary_fh.tell()
                         #seq_record.seq = seq_record.seq
                         #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
@@ -389,7 +389,7 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
                 with open(faa_file_path, 'r') as fasta_fh:
                     for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
                         start_position = binary_fh.tell()
-                        binary_fh.write(seq_record.seq.encode('utf-8'))
+                        binary_fh.write(str(seq_record.seq).encode('utf-8'))
                         end_position = binary_fh.tell()
                         #seq_record.seq = seq_record.seq
                         #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
@@ -638,7 +638,7 @@ def generateSampleVcfFile(list_vcf,vcf_file,sample_name):
                 if line.startswith("#"):
                     continue
                 #vcf.write(line+"\t"+genPresentMark(num_gene,i)+"\n")
-                vcf.write(line+"\n")
+                vcf.write(line)
             f.close()
     run_command('gzip -f {}'.format(vcf_file))
 def genPresentMark(total, index):
