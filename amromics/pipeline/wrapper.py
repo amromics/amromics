@@ -68,9 +68,10 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
                 reads['se'] = preprocess.trim_fastp(sample['id'],reads,
                         base_dir=sample_dir, overwrite=overwrite, timing_log=timing_log,threads=threads)
         #estimate gsize if not provided
-        if sample['gsize']==None:
-            sample['gsize']=preprocess.estimate_gsize_mash(sample['id'], reads,
+        if sample['gsize']==None:            
+            sample['gsize'] = preprocess.estimate_gsize_mash(sample['id'], reads,
                     base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory,timing_log=timing_log)
+            logger.info('Genome size of {sample_id} is estimated to be {gsize}'.format(sample_id=sample['id'],gsize=sample['gsize']))
         #subsampling to 100X if needed
         reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
         #run assembly by spades
