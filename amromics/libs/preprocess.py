@@ -171,7 +171,7 @@ def rename_reads(reads):
             reads['pe2']= reads['pe2']+'.fastq'
 
 
-def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=0, base_dir='.', overwrite=False, timing_log=None, gsize=None,**kargs):
+def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=8, base_dir='.', overwrite=False, timing_log=None, gsize=None,**kargs):
 
     ##orig_depth=total_basas/gsize
     #expect_depth=100 #100X
@@ -217,14 +217,14 @@ def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=0, base_dir='.
             return reads
         
         if 'pe1' in reads:
-            cmd='seqtk sample {in_p1} {factor} | pigz --fast -c -p 8 > {out_p1}'.format(
-                    in_p1=reads['pe1'], factor=factor, out_p1=out_p1)
+            cmd='seqtk sample {in_p1} {factor} | pigz --fast -c -p {threads} > {out_p1}'.format(
+                    in_p1=reads['pe1'], factor=factor, threads=threads, out_p1=out_p1)
         if 'pe2' in reads:
-            cmd+='&&seqtk sample {in_p2} {factor} | pigz --fast -c -p 8 > {out_p2}'.format(
-                    in_p2=reads['pe2'], factor=factor, out_p2=out_p2)
+            cmd+='&&seqtk sample {in_p2} {factor} | pigz --fast -c -p {threads} > {out_p2}'.format(
+                    in_p2=reads['pe2'], factor=factor, threads=threads, out_p2=out_p2)
         if 'se' in reads:
-            cmd='seqtk sample {in_s} {factor} | pigz --fast -c -p 8 > {out_s}'.format(
-                    in_s=reads['se'], factor=factor, out_s=out_s)
+            cmd='seqtk sample {in_s} {factor} | pigz --fast -c -p {threads} > {out_s}'.format(
+                    in_s=reads['se'], factor=factor, threads=threads, out_s=out_s)
         logger.info("Running subsampling command: {}".format(cmd)) 
         ret=run_command(cmd,timing_log)
 

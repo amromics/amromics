@@ -61,6 +61,7 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
             raise Exception('There should be one or two input files')
         #preprocesing
         preprocess.rename_reads(reads)
+        #TODO: get the number of bases from fastq json file. If not trim, iterate through the read file to count the number of bases
         if trim:
             if 'pe1' in reads and 'pe2' in reads:
                 reads['pe1'],reads['pe2'] = preprocess.trim_fastp(sample['id'],reads, overwrite=overwrite, base_dir=sample_dir, timing_log=timing_log,threads=threads)
@@ -73,6 +74,7 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
                     base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory,timing_log=timing_log)
             logger.info('Genome size of {sample_id} is estimated to be {gsize}'.format(sample_id=sample['id'],gsize=sample['gsize']))
         #subsampling to 100X if needed
+        #TODO: by now, we should know the genome size and the coverage. If genome size is not known use the upper bound= 8M            
         reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
         #run assembly by spades
         if assembly_method=='spades':
@@ -80,7 +82,7 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
         elif assembly_method=='skesa':
             sample['assembly'] = assembler.assemble_skesa(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
         else:
-            raise Exception(f'Unknown assemblyt method {assembly_method}')
+            raise Exception(f'Unknown assembly method {assembly_method}')
         #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
     elif sample['input_type'] in ['gff']:
         sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir, overwrite=overwrite)
