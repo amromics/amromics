@@ -23,6 +23,7 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     if not os.path.exists(path_out):
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
+        logger.info(f'Assembly file {assembly_file} found, skip assembling')
         return assembly_file
    
     #rename reads zip/unzip now move to preprocess.py
@@ -65,6 +66,7 @@ def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, over
     if not os.path.exists(path_out):
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
+        logger.info(f'Assembly file {assembly_file} found, skip assembling')
         return assembly_file
 
     cmd = 'skesa --memory {memory} --cores {threads} --fastq '.format(
