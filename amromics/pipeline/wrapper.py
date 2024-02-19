@@ -78,9 +78,9 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
         reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
         #run assembly by spades
         if assembly_method=='spades':
-            sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
+            sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,overwrite=overwrite, timing_log=timing_log)
         elif assembly_method=='skesa':
-            sample['assembly'] = assembler.assemble_skesa(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,timing_log=timing_log)
+            sample['assembly'] = assembler.assemble_skesa(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,overwrite=overwrite, timing_log=timing_log)
         else:
             raise Exception(f'Unknown assembly method {assembly_method}')
         #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])

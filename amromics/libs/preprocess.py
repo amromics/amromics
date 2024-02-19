@@ -123,6 +123,7 @@ def estimate_gsize_mash(prefix_name, reads, overwrite=False, threads=0, base_dir
         threads = NUM_CORES_DEFAULT
 
     mash_log = os.path.join(base_dir, prefix_name + '_mash.log')
+    
     ret=0
     if os.path.isfile(mash_log) and (not overwrite):
         print("mash results exist for {}! skip running mash sketch...".format(prefix_name))

@@ -56,12 +56,16 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     return assembly_file
 
 
-def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, timing_log=None, **kargs):
+def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, overwrite=False, timing_log=None, **kargs):
     if threads == 0:
         threads = NUM_CORES_DEFAULT
     path_out = os.path.join(base_dir, prefix_name + '_skesa')
+    
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
     if not os.path.exists(path_out):
         os.makedirs(path_out)
+    elif os.path.isfile(assembly_file) and (not overwrite):
+        return assembly_file
 
     cmd = 'skesa --memory {memory} --cores {threads} --fastq '.format(
         memory=int(memory), threads=threads)
