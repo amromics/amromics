@@ -240,6 +240,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     if not os.path.exists(path_out):
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
+        logger.info(f'Assembly file {assembly_file} found, skip assembling')
         return assembly_file
 
     cmd = 'flye --threads {threads} --out-dir {path_out} --{input_type} {reads}'.format(
