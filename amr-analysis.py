@@ -229,7 +229,7 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
     
     pg_cmd.add_argument('--pangenome-method', choices=['panta', 'roary'], default='panta', help='Pangenome method')
-    pg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='spades', help='Short read assembly methods')
+    pg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='skesa', help='Short read assembly methods')
     pg_cmd.add_argument('--tree-method', choices=['fasttree', 'iqtree'], default='fasttree', help='Tree building method')   
 
     pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=False)
