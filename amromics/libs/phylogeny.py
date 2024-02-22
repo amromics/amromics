@@ -65,7 +65,7 @@ def run_phylogeny_parsnp(base_dir,ref_genome, genome_dir='.',threads=0):
     shutil.rmtree(temp_folder)
 
     return phylogeny_folder
-def run_species_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def run_species_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Run iqtree to create phylogeny tree from core gene alignment. If the list of samples has
     not changed, and none of the samples has changed, the existing tree will be kept unless
@@ -98,7 +98,7 @@ def run_species_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwr
 
     aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln.gz')
     if not os.path.isfile(aln_file):
-        aln_file = os.path.join(report['roary'], 'core_gene_alignment.aln.gz')
+        aln_file = os.path.join(report['pan'], 'core_gene_alignment.aln.gz')
     cmd = 'iqtree -s {alignment} --prefix {prefix} -B 1000 -T {threads} -czb -keep-ident'.format(
         alignment=aln_file, prefix=phylogeny_folder+'/core_gene_alignment', threads=threads)
     ret = run_command(cmd, timing_log)
@@ -106,7 +106,7 @@ def run_species_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwr
         #raise Exception('iqtree fail to create phylogeny tree from core gene alignment!')
         return None
     return phylogeny_folder
-def run_species_phylogeny_fastree(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def run_species_phylogeny_fastree(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Run iqtree to create phylogeny tree from core gene alignment. If the list of samples has
     not changed, and none of the samples has changed, the existing tree will be kept unless
@@ -139,7 +139,7 @@ def run_species_phylogeny_fastree(roary_folder, collection_dir, threads=8, overw
 
     aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln.gz')
     if not os.path.isfile(aln_file):
-        aln_file = os.path.join(report['roary'], 'core_gene_alignment.aln.gz')
+        aln_file = os.path.join(report['pan'], 'core_gene_alignment.aln.gz')
     aln_file_unzip = aln_file.replace('.aln.gz','.aln')
     op = open(aln_file_unzip,"w")
     with gzip.open(aln_file,"rb") as ip_byte:
@@ -159,7 +159,7 @@ def run_species_phylogeny_fastree(roary_folder, collection_dir, threads=8, overw
         return None
     return phylogeny_folder
 
-def run_gene_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def run_gene_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Run phylogenetic analysis of gene clusters. If the list of samples has not changed, and
     none of the samples has changed, the existing tree will be kept unless overwrite is
@@ -181,7 +181,7 @@ def run_gene_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwrite
     -------
     """
     alignment_dir = os.path.join(collection_dir, 'alignments')
-    gene_cluster_file = roary_folder + '/gene_presence_absence.Rtab'
+    gene_cluster_file = pan_folder + '/gene_presence_absence.Rtab'
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
@@ -201,7 +201,7 @@ def run_gene_phylogeny_iqtree(roary_folder, collection_dir, threads=8, overwrite
             if (not overwrite) and os.path.isfile(iqtree_output):
                 continue
 
-            gene_aln_file_roary = os.path.join(roary_folder,'pan_genome_sequences', gene_id + '.fa.aln')
+            gene_aln_file_roary = os.path.join(pan_folder,'pan_genome_sequences', gene_id + '.fa.aln')
             gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
             if os.path.isfile(gene_aln_file_roary):
                 shutil.move(gene_aln_file_roary,gene_aln_file)

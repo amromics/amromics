@@ -124,43 +124,45 @@ def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progre
         starttime = datetime.now()
         if method=='roary':
             stime = datetime.now()
-            report['roary'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+            report['pan'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Roary -- time taken {str(elapsed)}')
             stime = datetime.now()
-            report['alignments'] = alignment.runGeneAlignment(report['roary'],14, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+            report['alignments'] = alignment.runGeneAlignment(report['pan'],14, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Alignment from roary -- time taken {str(elapsed)}')
         if method=='panta':
             stime = datetime.now()
-            report['roary'] = pangenome.run_panta_cmd(gff_dir, threads=threads, base_dir=base_dir,progressive=progressive,overwrite=overwrite,timing_log=timing_log)
+            report['pan'] = pangenome.run_panta_cmd(gff_dir, threads=threads, base_dir=base_dir,progressive=progressive,overwrite=overwrite,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Panta -- time taken {str(elapsed)}')
             stime = datetime.now()
-            report['alignments'] = alignment.runGeneAlignment(report['roary'],8, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+            #report['alignments'] = alignment.runGeneAlignment(report['pan'],8, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+            report['alignments'] = alignment.copyClustersPanta(base_dir,report['pan'])
+
             elapsed = datetime.now() - stime
             logger.info(f'Gene alignment -- time taken {str(elapsed)}')
             stime = datetime.now()
-            report['alignments']=alignment.runVCFCallingFromGeneAlignment(report['roary'],overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+            report['alignments']=alignment.runVCFCallingFromGeneAlignment(report['pan'],overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Call VCF -- time taken {str(elapsed)}')
         if genetree:
             stime = datetime.now()
-            report['alignments']  = phylogeny.run_gene_phylogeny_iqtree(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
+            report['alignments']  = phylogeny.run_gene_phylogeny_iqtree(report['pan'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'IQTree for genes -- time taken {str(elapsed)}')
         stime = datetime.now()
-        report['coregene'] = alignment.create_core_gene_alignment(report['roary'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
+        report['coregene'] = alignment.create_core_gene_alignment(report['pan'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)
         elapsed = datetime.now() - stime
         logger.info(f'Create core gene -- time taken {str(elapsed)}')
         if tree=='iqtree':
             stime = datetime.now()
-            report['phylogeny']  = phylogeny.run_species_phylogeny_iqtree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
+            report['phylogeny']  = phylogeny.run_species_phylogeny_iqtree(report['pan'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'IQTree for species -- time taken {str(elapsed)}')
         if 'phylogeny' not in report.keys() or report['phylogeny']==None:
             stime = datetime.now()
-            report['phylogeny']  = phylogeny.run_species_phylogeny_fastree(report['roary'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
+            report['phylogeny']  = phylogeny.run_species_phylogeny_fastree(report['pan'] ,collection_dir=base_dir,overwrite=False, threads=threads,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Fasttree for species -- time taken {str(elapsed)}')
         elapsed = datetime.now() - starttime

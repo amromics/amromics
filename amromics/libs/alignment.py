@@ -16,7 +16,7 @@ from amromics.utils.command import run_command
 from datetime import datetime
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
-def run_alignment_by_parsnp(roary_folder,ffn_dir,base_dir, overwrite=False,  timing_log=None,threads=0):
+def run_alignment_by_parsnp(pan_folder,ffn_dir,base_dir, overwrite=False,  timing_log=None,threads=0):
     """
         Run aligment process to create both multi-alignment  and phylogeny tree for each gene in gene clusters
         :param read_data: result holder
@@ -24,7 +24,7 @@ def run_alignment_by_parsnp(roary_folder,ffn_dir,base_dir, overwrite=False,  tim
         :param base_dir: working directory
         :return:
     """
-    gene_cluster_file=roary_folder+'/gene_presence_absence.csv.gz'
+    gene_cluster_file=pan_folder+'/gene_presence_absence.csv.gz'
     dict_cds={}
     for root, dirs, files in os.walk(ffn_dir):
         for _file in files:
@@ -103,7 +103,7 @@ def run_alignment_by_parsnp(roary_folder,ffn_dir,base_dir, overwrite=False,  tim
 
 
     return alignment_dir
-def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None, min_cover=0.15):
+def run_protein_alignment(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None, min_cover=0.15):
     """
     Align protein sequence by mafft
 
@@ -127,7 +127,7 @@ def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=Fal
     """
     alignment_dir = os.path.join(collection_dir, 'alignments')
 
-    gene_cluster_file =roary_folder + '/gene_presence_absence.Rtab'
+    gene_cluster_file =pan_folder + '/gene_presence_absence.Rtab'
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
@@ -165,7 +165,7 @@ def run_protein_alignment(roary_folder, collection_dir, threads=8, overwrite=Fal
     return alignment_dir
 
 
-def create_nucleotide_alignment(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None,min_cover=0.15):
+def create_nucleotide_alignment(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None,min_cover=0.15):
     """
     Create nucleotide alignment according to protein alignment
 
@@ -188,7 +188,7 @@ def create_nucleotide_alignment(roary_folder, collection_dir, threads=8, overwri
     logger.info('Creating nucleotide alignment')
     alignment_dir = os.path.join(collection_dir, 'alignments')
 
-    gene_cluster_file = roary_folder + '/gene_presence_absence.Rtab'
+    gene_cluster_file = pan_folder + '/gene_presence_absence.Rtab'
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
     min_number=int(min_cover*len(gene_df.columns))
@@ -248,7 +248,7 @@ def create_nucleotide_alignment(roary_folder, collection_dir, threads=8, overwri
     return alignment_dir
 
 
-def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def create_core_gene_alignment(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Concatenate all the nucleotide alignment of core genes to create core gene alignment
 
@@ -280,7 +280,7 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
         logger.info('Core gene alignment exists and input has not changed, skipping')
         return phylogeny_folder
 
-    gene_cluster_file = roary_folder + '/gene_presence_absence.Rtab'
+    gene_cluster_file = pan_folder + '/gene_presence_absence.Rtab'
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
@@ -305,7 +305,11 @@ def create_core_gene_alignment(roary_folder, collection_dir, threads=8, overwrit
         #with gzip.open(nucleotide_aln_file, 'rt') as fh:
         with open(nucleotide_aln_file, 'rt') as fh:
             for seq_record in SeqIO.parse(fh, 'fasta'):
-                sample_name = re.findall(r'^(.+)_', seq_record.id)
+                if '-' in seq_record.id:
+                    gene_sample_id=seq_record.id[seq_record.id.rfind('-')+1:]
+                else:
+                    gene_sample_id=seq_record.id
+                sample_name = re.findall(r'^(.+)_', gene_sample_id)
                 sample_name = sample_name[0]
                 if sample_name not in sample_list:
                     raise Exception(f'Error concatenating gene alignment: {sample_name} is not a sample id')
@@ -330,14 +334,14 @@ def writeTempSeqFile(temp_seqs_dir, gene_id,seq):
     f.write(seq)
     f.close()
     return temp_file
-def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Create protein sequences and nucleotide sequences for each gene cluster
 
     Parameters
     ----------
-    roary_folder: string
-        roary_folder
+    pan_folder: string
+        pan_folder
     collection_dir: str
         working directory of the collection
     threads: int
@@ -351,7 +355,7 @@ def get_gene_sequences(roary_folder,sample_col,ffn_folder,faa_folder, collection
     -------
     """
     logger.info('Getting sequences of gene clusters')
-    gene_cluster_file = roary_folder + '/gene_presence_absence.csv.gz'
+    gene_cluster_file = pan_folder + '/gene_presence_absence.csv.gz'
     dict_nucleotide = {}
     #temp_dna_seq_folder=os.path.join(collection_dir,"temp_nucl")
     #temp_prot_seq_folder=os.path.join(collection_dir,"temp_prot")
@@ -493,19 +497,28 @@ def translateDNA2Prot(sr):
     else:
         return prot_d1, False
 
-def runGeneAlignment(roary_folder,sample_col,ffn_dir, faa_dir,collection_dir, threads=8, overwrite=False, timing_log=None):
+def runGeneAlignment(pan_folder,sample_col,ffn_dir, faa_dir,collection_dir, threads=8, overwrite=False, timing_log=None):
     stime = datetime.now()
-    alignment_dir=get_gene_sequences(roary_folder,sample_col, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
+    alignment_dir=get_gene_sequences(pan_folder,sample_col, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
     elapsed = datetime.now() - stime
     logger.info(f'Get gene sequences -- time taken {str(elapsed)}')
     stime = datetime.now()
-    alignment_dir=run_protein_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
+    alignment_dir=run_protein_alignment(pan_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
     elapsed = datetime.now() - stime
     logger.info(f'Protein alignment -- time taken {str(elapsed)}')
     stime = datetime.now()
-    alignment_dir=create_nucleotide_alignment(roary_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
+    alignment_dir=create_nucleotide_alignment(pan_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
     elapsed = datetime.now() - stime
     logger.info(f'Nucliotide alignment -- time taken {str(elapsed)}')
+    return alignment_dir
+def copyClustersPanta(collection_dir,panta_folder):
+    alignment_dir = os.path.join(collection_dir, 'alignments')
+    if os.path.exists(alignment_dir):
+        shutil.rmtree(alignment_dir)
+    panta_cluster=os.path.join(panta_folder,"clusters")
+    if not os.path.exists(panta_cluster):
+        return None
+    shutil.copytree(panta_cluster, alignment_dir)
     return alignment_dir
 def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
@@ -538,47 +551,50 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
 
 
 
-        cmds_file = os.path.join(alignment_dir,"align_cmds")
+
         map_sample_vcf={}
         ref_pan=[]
         map_sample_prot_vcf={}
-        with open(cmds_file,'w') as cmds:
-            for gene_id, row in gene_df.iterrows():
-                # Only align if there are at least 2 sequences
-                if row.sum() < 2:
-                    continue
-                gene_id = re.sub(r'\W+', '', gene_id)
-                gene_dir = os.path.join(alignment_dir, gene_id)
-                # check if done before
-                #gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
-                gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
-                if not os.path.isfile(gene_aln_file):
-                    #continue if gene is not aligned
-                    continue
-                gene_prot_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
-                if not os.path.isfile(gene_prot_aln_file):
-                    #continue if gene is not aligned
-                    continue
-                #gene_aln_file_unzip = os.path.join(gene_dir, gene_id + '.fna.aln')
-                gene_aln_file_unzip=gene_aln_file
-                gene_prot_aln_file_unzip=gene_prot_aln_file
-                rep_name=None
-                #cmd = f"gzip -dk -f {gene_aln_file}"
-                #run_command(cmd, timing_log)
-                for seq in read_sequence_file(gene_aln_file_unzip):
-                    rep_name=seq.name
-                    ref_pan.append(seq)
-                    break
-                if rep_name==None:
-                    continue
-                map_gene_vcf=msa2vcf.go(gene_aln_file_unzip,rep_name,gene_dir)
-                map_sample_vcf=createSampleVcfDict(map_gene_vcf,map_sample_vcf,vcf_dir)
+        for gene_id, row in gene_df.iterrows():
+            # Only align if there are at least 2 sequences
+            if row.sum() < 2:
+                continue
+            gene_id = re.sub(r'\W+', '', gene_id)
+            gene_dir = os.path.join(alignment_dir, gene_id)
+            # check if done before
+            gene_aln_file_zip= os.path.join(gene_dir, gene_id + '.fna.aln.gz')
+            if os.path.isfile(gene_aln_file_zip):
+                run_command('gunzip -c {} > {}'.format(gene_aln_file_zip,gene_aln_file_zip.replace('.gz','') ))
+            gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
+            if not os.path.isfile(gene_aln_file):
+                #continue if gene is not aligned
+                continue
+            gene_prot_aln_file_zip = os.path.join(gene_dir, gene_id + '.faa.aln.gz')
+            if os.path.isfile(gene_prot_aln_file_zip):
+                run_command('gunzip -c {} > {}'.format(gene_prot_aln_file_zip,gene_prot_aln_file_zip.replace('.gz','') ))
+            gene_prot_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
+            if not os.path.isfile(gene_prot_aln_file):
+                #continue if gene is not aligned
+                continue
+            #gene_aln_file_unzip = os.path.join(gene_dir, gene_id + '.fna.aln')
+            #gene_aln_file_unzip=gene_aln_file
+            #gene_prot_aln_file_unzip=gene_prot_aln_file
+            rep_name=None
+            #cmd = f"gzip -dk -f {gene_aln_file}"
+            #run_command(cmd, timing_log)
+            for seq in read_sequence_file(gene_aln_file):
+                rep_name=seq.name
+                ref_pan.append(seq)
+                break
+            if rep_name==None:
+                continue
+            map_gene_vcf=msa2vcf.go(gene_aln_file,rep_name,gene_dir)
+            map_sample_vcf=createSampleVcfDict(map_gene_vcf,map_sample_vcf,vcf_dir)
 
-                map_gene_prot_vcf=msa2vcf.go(gene_prot_aln_file_unzip,rep_name,gene_dir)
-                map_sample_prot_vcf=createSampleVcfDict(map_gene_prot_vcf,map_sample_prot_vcf,vcf_dir)
+            map_gene_prot_vcf=msa2vcf.go(gene_prot_aln_file,rep_name,gene_dir)
+            map_sample_prot_vcf=createSampleVcfDict(map_gene_prot_vcf,map_sample_prot_vcf,vcf_dir)
 
-                #cmd = f"cd {gene_dir} && msa2vcf {gene_aln_file_unzip}  {rep_name}"
-                #cmds.write(cmd + '\n')
+
         #print(map_sample_vcf)
         #print("size of dict map sample and vcf : "+str(sys.getsizeof(map_sample_vcf)))
         for s in map_sample_vcf.keys():
@@ -607,8 +623,12 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
     return alignment_dir
 def createSampleVcfDict(map_vcf,dict,vcf_dir):
     for g in map_vcf.keys():
-        s=g[:g.rfind('_')]
-        id=g[g.rfind('_')+1:]
+        if '-' in g:
+            gene_sample_id= g[g.rfind('-')+1:]
+        else:
+            gene_sample_id=g
+        s=gene_sample_id[:gene_sample_id.rfind('_')]
+        id=gene_sample_id[gene_sample_id.rfind('_')+1:]
         vcf_sample_dir=os.path.join(vcf_dir,s)
         if not os.path.exists(vcf_sample_dir):
             os.makedirs(vcf_sample_dir)
