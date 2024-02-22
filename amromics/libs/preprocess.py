@@ -123,6 +123,7 @@ def estimate_gsize_mash(prefix_name, reads, overwrite=False, threads=0, base_dir
         threads = NUM_CORES_DEFAULT
 
     mash_log = os.path.join(base_dir, prefix_name + '_mash.log')
+    
     ret=0
     if os.path.isfile(mash_log) and (not overwrite):
         print("mash results exist for {}! skip running mash sketch...".format(prefix_name))
@@ -135,9 +136,10 @@ def estimate_gsize_mash(prefix_name, reads, overwrite=False, threads=0, base_dir
         else:
             raise Exception('ERROR: Mash (gsize est.) only for Illumina PE or SE!')
 
-        cmd='mash sketch -o {mash_out} -k 21 -m 5 -r {in1} 2>&1 > {mash_log}'.format(
-                mash_out=mash_out, in1=in1, mash_log=mash_log)
-        cmd+='&&rm -f {mash_out}'.format(mash_out=mash_out)
+        cmd='mash sketch -p {threads} -o {mash_out} -k 21 -m 5 -r {in1} > {mash_log} 2>&1'.format(
+            threads=threads,
+            mash_out=mash_out, in1=in1, mash_log=mash_log)
+        cmd+=' && rm -f {mash_out}'.format(mash_out=mash_out)
         ret=run_command(cmd,timing_log)
 
     if ret != 0:
@@ -170,7 +172,7 @@ def rename_reads(reads):
             reads['pe2']= reads['pe2']+'.fastq'
 
 
-def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=0, base_dir='.', overwrite=False, timing_log=None, gsize=None,**kargs):
+def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=8, base_dir='.', overwrite=False, timing_log=None, gsize=None,**kargs):
 
     ##orig_depth=total_basas/gsize
     #expect_depth=100 #100X
@@ -196,12 +198,12 @@ def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=0, base_dir='.
         for seq in read_sequence_file(reads['se']):
             totBases+=seq.length()
     if totBases==0:
-        print("Raw data of {} is neither PE or SE! skip subsampling by seqtk...".format(prefix_name))
+        logger.info("Raw data of {} is neither PE or SE! skip subsampling by seqtk...".format(prefix_name))
         return reads
 
     depth=totBases/gsize
     if depth < expect_depth:
-        print("{} has less than 100x! skip subsampling by seqtk...".format(prefix_name))
+        logger.info(f"{prefix_name} has less than 100x! skip subsampling by seqtk... ({gsize} {totBases} {depth})")
         return reads
     else:
         factor=expect_depth/depth
@@ -212,26 +214,26 @@ def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=0, base_dir='.
         if not os.path.exists(path_out):
             os.makedirs(path_out)
         elif ((os.path.isfile(out_p1) and os.path.isfile(out_p2)) or os.path.isfile(out_s)) and (not overwrite):
-            print("{} subsampling has been done! skip subsampling by seqtk...".format(prefix_name))
+            logger.info("{} subsampling has been done! skip subsampling by seqtk...".format(prefix_name))
             return reads
         
         if 'pe1' in reads:
-            cmd='seqtk sample {in_p1} {factor} | pigz --fast -c -p 8 > {out_p1}'.format(
-                    in_p1=reads['pe1'], factor=factor, out_p1=out_p1)
+            cmd='seqtk sample {in_p1} {factor} | pigz --fast -c -p {threads} > {out_p1}'.format(
+                    in_p1=reads['pe1'], factor=factor, threads=threads, out_p1=out_p1)
         if 'pe2' in reads:
-            cmd+='&&seqtk sample {in_p2} {factor} | pigz --fast -c -p 8 > {out_p2}'.format(
-                    in_p2=reads['pe2'], factor=factor, out_p2=out_p2)
+            cmd+='&&seqtk sample {in_p2} {factor} | pigz --fast -c -p {threads} > {out_p2}'.format(
+                    in_p2=reads['pe2'], factor=factor, threads=threads, out_p2=out_p2)
         if 'se' in reads:
-            cmd='seqtk sample {in_s} {factor} | pigz --fast -c -p 8 > {out_s}'.format(
-                    in_s=reads['se'], factor=factor, out_s=out_s)
-        print("Running subsampling command: {}".format(cmd)) 
+            cmd='seqtk sample {in_s} {factor} | pigz --fast -c -p {threads} > {out_s}'.format(
+                    in_s=reads['se'], factor=factor, threads=threads, out_s=out_s)
+        logger.info("Running subsampling command: {}".format(cmd)) 
         ret=run_command(cmd,timing_log)
 
         if ret != 0:
-            print("ERROR: seqtk for {} return non-zero code! skip subsampling by seqtk...".format(prefix_name))
+            logger.info("ERROR: seqtk for {} return non-zero code! skip subsampling by seqtk...".format(prefix_name))
         elif 'pe1' in reads and 'pe2' in reads:
             reads['pe1']=out_p1
-            reads['pe2']=out_p1
+            reads['pe2']=out_p2
         elif 'se' in reads:
             reads['se']=out_p1
 

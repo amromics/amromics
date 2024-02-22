@@ -23,6 +23,7 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     if not os.path.exists(path_out):
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
+        logger.info(f'Assembly file {assembly_file} found, skip assembling')
         return assembly_file
    
     #rename reads zip/unzip now move to preprocess.py
@@ -56,12 +57,17 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     return assembly_file
 
 
-def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, timing_log=None, **kargs):
+def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, overwrite=False, timing_log=None, **kargs):
     if threads == 0:
         threads = NUM_CORES_DEFAULT
     path_out = os.path.join(base_dir, prefix_name + '_skesa')
+    
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
     if not os.path.exists(path_out):
         os.makedirs(path_out)
+    elif os.path.isfile(assembly_file) and (not overwrite):
+        logger.info(f'Assembly file {assembly_file} found, skip assembling')
+        return assembly_file
 
     cmd = 'skesa --memory {memory} --cores {threads} --fastq '.format(
         memory=int(memory), threads=threads)
@@ -234,6 +240,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     if not os.path.exists(path_out):
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
+        logger.info(f'Assembly file {assembly_file} found, skip assembling')
         return assembly_file
 
     cmd = 'flye --threads {threads} --out-dir {path_out} --{input_type} {reads}'.format(
