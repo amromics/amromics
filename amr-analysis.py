@@ -227,13 +227,13 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
     pg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
     pg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
-    
+
     pg_cmd.add_argument('--pangenome-method', choices=['panta', 'roary'], default='panta', help='Pangenome method')
-    pg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='spades', help='Short read assembly methods')
-    pg_cmd.add_argument('--tree-method', choices=['fasttree', 'iqtree'], default='fasttree', help='Tree building method')   
+    pg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='skesa', help='Short read assembly methods')
+    pg_cmd.add_argument('--tree-method', choices=['fasttree', 'iqtree'], default='fasttree', help='Tree building method')
 
     pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=False)
-    pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False)    
+    pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False)
     pg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
     pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
 
