@@ -69,12 +69,12 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
                 reads['se'] = preprocess.trim_fastp(sample['id'],reads,
                         base_dir=sample_dir, overwrite=overwrite, timing_log=timing_log,threads=threads)
         #estimate gsize if not provided
-        if sample['gsize']==None:            
+        if sample['gsize']==None:
             sample['gsize'] = preprocess.estimate_gsize_mash(sample['id'], reads,
                     base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory,timing_log=timing_log)
             logger.info('Genome size of {sample_id} is estimated to be {gsize}'.format(sample_id=sample['id'],gsize=sample['gsize']))
         #subsampling to 100X if needed
-        #TODO: by now, we should know the genome size and the coverage. If genome size is not known use the upper bound= 8M            
+        #TODO: by now, we should know the genome size and the coverage. If genome size is not known use the upper bound= 8M
         reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
         #run assembly by spades
         if assembly_method=='spades':
@@ -119,7 +119,7 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
     #sample=detect_prophage(sample, base_dir=base_dir, threads=threads)
     sample['execution_end'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return sample
-def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progressive=False, overwrite=None,memory=50, timing_log=None,method='roary',genetree=True, tree='fasttree'):
+def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progressive=False, overwrite=None,memory=50, timing_log=None,method='panta', rate_coverage=0.15,genetree=True, tree='fasttree'):
     try:
         starttime = datetime.now()
         if method=='roary':
@@ -128,12 +128,12 @@ def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progre
             elapsed = datetime.now() - stime
             logger.info(f'Roary -- time taken {str(elapsed)}')
             stime = datetime.now()
-            report['alignments'] = alignment.runGeneAlignment(report['pan'],14, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+            report['alignments'] = alignment.runGeneAlignment(report['pan'],14, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log,rate_alignment=rate_alignment)
             elapsed = datetime.now() - stime
             logger.info(f'Alignment from roary -- time taken {str(elapsed)}')
         if method=='panta':
             stime = datetime.now()
-            report['pan'] = pangenome.run_panta_cmd(gff_dir, threads=threads, base_dir=base_dir,progressive=progressive,overwrite=overwrite,timing_log=timing_log)
+            report['pan'] = pangenome.run_panta_cmd(gff_dir, threads=threads, base_dir=base_dir,progressive=progressive,rate_coverage=rate_coverage,overwrite=overwrite,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Panta -- time taken {str(elapsed)}')
             stime = datetime.now()

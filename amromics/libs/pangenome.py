@@ -58,7 +58,7 @@ def run_roary(gff_folder,overwrite=False,threads=0, base_dir='.', timing_log=Non
     shutil.rmtree(temp_folder)
 
     return roary_folder
-def run_panta_cmd(gff_folder,table=11,diamond=True,evalue=1e-06,identity=0.7,LD=0,AS=0,AL=0.8,min_coverage=0.15,dont_split=False,overwrite=False,progressive=False,threads=0, base_dir='.', timing_log=None):
+def run_panta_cmd(gff_folder,table=11,diamond=True,evalue=1e-06,identity=0.7,LD=0,AS=0,AL=0.8,rate_coverage=0.15,dont_split=False,overwrite=False,progressive=False,threads=0, base_dir='.', timing_log=None):
     starttime = datetime.now()
     out_folder=os.path.join(base_dir,'pangenome/panta')
     outfile= os.path.join(out_folder, 'gene_presence_absence.csv.gz')
@@ -73,12 +73,12 @@ def run_panta_cmd(gff_folder,table=11,diamond=True,evalue=1e-06,identity=0.7,LD=
                 #raise Exception('Cannot get {}'.format(os.path.join(gff_folder, filename)))
                 logger.info('Cannot get {}'.format(os.path.join(gff_folder, filename)))
     if (str(os.path.isfile(outfile)) == 'True')  and (str(progressive) == 'True'):
-        cmd = f'panta add -g {gff_folder}/*.gff -c {out_folder} -t {threads} --AL {AL} -a protein -r  {min_coverage}'
+        cmd = f'panta add -g {gff_folder}/*.gff -c {out_folder} -t {threads} --AL {AL} -a protein -r  {rate_coverage}'
         logger.info('Run panta with progressive mode')
     else:
         #panta main [-h] [-g [GFF ...]] [-f TSV] -o OUTDIR [-s] [-b {diamond,blast}] [-i IDENTITY] [--LD LD] [--AL AL] [--AS AS] [-e EVALUE]
         #                  [-t THREADS] [--table TABLE] [-a [{nucleotide,protein} ...]]
-        cmd = f'panta main -g {gff_folder}/*.gff -o {out_folder} -t {threads}   --AL {AL} -a protein -r {min_coverage}'
+        cmd = f'panta main -g {gff_folder}/*.gff -o {out_folder} -t {threads}   --AL {AL} -a protein -r {rate_coverage}'
         logger.info('Run panta with normal mode')
     ret = run_command(cmd, timing_log)
     if ret != 0:

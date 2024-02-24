@@ -103,7 +103,7 @@ def run_alignment_by_parsnp(pan_folder,ffn_dir,base_dir, overwrite=False,  timin
 
 
     return alignment_dir
-def run_protein_alignment(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None, min_cover=0.15):
+def run_protein_alignment(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None, rate_coverage=0.15):
     """
     Align protein sequence by mafft
 
@@ -131,7 +131,7 @@ def run_protein_alignment(pan_folder, collection_dir, threads=8, overwrite=False
     gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
     gene_df.fillna('', inplace=True)
 
-    min_number=int(min_cover*len(gene_df.columns))
+    min_number=int(rate_coverage*len(gene_df.columns))
     cmds_file = os.path.join(alignment_dir,"align_cmds")
     with open(cmds_file,'w') as cmds:
         for gene_id, row in gene_df.iterrows():
@@ -497,13 +497,13 @@ def translateDNA2Prot(sr):
     else:
         return prot_d1, False
 
-def runGeneAlignment(pan_folder,sample_col,ffn_dir, faa_dir,collection_dir, threads=8, overwrite=False, timing_log=None):
+def runGeneAlignment(pan_folder,sample_col,ffn_dir, faa_dir,collection_dir, threads=8, overwrite=False, timing_log=None,rate_alignment=0.15):
     stime = datetime.now()
     alignment_dir=get_gene_sequences(pan_folder,sample_col, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
     elapsed = datetime.now() - stime
     logger.info(f'Get gene sequences -- time taken {str(elapsed)}')
     stime = datetime.now()
-    alignment_dir=run_protein_alignment(pan_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log)
+    alignment_dir=run_protein_alignment(pan_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log,rate_alignment=rate_alignment)
     elapsed = datetime.now() - stime
     logger.info(f'Protein alignment -- time taken {str(elapsed)}')
     stime = datetime.now()

@@ -45,7 +45,7 @@ def single_genome_analysis(samples, work_dir, assembly_method='spades', overwrit
     return samples
 
 
-def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, progressive=False,overwrite=False, threads=0, memory=8, timing_log=None,method='roary',  genetree=True, tree='fasttree'):
+def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, progressive=False,overwrite=False, threads=0, memory=8, timing_log=None,method='panta',rate_coverage=0.15,  genetree=True, tree='fasttree'):
 
     report = {'collection_id': collection_id,
               'collection_name': collection_name,
@@ -86,7 +86,7 @@ def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, 
         json.dump(dataset_sample_ids, fn)
     #report,genome_dir,gff_dir,ffn_dir,reference, base_dir='.', threads=0, memory=50
     temp_folder,gff_dir,ffn_dir,faa_dir=prepareDataCollectionAnalysis(report,collection_dir)
-    report = wrapper.run_collection(report,gff_dir,ffn_dir,faa_dir,overwrite=overwrite,base_dir=collection_dir,progressive=progressive, threads=threads,timing_log=timing_log,method=method, genetree=genetree, tree=tree)
+    report = wrapper.run_collection(report,gff_dir,ffn_dir,faa_dir,overwrite=overwrite,base_dir=collection_dir,progressive=progressive, threads=threads,timing_log=timing_log,method=method, rate_coverage=rate_coverage, genetree=genetree, tree=tree)
     with open(os.path.join(collection_dir, collection_id + '_dump.json'), 'w') as fn:
         json.dump(report, fn)
 
