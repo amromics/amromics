@@ -38,7 +38,7 @@ def version_func(args):
         'fastqc',
         'kraken2',
         'multiqc',
-        'quast',
+#        'quast',
         'isescan',
         'amrfinder'
     ])

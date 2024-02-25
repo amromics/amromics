@@ -156,6 +156,7 @@ def get_virulome_db():
     print (cmd)
     os.system(cmd)
 def get_plasmidfinder():
+    print("Get plasmidfinder")
     plasmidfinder_dir='db/plasmidfinder'
     if not os.path.exists(plasmidfinder_dir):
         os.makedirs(plasmidfinder_dir)
@@ -409,3 +410,4 @@ def setup_minidb():
     get_trim_adapter()
     get_mlst_db()
     get_virulome_db()
+    get_plasmidfinder()

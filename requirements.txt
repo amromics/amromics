@@ -19,7 +19,7 @@ fastqc==0.11.9
 flye=2.9
 iqtree==2.2.2.3
 isescan==1.7.2.3
-kraken2==2.1.2
+#kraken2==2.1.2
 mafft==7.520
 mcl==14.137
 mlst==2.19.0
@@ -28,7 +28,7 @@ multiqc==1.10
 ncbi-amrfinderplus==3.11.14
 parasail-python
 prokka==1.14.6
-quast==5.2.0
+#quast==5.2.0
 fasttree
 #roary==3.13.0
 #shovill==1.1.0
@@ -54,3 +54,4 @@ fastp
 #aspera-connect
 fasttree==2.1.11
 snp-sites==2.5.1
+roary
