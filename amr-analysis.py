@@ -231,7 +231,7 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('--pangenome-method', choices=['panta', 'roary'], default='panta', help='Pangenome method')
     pg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='skesa', help='Short read assembly methods')
     pg_cmd.add_argument('--tree-method', choices=['fasttree', 'iqtree'], default='fasttree', help='Tree building method')
-    pg_cmd.add_argument('-r', '--ratio-coverage', help='Ratio of coverage to align', default=0.0, type=float)
+    pg_cmd.add_argument('-r', '--ratio-coverage', help='Ratio of coverage to align', default=0.25, type=float)
     pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=False)
     pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False)
     pg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
