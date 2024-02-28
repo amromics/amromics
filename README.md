@@ -37,21 +37,10 @@ cd amromics
 conda create -y -c conda-forge -c defaults --name amromics python=3.10 mamba
 source activate amromics
 mamba install -y -c conda-forge -c bioconda -c anaconda -c etetoolkit -c rpetit3 -c defaults --file requirements.txt
+pip install panta
 ```
 
-2. Recommended: install amromics library into conda environment
-```bash
-source activate amromics  #If not have already activated
-pip install .
-```
-3. Install panta submodule:
-```bash
-cd submodules/panta
-mamba install -y -c conda-forge -c bioconda -c anaconda -c defaults  --file requirements.txt
-pip install .
-cd ../..
-```   
-4. Setup MLST database: AMRomics requires a copy of pubMLST database set up on the folder that AMRomics pipeline is run from. We make available the database in the accompanied file `db.tar.gz` updated on Feb 1, 2024. Just unzip the tarball 
+2. Setup MLST database: AMRomics requires a copy of pubMLST database set up on the folder that AMRomics pipeline is run from. We make available the database in the accompanied file `db.tar.gz` updated on Feb 1, 2024. Just unzip the tarball 
 ```bash
 tar zxvf db.tar.gz
 ```
