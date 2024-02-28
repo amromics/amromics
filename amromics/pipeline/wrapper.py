@@ -36,10 +36,13 @@ import amromics.libs.alignment as alignment
 import amromics.libs.phylogeny as phylogeny
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
+
+
 def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='spades', threads=0, memory=50, trim=False, overwrite=None, timing_log=None):
     #handle assembly input, ignore spades and bwa:
     sample['execution_start'] =  datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     reads=None
+    
     if sample['input_type'] in ['asm', 'assembly']:
         sample['assembly'] = assembler.get_assembly(sample['id'], sample['files'],base_dir=sample_dir)
     elif sample['input_type'] in ['pacbio-raw', 'pacbio-hifi', 'pacbio-corr','nano-raw', 'nano-hq', 'nano-corr']:

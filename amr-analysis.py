@@ -176,8 +176,8 @@ def pan_genome_analysis_func(args):
     pangenome_method = args.pangenome_method
     if not pangenome_method:
         pangenome_method='panta'
-    if pangenome_method == 'roary':
-        raise Exception('roary is no longer supported due to incompatibility of software installation. Please use panta instead!')
+    # if pangenome_method == 'roary':
+    #     raise Exception('roary is no longer supported due to incompatibility of software installation. Please use panta instead!')
     #overwrite = False
     overwrite=args.overwrite
 
