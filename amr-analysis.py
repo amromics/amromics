@@ -201,6 +201,7 @@ def pan_genome_analysis_func(args):
         collection_id, collection_name, overwrite=overwrite,
         threads=threads, memory=memory, timing_log=timing_log,method=pangenome_method,rate_coverage=args.ratio_coverage, genetree=args.genetree, progressive=args.progressive,tree=args.tree_method)
     logger.info('Congratulations, collection {} is done!'.format(collection_id))
+
 def main(arguments=sys.argv[1:]):
     parser = argparse.ArgumentParser(
         prog='amromics',
@@ -232,10 +233,10 @@ def main(arguments=sys.argv[1:]):
     pg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='skesa', help='Short read assembly methods')
     pg_cmd.add_argument('--tree-method', choices=['fasttree', 'iqtree'], default='fasttree', help='Tree building method')
     pg_cmd.add_argument('-r', '--ratio-coverage', help='Ratio of coverage to align', default=0.25, type=float)
-    pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=False)
-    pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False)
-    pg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
-    pg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
+    pg_cmd.add_argument('--genetree', help='Run phylogenty for each gene cluster or not', default=False, action='store_true')
+    pg_cmd.add_argument('--progressive', help='Run pangenome in progressive mode', default=False, action='store_true')
+    pg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False, action='store_true')
+    pg_cmd.add_argument('--initdb', help='Init full database', required=False,default='False', action='store_true')
 
     sg_cmd = subparsers.add_parser(
         'sg',
@@ -248,9 +249,9 @@ def main(arguments=sys.argv[1:]):
     sg_cmd.add_argument('-m', '--memory', help='Amount of memory in Gb to use', default=30, type=float)
     sg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
     sg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
-    sg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False)
+    sg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False,action='store_true')
     sg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
-    sg_cmd.add_argument('--initdb', help='Init full database', required=False,type=eval,choices=[True, False],default='False')
+    sg_cmd.add_argument('--initdb', help='Init full database', required=False,action='store_true')
 
     db_cmd = subparsers.add_parser(
         'download_db',
