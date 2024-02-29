@@ -332,7 +332,8 @@ def writeTempSeqFile(temp_seqs_dir, gene_id,seq):
     f.write(seq)
     f.close()
     return temp_file
-def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+
+def get_gene_sequences(pan_folder,sample_col, samples, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Create protein sequences and nucleotide sequences for each gene cluster
 
@@ -355,8 +356,16 @@ def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_d
     logger.info('Getting sequences of gene clusters')
     gene_cluster_file = pan_folder + '/gene_presence_absence.csv'
     dict_nucleotide = {}
+
+    ffn_files = []
+    faa_files = []    
+    for sample in samples:
+        faa_files.append(sample['annotation_faa'])
+        ffn_files.append(sample['annotation_ffn'])
     
-    for ffn_file in os.listdir(ffn_folder):
+    #TODO: this function need work
+    
+    for ffn_file in ffn_files: #os.listdir(ffn_folder):
         ffn_file_path=os.path.join(ffn_folder,ffn_file)
         if ffn_file.endswith('.gz'):
             run_command('gunzip -c {} > {}'.format(ffn_file_path,ffn_file_path.replace('.gz','') ))
@@ -544,7 +553,7 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
         gene_cluster_file =pangenome_folder + '/gene_presence_absence.Rtab'
         gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
         gene_df.fillna('', inplace=True)
-        
+
         map_sample_vcf={}
         ref_pan=[]
         map_sample_prot_vcf={}

@@ -19,11 +19,13 @@ def search_amr(sample,output,threads=1):
     ret=blast(sample=sample,db=db,output=output,  threads=threads)
     export_file(sample,'ncbi',ret,output)
     return ret
+
 def search_plasmid(sample,output,threads=1):
     db='db/plasmidfinder/sequences'
     ret=blast(sample=sample,db=db,output=output, identity=95,mincov=60, threads=threads)
     export_file(sample,'plasmidfinder',ret,output)
     return ret
+
 def search_integron(sample,output,threads=1):
     db='db/integron/sequences'
     ret=blast(sample=sample,db=db,output=output,mincov=60,  threads=threads)
@@ -34,16 +36,19 @@ def search_integrall(sample,output,threads=1):
     ret=blast(sample=sample,db=db,output=output,mincov=60,  threads=threads)
     export_file(sample,'integrall',ret,output)
     return ret
+
 def search_prophage(sample,output,threads=1):
     db='db/prophage/sequences'
     ret=blast(sample=sample,db=db,output=output,mincov=60,  threads=threads,dbtype='prot')
     export_file(sample,'prophage',ret,output)
     return ret
+
 def search_virulome(sample,output,threads=1):
     db='db/vfdb/sequences'
     ret=blast(sample=sample,db=db,output=output,mincov=60,  threads=threads)
     export_file(sample,'vfdb',ret,output)
     return ret
+
 def export_file(sample,db,result,output):
     f=open(output,'w')
     f.write('FILE\tSEQUENCE\tSTART\tEND\tSTRAND\tGENE\tCOVERAGE\tGAPS\t%COVERAGE\t%IDENTITY\tDATABASE\tACCESSION\tPRODUCT\tRESISTANCE\n')

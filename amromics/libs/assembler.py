@@ -19,7 +19,8 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
         threads = NUM_CORES_DEFAULT
 
     path_out = os.path.join(base_dir, prefix_name + '_spades')
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
+
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')    
     if not os.path.exists(path_out):
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
@@ -49,7 +50,7 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
     contigs = sorted(contigs, key=len, reverse=True)
     logger.info("Read in {} contigs".format(len(contigs)))
     #assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
-    with gzip.open(assembly_file, 'wt') as f:
+    with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             contig.id =prefix_name+'_C'+str(i)
             contig.description = ''
@@ -62,7 +63,8 @@ def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, over
         threads = NUM_CORES_DEFAULT
     path_out = os.path.join(base_dir, prefix_name + '_skesa')
     
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
+
     if not os.path.exists(path_out):
         os.makedirs(path_out)
     elif os.path.isfile(assembly_file) and (not overwrite):
@@ -85,8 +87,8 @@ def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, over
     contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fasta'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
     logger.info("Read in {} contigs".format(len(contigs)))
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
-    with gzip.open(assembly_file, 'wt') as f:
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
+    with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             contig.id =prefix_name+'_C'+str(i)
             contig.description = ''
@@ -103,7 +105,7 @@ def assemble_shovill(prefix_name, reads,base_dir, trim=False, threads=4, memory=
     """
 
     path_out = os.path.join(base_dir, prefix_name + '_shovill')
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
 
     if not os.path.exists(path_out):
         os.makedirs(path_out)
@@ -129,7 +131,7 @@ def assemble_shovill(prefix_name, reads,base_dir, trim=False, threads=4, memory=
     # Read in list of contigs
     contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fa'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
-    with gzip.open(assembly_file, 'wt') as f:
+    with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             contig.id =prefix_name+'_C'+str(i)
             contig.description = ''
@@ -163,20 +165,19 @@ def get_assembly(prefix_name,assembly, base_dir, overwrite=False):
     with open_func(assembly, 'rt') as fn:
         contigs = list(SeqIO.parse(fn, 'fasta'))
 
-    assembly_file = os.path.join(path_out,prefix_name + '_contigs.fasta.gz')
+    assembly_file = os.path.join(path_out,prefix_name + '_contigs.fasta')
     if os.path.isfile(assembly_file) and (not overwrite):
         logger.info(f'Not overwrite {assembly_file}')
         return assembly_file
 
     contigs = sorted(contigs, key=len, reverse=True)
-    with gzip.open(assembly_file, 'wt') as f:
+    with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             contig.id = prefix_name + '_C' + str(i)
             contig.description = ''
             SeqIO.write(contig, f, "fasta")
-
-
     return assembly_file
+
 def get_assembly_from_gff(prefix_name,gff, base_dir, overwrite=False):
     """
     Get the assembly from user input
@@ -211,20 +212,19 @@ def get_assembly_from_gff(prefix_name,gff, base_dir, overwrite=False):
     with open(os.path.join(path_out,prefix_name+'_temp.fasta'), 'rt') as fn:
         contigs = list(SeqIO.parse(fn, 'fasta'))
 
-    assembly_file = os.path.join(path_out,prefix_name + '_contigs.fasta.gz')
+    assembly_file = os.path.join(path_out,prefix_name + '_contigs.fasta')
     if os.path.isfile(assembly_file) and (not overwrite):
         logger.info(f'Not overwrite {assembly_file}')
         return assembly_file
 
     contigs = sorted(contigs, key=len, reverse=True)
-    with gzip.open(assembly_file, 'wt') as f:
+    with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             #contig.id = prefix_name + '_C' + str(i)
             #contig.description = ''
             SeqIO.write(contig, f, "fasta")
-
-
     return assembly_file
+
 def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite=False, timing_log=None, gsize=None):
     """
         Run assembly process for long reads input using flye
@@ -236,7 +236,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     """
 
     path_out = os.path.join(base_dir, prefix_name + '_flye')
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta.gz')
+    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
 
     if not os.path.exists(path_out):
         os.makedirs(path_out)
@@ -256,7 +256,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     # Read in list of contigs
     contigs = list(SeqIO.parse(os.path.join(path_out, 'assembly.fasta'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
-    with gzip.open(assembly_file, 'wt') as f:
+    with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             contig.id =prefix_name+'_C'+str(i)
             contig.description = ''

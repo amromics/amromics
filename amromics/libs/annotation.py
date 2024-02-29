@@ -27,20 +27,23 @@ def annotate_prokka(prefix_name,assembly,genus=None,species=None, strain=None,gr
     if not os.path.exists(path_out):
         os.makedirs(path_out)
 
-    annotation_gbk=  os.path.join(path_out, prefix_name + '.gbk.gz')
-    annotation_gff= path_out+'/'+str(prefix_name)+'.gff.gz'
-    annotation_faa = path_out+'/'+str(prefix_name)+'.faa.gz'
-    annotation_ffn = path_out+'/'+str(prefix_name)+'.ffn.gz'
-    annotation_fna = path_out+'/'+str(prefix_name)+'.fna.gz'
+    annotation_gbk=  os.path.join(path_out, prefix_name + '.gbk')
+    annotation_gff= path_out+'/'+str(prefix_name)+'.gff'
+    annotation_faa = path_out+'/'+str(prefix_name)+'.faa'
+    annotation_ffn = path_out+'/'+str(prefix_name)+'.ffn'
+    annotation_fna = path_out+'/'+str(prefix_name)+'.fna'
+
     if os.path.isfile(annotation_gff) and os.path.isfile(annotation_gbk) and (not overwrite):
         # Dont run again if gff/gbk file exists
         logger.info('GFF and GBK files found, skip annotating')
         return annotation_gff,annotation_faa,annotation_ffn,annotation_fna,annotation_gbk
     gunzip_fasta=assembly
+    
     if assembly.endswith('.gz'):
         gunzip_fasta = os.path.join(path_out, prefix_name + '.fin')
         cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fasta)
         run_command(cmd)
+    
     cmd = 'prokka --force --cpus {threads} --addgenes --mincontiglen 200'.format(threads=threads)
     cmd += ' --prefix {sample_id} --locus {sample_id} --outdir {path} '.format(sample_id=prefix_name, path=path_out)
     if not genus ==None and genus:
@@ -58,38 +61,38 @@ def annotate_prokka(prefix_name,assembly,genus=None,species=None, strain=None,gr
     if ret != 0:
         raise Exception('Command {} returns non-zero ()!'.format(cmd, ret))
 
-    for file_name in glob.glob(os.path.join(path_out, '*')):
-        ext = file_name[-3:]
-        if ext in ['gff', 'gbk', 'ffn','faa','fna']: # fna?
-            run_command('gzip {}'.format(file_name))
-        else:
-            os.remove(file_name)
+    # for file_name in glob.glob(os.path.join(path_out, '*')):
+    #     ext = file_name[-3:]
+    #     if ext in ['gff', 'gbk', 'ffn','faa','fna']: # fna?
+    #         run_command('gzip {}'.format(file_name))
+    #     else:
+    #         os.remove(file_name)
 
     return annotation_gff,annotation_faa,annotation_ffn,annotation_fna,annotation_gbk
-def parseGFF(sample_id,gff_file_in,base_dir,overwrite=False):
 
+
+def parseGFF(sample_id,gff_file_in,base_dir,overwrite=False):
     path_out = os.path.join(base_dir, sample_id+'_prokka' )
 
     if not os.path.exists(path_out):
         os.makedirs(path_out)
-    annotation_gff= path_out+'/'+str(sample_id)+'.gff.gz'
-    annotation_ffn = path_out+'/'+str(sample_id)+'.ffn.gz'
-    annotation_fna = path_out+'/'+str(sample_id)+'.fna.gz'
-    annotation_faa = path_out+'/'+str(sample_id)+'.faa.gz'
+    annotation_gff= path_out+'/'+str(sample_id)+'.gff'
+    annotation_ffn = path_out+'/'+str(sample_id)+'.ffn'
+    annotation_fna = path_out+'/'+str(sample_id)+'.fna'
+    annotation_faa = path_out+'/'+str(sample_id)+'.faa'
+
     if os.path.isfile(annotation_gff)  and (not overwrite):
         # Dont run again if gff/gbk file exists
         logger.info('GFF files found, skip annotating')
         return annotation_gff,annotation_faa,annotation_ffn,annotation_fna
+    
     found_fasta = False
     open_func = get_open_func(gff_file_in)
     fasta_file=open(path_out+'/'+str(sample_id)+'.fna','w')
     bed_records = []
-    with open_func(gff_file_in,'rt') as in_fh,gzip.open(annotation_gff, 'wt') as gff_re:
+    with open_func(gff_file_in,'rt') as in_fh, open(annotation_gff, 'w') as gff_re:
         last_cds=""
         id_number=0
-
-
-
         gene_index = 0
         seq_id = None
         suffix = 1
@@ -110,7 +113,6 @@ def parseGFF(sample_id,gff_file_in,base_dir,overwrite=False):
             cells = line.split('\t')
             if cells[2] != 'CDS':
                 continue
-
 
             ##print(line)
             #print(gff_file_in)
@@ -178,13 +180,14 @@ def parseGFF(sample_id,gff_file_in,base_dir,overwrite=False):
         protein_seq.id = gene_id
         protein_seq.description = gene_product
         protein_seqs.append(protein_seq)
-    with gzip.open(annotation_ffn, 'wt') as ffn_fh:
+    with open(annotation_ffn, 'w') as ffn_fh:
         SeqIO.write(gene_seqs, ffn_fh, 'fasta')
-    with gzip.open(annotation_faa, 'wt') as faa_fh:
+
+    with open(annotation_faa, 'w') as faa_fh:
         SeqIO.write(protein_seqs, faa_fh, 'fasta')
-    for file_name in glob.glob(os.path.join(path_out, '*')):
-        ext = file_name[-3:]
-        if ext in ['fna']: # fna?
-            run_command('gzip {}'.format(file_name))
+    # for file_name in glob.glob(os.path.join(path_out, '*')):
+    #     ext = file_name[-3:]
+    #     if ext in ['fna']: # fna?
+    #         run_command('gzip {}'.format(file_name))
 
     return annotation_gff,annotation_faa,annotation_ffn,annotation_fna

@@ -63,12 +63,12 @@ def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, 
         os.makedirs(collection_dir)
 
     # to check if the set of samples has not changed
-    dataset_sample_ids = sorted(dataset_sample_ids)
     sample_set_file = os.path.join(collection_dir, 'sample_set.json')
     if os.path.isfile(sample_set_file):
         with open(sample_set_file) as fn:
             sample_set = json.load(fn)
-        if sample_set != dataset_sample_ids:
+
+        if set(sample_set) != set(dataset_sample_ids):
             overwrite = True
 
     if overwrite:
@@ -79,13 +79,14 @@ def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, 
         phylogeny_folder = os.path.join(collection_dir, 'phylogeny')
         if os.path.exists(phylogeny_folder):
             shutil.rmtree(phylogeny_folder)
-        # Note: Check for existing alignment is done within
 
+        # Note: Check for existing alignment is done within
     # Write the set of sample IDs
     with open(sample_set_file, 'w') as fn:
         json.dump(dataset_sample_ids, fn)
     #report,genome_dir,gff_dir,ffn_dir,reference, base_dir='.', threads=0, memory=50
     temp_folder,gff_dir,ffn_dir,faa_dir=prepareDataCollectionAnalysis(report,collection_dir)
+
     report = wrapper.run_collection(report,gff_dir,ffn_dir,faa_dir,overwrite=overwrite,base_dir=collection_dir,progressive=progressive, threads=threads,timing_log=timing_log,method=method, rate_coverage=rate_coverage, genetree=genetree, tree=tree)
     with open(os.path.join(collection_dir, collection_id + '_dump.json'), 'w') as fn:
         json.dump(report, fn)

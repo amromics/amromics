@@ -97,21 +97,13 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
 
     temp_gff_file=os.path.join(temp_dir,prefix_name+'.gff')
     source_gff_file=None
-    # for root, dirs, files in os.walk(read_data['annotation']):
-    #     for _file in files:
-    #         if _file.endswith(('.faa')):
-    #             faa_file = shutil.copyfile(os.path.join(str(root),_file), faa_file)
-    #         if _file.endswith(('.fna')):
-    #             fna_file = shutil.copyfile(os.path.join(str(root),_file), fna_file)
-    #         if _file.endswith(('.gff')):
-    #             source_gff_file = os.path.join(str(root),_file)
 
     source_gff_file=gff_file
     #add Name property to column 9 of gff file (AMRfinder need it!) and remove #fasta section
     if not source_gff_file==None:
         destination= open(temp_gff_file, "w" )
         #source= open( source_gff_file, "r" )
-        with gzip.open(source_gff_file,'rt') as source:
+        with open(source_gff_file) as source:
             for line in source:
                 if line.startswith('##FASTA'):
                     break
@@ -119,22 +111,12 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
                 destination.write( line )
 
         #source.close()
-        destination.close()
-    gunzip_faa= faa_file;
-    if faa_file.endswith('.gz'):
-        gunzip_faa =os.path.join(temp_dir,prefix_name+'.faa')
-        cmd = 'gunzip -c {} > {}'.format(faa_file, gunzip_faa)
-        run_command(cmd)
-    gunzip_fna= fna_file;
-    if fna_file.endswith('.gz'):
-        gunzip_fna =os.path.join(temp_dir,prefix_name+'.fna')
-        cmd = 'gunzip -c {} > {}'.format(fna_file, gunzip_fna)
-        run_command(cmd)
+        destination.close()    
     cmd = 'amrfinder -d {database} -p {faa_file}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile} -a prokka'\
     .format(
         database=db,
-        faa_file=gunzip_faa,
-        fna_file=gunzip_fna,
+        faa_file=faa_file,
+        fna_file=fna_file,
         gff_file=temp_gff_file,
         threads=threads,
         outfile=ret_out
@@ -253,16 +235,14 @@ def detect_virulome(prefix_name,assembly, base_dir='.', threads=0, timing_log=No
     # cmd = "bash -c '{}'".format(cmd)
     # if run_command(cmd) != 0:
     #     return None
-    gunzip_fna = assembly
-    if assembly.endswith('.gz'):
-        #FIXME: review this step
-        gunzip_fna =os.path.join(path_out,prefix_name+'.fasta')
-        cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fna)
-        run_command(cmd)
-    element_finder.search_virulome(sample=gunzip_fna,output=vir_out,threads=threads)
 
-    if not os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
-        os.remove(os.path.join(path_out,prefix_name+'.fasta'))
+    # gunzip_fna = assembly
+    # if assembly.endswith('.gz'):
+    #     #FIXME: review this step
+    #     gunzip_fna =os.path.join(path_out,prefix_name+'.fasta')
+    #     cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fna)
+    #     run_command(cmd)
+    element_finder.search_virulome(sample=assembly,output=vir_out,threads=threads)    
     return vir_out
 
 ###Find plasmid's origin of replication using abricate with plasmidfinder db
@@ -283,10 +263,9 @@ def detect_plasmid(prefix_name,assembly,  base_dir='.', threads=0, timing_log=No
     # cmd = "bash -c '{}'".format(cmd)
     # if run_command(cmd) != 0:
     #     return None
-
     element_finder.search_plasmid(sample=assembly,output=oriREP_out,threads=threads)
-    if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
-        os.remove(os.path.join(path_out,prefix_name+'.fasta'))
+    # if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
+    #     os.remove(os.path.join(path_out,prefix_name+'.fasta'))
 
     return oriREP_out
 
