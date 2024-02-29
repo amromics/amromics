@@ -139,6 +139,7 @@ def assemble_shovill(prefix_name, reads,base_dir, trim=False, threads=4, memory=
     run_command('rm -f ' + os.path.join(path_out, 'contigs.gfa'))
     run_command('gzip ' + os.path.join(path_out, 'shovill.log'))
     return assembly_file
+
 def get_assembly(prefix_name,assembly, base_dir, overwrite=False):
     """
     Get the assembly from user input

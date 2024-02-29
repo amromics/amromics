@@ -122,21 +122,22 @@ def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='s
     #sample=detect_prophage(sample, base_dir=base_dir, threads=threads)
     sample['execution_end'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return sample
+
 def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progressive=False, overwrite=None,memory=50, timing_log=None,method='panta', rate_coverage=0.15,genetree=True, tree='fasttree'):
     try:
         starttime = datetime.now()
         if method=='roary':
             stime = datetime.now()
-            report['pan'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+            report['pan'] = pangenome.run_roary(report['samples'], threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Roary -- time taken {str(elapsed)}')
             stime = datetime.now()
             report['alignments'] = alignment.runGeneAlignment(report['pan'],14, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log,rate_alignment=rate_alignment)
             elapsed = datetime.now() - stime
             logger.info(f'Alignment from roary -- time taken {str(elapsed)}')
-        if method=='panta':
+        elif method=='panta':
             stime = datetime.now()
-            report['pan'] = pangenome.run_panta_cmd(gff_dir, threads=threads, base_dir=base_dir,progressive=progressive,rate_coverage=rate_coverage,overwrite=overwrite,timing_log=timing_log)
+            report['pan'] = pangenome.run_panta_cmd(report['samples'], threads=threads, base_dir=base_dir,progressive=progressive,rate_coverage=rate_coverage,overwrite=overwrite,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Panta -- time taken {str(elapsed)}')
             stime = datetime.now()
@@ -149,6 +150,9 @@ def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progre
             report['alignments']=alignment.runVCFCallingFromGeneAlignment(report['pan'],overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Call VCF -- time taken {str(elapsed)}')
+        else:
+            raise Exception(f'Pangenome method {method} not supported')
+        
         if genetree:
             stime = datetime.now()
             report['alignments']  = phylogeny.run_gene_phylogeny_iqtree(report['pan'], collection_dir=base_dir,overwrite=overwrite, threads=threads,timing_log=timing_log)

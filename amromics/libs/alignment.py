@@ -24,7 +24,7 @@ def run_alignment_by_parsnp(pan_folder,ffn_dir,base_dir, overwrite=False,  timin
         :param base_dir: working directory
         :return:
     """
-    gene_cluster_file=pan_folder+'/gene_presence_absence.csv.gz'
+    gene_cluster_file=pan_folder+'/gene_presence_absence.csv'
     dict_cds={}
     for root, dirs, files in os.walk(ffn_dir):
         for _file in files:
@@ -203,18 +203,17 @@ def create_nucleotide_alignment(pan_folder, collection_dir, threads=8, overwrite
         gene_dir = os.path.join(alignment_dir, gene_id)
 
         # check if done before
-        #nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
+        
         nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
         if (not overwrite) and os.path.isfile(nucleotide_aln_file):
             continue
-
-        #protein_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln.gz')
+        
         protein_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
         if not os.path.isfile(protein_aln_file):
             logger.info('{} does not exist'.format(protein_aln_file))
             continue
         protein_dict = {}
-        #with gzip.open(protein_aln_file, 'rt') as fh:
+        
         with open(protein_aln_file) as fh:
             for seq_record in SeqIO.parse(fh, 'fasta'):
                 protein_dict[seq_record.id] = str(seq_record.seq)
@@ -224,7 +223,7 @@ def create_nucleotide_alignment(pan_folder, collection_dir, threads=8, overwrite
         for seq_record in SeqIO.parse(nucleotide_seq_file, 'fasta'):
             nucleotide_dict[seq_record.id] = str(seq_record.seq)
 
-        #with gzip.open(nucleotide_aln_file, 'wt') as fh:
+        
         with open(nucleotide_aln_file, 'wt') as fh:
             for seq_id in protein_dict.keys():
                 protein = protein_dict[seq_id]
@@ -296,13 +295,12 @@ def create_core_gene_alignment(pan_folder, collection_dir, threads=8, overwrite=
         gene_id = re.sub(r'\W+', '', gene_id)
         gene_dir = os.path.join(alignment_dir, gene_id)
 
-        #nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
         nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
         if not os.path.isfile(nucleotide_aln_file):
             logger.info('{} does not exist'.format(nucleotide_aln_file))
             continue
         cluster_dict = {}
-        #with gzip.open(nucleotide_aln_file, 'rt') as fh:
+        
         with open(nucleotide_aln_file, 'rt') as fh:
             for seq_record in SeqIO.parse(fh, 'fasta'):
                 if '-' in seq_record.id:
@@ -355,10 +353,9 @@ def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_d
     -------
     """
     logger.info('Getting sequences of gene clusters')
-    gene_cluster_file = pan_folder + '/gene_presence_absence.csv.gz'
+    gene_cluster_file = pan_folder + '/gene_presence_absence.csv'
     dict_nucleotide = {}
-    #temp_dna_seq_folder=os.path.join(collection_dir,"temp_nucl")
-    #temp_prot_seq_folder=os.path.join(collection_dir,"temp_prot")
+    
     for ffn_file in os.listdir(ffn_folder):
         ffn_file_path=os.path.join(ffn_folder,ffn_file)
         if ffn_file.endswith('.gz'):
@@ -407,7 +404,7 @@ def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_d
         os.makedirs(alignment_dir)
     #report['alignments'] = alignment_dir
 
-    gene_df = pd.read_csv(gene_cluster_file, dtype=str, compression='gzip')
+    gene_df = pd.read_csv(gene_cluster_file, dtype=str)
     gene_df.fillna('', inplace=True)
     sample_columns = list(gene_df.columns)[sample_col:]
     for _, row in gene_df.iterrows():
@@ -471,20 +468,15 @@ def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_d
     # if os.path.exists(temp_prot_seq_folder):
     #     shutil.rmtree(temp_prot_seq_folder)
     return alignment_dir
+
 def binary_to_record(binary_file, start_position, end_position):
     record=None
     with open(binary_file, 'rb') as binary_fh:
-
         binary_fh.seek(start_position)
-
-
         data = binary_fh.read(end_position - start_position)
-
-
         record =data.decode('utf-8')
-
-
     return record
+
 def translateDNA2Prot(sr):
     #print(type(sr))
     prot_d1=sr.seq.translate(table=11)
@@ -511,6 +503,8 @@ def runGeneAlignment(pan_folder,sample_col,ffn_dir, faa_dir,collection_dir, thre
     elapsed = datetime.now() - stime
     logger.info(f'Nucliotide alignment -- time taken {str(elapsed)}')
     return alignment_dir
+
+
 def copyClustersPanta(collection_dir,panta_folder):
     alignment_dir = os.path.join(collection_dir, 'alignments')
     if os.path.exists(alignment_dir):
@@ -520,6 +514,8 @@ def copyClustersPanta(collection_dir,panta_folder):
         return None
     shutil.copytree(panta_cluster, alignment_dir)
     return alignment_dir
+
+
 def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Call VCFs files between representative seq and other seq
@@ -548,10 +544,7 @@ def runVCFCallingFromGeneAlignment(pangenome_folder, collection_dir, threads=8, 
         gene_cluster_file =pangenome_folder + '/gene_presence_absence.Rtab'
         gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
         gene_df.fillna('', inplace=True)
-
-
-
-
+        
         map_sample_vcf={}
         ref_pan=[]
         map_sample_prot_vcf={}
