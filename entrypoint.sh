@@ -11,11 +11,10 @@ echo "##### Variables #####"
 echo "PATH: $PATH"
 
 echo "##### activate the micromamba env #####"
-eval "$(micromamba shell hook --shell bash)" && 
+eval "$(micromamba shell hook --shell bash)" 
 micromamba activate amromics
 
-
-echo " "
+echo "Activate status: $?"
 echo "############### Docker CMD ###############"
 echo " "
 exec "$@"
