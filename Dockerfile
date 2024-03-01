@@ -24,3 +24,6 @@ RUN micromamba create -y -c conda-forge -c defaults --name amromics python=3.10 
 
 WORKDIR /tmp/amromics
 RUN tar zxvf db.tar.gz
+
+ENTRYPOINT ["/tmp/amromics/entrypoint.sh"]
+#CMD ["amr-analysis.py","download_db"]
