@@ -24,7 +24,7 @@ def run_alignment_by_parsnp(pan_folder,ffn_dir,base_dir, overwrite=False,  timin
         :param base_dir: working directory
         :return:
     """
-    gene_cluster_file=pan_folder+'/gene_presence_absence.csv.gz'
+    gene_cluster_file=pan_folder+'/gene_presence_absence.csv'
     dict_cds={}
     for root, dirs, files in os.walk(ffn_dir):
         for _file in files:
@@ -145,7 +145,6 @@ def run_protein_alignment(pan_folder, collection_dir, threads=8, overwrite=False
             gene_dir = os.path.join(alignment_dir, gene_id)
 
             # check if done before
-            #gene_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln.gz')
             gene_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
             if (not overwrite) and os.path.isfile(gene_aln_file):
                 continue
@@ -155,7 +154,6 @@ def run_protein_alignment(pan_folder, collection_dir, threads=8, overwrite=False
                 logger.info('{} does not exist'.format(gene_aln_file))
                 continue
 
-            #cmd = f"mafft --auto --quiet --thread 1 {gene_seq_file} | gzip > {gene_aln_file}"
             cmd = f"mafft --auto --quiet --thread 1 {gene_seq_file} > {gene_aln_file}"
             cmds.write(cmd + '\n')
 
@@ -203,18 +201,15 @@ def create_nucleotide_alignment(pan_folder, collection_dir, threads=8, overwrite
         gene_dir = os.path.join(alignment_dir, gene_id)
 
         # check if done before
-        #nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
         nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
         if (not overwrite) and os.path.isfile(nucleotide_aln_file):
             continue
 
-        #protein_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln.gz')
         protein_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
         if not os.path.isfile(protein_aln_file):
             logger.info('{} does not exist'.format(protein_aln_file))
             continue
         protein_dict = {}
-        #with gzip.open(protein_aln_file, 'rt') as fh:
         with open(protein_aln_file) as fh:
             for seq_record in SeqIO.parse(fh, 'fasta'):
                 protein_dict[seq_record.id] = str(seq_record.seq)
@@ -224,7 +219,6 @@ def create_nucleotide_alignment(pan_folder, collection_dir, threads=8, overwrite
         for seq_record in SeqIO.parse(nucleotide_seq_file, 'fasta'):
             nucleotide_dict[seq_record.id] = str(seq_record.seq)
 
-        #with gzip.open(nucleotide_aln_file, 'wt') as fh:
         with open(nucleotide_aln_file, 'wt') as fh:
             for seq_id in protein_dict.keys():
                 protein = protein_dict[seq_id]
@@ -273,7 +267,7 @@ def create_core_gene_alignment(pan_folder, collection_dir, threads=8, overwrite=
     if not os.path.exists(phylogeny_folder):
         os.makedirs(phylogeny_folder)
     # check if done before
-    core_gene_aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln.gz')
+    core_gene_aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln')
     if os.path.isfile(core_gene_aln_file) and (not overwrite):
         logger.info('Core gene alignment exists and input has not changed, skipping')
         return phylogeny_folder
@@ -294,13 +288,11 @@ def create_core_gene_alignment(pan_folder, collection_dir, threads=8, overwrite=
         gene_id = re.sub(r'\W+', '', gene_id)
         gene_dir = os.path.join(alignment_dir, gene_id)
 
-        #nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
         nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
         if not os.path.isfile(nucleotide_aln_file):
             logger.info('{} does not exist'.format(nucleotide_aln_file))
             continue
         cluster_dict = {}
-        #with gzip.open(nucleotide_aln_file, 'rt') as fh:
         with open(nucleotide_aln_file, 'rt') as fh:
             for seq_record in SeqIO.parse(fh, 'fasta'):
                 if '-' in seq_record.id:
@@ -310,13 +302,14 @@ def create_core_gene_alignment(pan_folder, collection_dir, threads=8, overwrite=
                 sample_name = re.findall(r'^(.+)_', gene_sample_id)
                 sample_name = sample_name[0]
                 if sample_name not in sample_list:
+                    print(sample_list)
                     raise Exception(f'Error concatenating gene alignment: {sample_name} is not a sample id')
                 cluster_dict[sample_name] = str(seq_record.seq)
 
         for sample_name in cluster_dict:
             seq_dict[sample_name] += cluster_dict[sample_name]
 
-    with gzip.open(core_gene_aln_file, 'wt') as fh:
+    with open(core_gene_aln_file, 'w') as fh:
         for sample in sample_list:
             new_record = SeqRecord(Seq(seq_dict[sample]), id = sample, description = '')
             SeqIO.write(new_record, fh, 'fasta')
@@ -332,7 +325,7 @@ def writeTempSeqFile(temp_seqs_dir, gene_id,seq):
     f.write(seq)
     f.close()
     return temp_file
-def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+def get_gene_sequences(samples, pan_folder,sample_col, collection_dir):
     """
     Create protein sequences and nucleotide sequences for each gene cluster
 
@@ -353,49 +346,42 @@ def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_d
     -------
     """
     logger.info('Getting sequences of gene clusters')
-    gene_cluster_file = pan_folder + '/gene_presence_absence.csv.gz'
+    gene_cluster_file = pan_folder + '/gene_presence_absence.csv'
     dict_nucleotide = {}
-    #temp_dna_seq_folder=os.path.join(collection_dir,"temp_nucl")
-    #temp_prot_seq_folder=os.path.join(collection_dir,"temp_prot")
-    for ffn_file in os.listdir(ffn_folder):
-        ffn_file_path=os.path.join(ffn_folder,ffn_file)
-        if ffn_file.endswith('.gz'):
-            run_command('gunzip -c {} > {}'.format(ffn_file_path,ffn_file_path.replace('.gz','') ))
-            ffn_file_path=ffn_file_path.replace('.gz','')
-            ffn_binfile_path=ffn_file_path.replace('.ffn','.bin')
-            if os.path.exists(ffn_binfile_path):
-                os.remove(ffn_binfile_path)
-            with open(ffn_binfile_path, 'wb') as binary_fh:
-                with open(ffn_file_path, 'r') as fasta_fh:
-                    for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
-                        start_position = binary_fh.tell()
-                        binary_fh.write(str(seq_record.seq).encode('utf-8'))
-                        end_position = binary_fh.tell()
-                        #seq_record.seq = seq_record.seq
-                        #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                        #dict_nucleotide[seq_record.id]=writeTempSeqFile(temp_dna_seq_folder,seq_record.id,str(seq_record.seq))
-                        dict_nucleotide[seq_record.id] =(ffn_binfile_path,start_position, end_position)
-                        #dict_nucleotide[seq_record.id] = seq_record
+    
+    ffn_files = [sample['annotation_ffn'] for sample in samples]
+    for ffn_file_path in ffn_files:
+        ffn_binfile_path=ffn_file_path.replace('.ffn','.bin')
+        if os.path.exists(ffn_binfile_path):
+            os.remove(ffn_binfile_path)
+        with open(ffn_binfile_path, 'wb') as binary_fh:
+            with open(ffn_file_path, 'r') as fasta_fh:
+                for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
+                    start_position = binary_fh.tell()
+                    binary_fh.write(str(seq_record.seq).encode('utf-8'))
+                    end_position = binary_fh.tell()
+                    #seq_record.seq = seq_record.seq
+                    #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
+                    #dict_nucleotide[seq_record.id]=writeTempSeqFile(temp_dna_seq_folder,seq_record.id,str(seq_record.seq))
+                    dict_nucleotide[seq_record.id] =(ffn_binfile_path,start_position, end_position)
+                    #dict_nucleotide[seq_record.id] = seq_record
     dict_prot = {}
-    for faa_file in os.listdir(faa_folder):
-        faa_file_path=os.path.join(faa_folder,faa_file)
-        if faa_file.endswith('.gz'):
-            run_command('gunzip -c {} > {}'.format(faa_file_path,faa_file_path.replace('.gz','') ))
-            faa_file_path=faa_file_path.replace('.gz','')
-            faa_binfile_path=faa_file_path.replace('.faa','.bin')
-            if os.path.exists(faa_binfile_path):
-                os.remove(faa_binfile_path)
-            with open(faa_binfile_path, 'wb') as binary_fh:
-                with open(faa_file_path, 'r') as fasta_fh:
-                    for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
-                        start_position = binary_fh.tell()
-                        binary_fh.write(str(seq_record.seq).encode('utf-8'))
-                        end_position = binary_fh.tell()
-                        #seq_record.seq = seq_record.seq
-                        #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
-                        #dict_prot[seq_record.id] = writeTempSeqFile(temp_prot_seq_folder,seq_record.id,str(seq_record.seq))
-                        #dict_prot[seq_record.id] = seq_record
-                        dict_prot[seq_record.id] = (faa_binfile_path,start_position, end_position)
+    faa_files = [sample['annotation_faa'] for sample in samples]
+    for faa_file_path in faa_files:
+        faa_binfile_path=faa_file_path.replace('.faa','.bin')
+        if os.path.exists(faa_binfile_path):
+            os.remove(faa_binfile_path)
+        with open(faa_binfile_path, 'wb') as binary_fh:
+            with open(faa_file_path, 'r') as fasta_fh:
+                for seq_record in SeqIO.parse(fasta_fh, 'fasta'):
+                    start_position = binary_fh.tell()
+                    binary_fh.write(str(seq_record.seq).encode('utf-8'))
+                    end_position = binary_fh.tell()
+                    #seq_record.seq = seq_record.seq
+                    #seq_record = SeqRecord(seq_record.seq, id=seq_record.id, description = '')
+                    #dict_prot[seq_record.id] = writeTempSeqFile(temp_prot_seq_folder,seq_record.id,str(seq_record.seq))
+                    #dict_prot[seq_record.id] = seq_record
+                    dict_prot[seq_record.id] = (faa_binfile_path,start_position, end_position)
     #print (dict_nucleotide)
     # make folder contains sequences for each gene
     alignment_dir = os.path.join(collection_dir, 'alignments')
@@ -403,7 +389,7 @@ def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_d
         os.makedirs(alignment_dir)
     #report['alignments'] = alignment_dir
 
-    gene_df = pd.read_csv(gene_cluster_file, dtype=str, compression='gzip')
+    gene_df = pd.read_csv(gene_cluster_file, dtype=str)
     gene_df.fillna('', inplace=True)
     sample_columns = list(gene_df.columns)[sample_col:]
     for _, row in gene_df.iterrows():
@@ -416,9 +402,7 @@ def get_gene_sequences(pan_folder,sample_col,ffn_folder,faa_folder, collection_d
         # check if done before
         protein_seq_file = os.path.join(gene_dir, gene_id + '.faa')
         nucleotide_seq_file = os.path.join(gene_dir, gene_id + '.fna')
-        #if (not overwrite) and os.path.isfile(protein_seq_file) and os.path.isfile(nucleotide_seq_file):
-        #    continue
-
+        
         gene_list = []
         for sample_column in sample_columns:
             if row[sample_column]:
@@ -493,13 +477,13 @@ def translateDNA2Prot(sr):
     else:
         return prot_d1, False
 
-def runGeneAlignment(pan_folder,sample_col,ffn_dir, faa_dir,collection_dir, threads=8, overwrite=False, timing_log=None,rate_alignment=0.15):
+def runGeneAlignment(samples, pan_folder,sample_col,collection_dir, threads=8, overwrite=False, timing_log=None,rate_coverage=0.15):
     stime = datetime.now()
-    alignment_dir=get_gene_sequences(pan_folder,sample_col, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=collection_dir, threads=threads,timing_log=timing_log)
+    alignment_dir=get_gene_sequences(samples, pan_folder,sample_col,collection_dir=collection_dir)
     elapsed = datetime.now() - stime
     logger.info(f'Get gene sequences -- time taken {str(elapsed)}')
     stime = datetime.now()
-    alignment_dir=run_protein_alignment(pan_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log,rate_alignment=rate_alignment)
+    alignment_dir=run_protein_alignment(pan_folder, collection_dir=collection_dir, overwrite=overwrite,threads=threads,timing_log=timing_log,rate_coverage=rate_coverage)
     elapsed = datetime.now() - stime
     logger.info(f'Protein alignment -- time taken {str(elapsed)}')
     stime = datetime.now()
@@ -554,26 +538,17 @@ def runVCFCallingFromGeneAlignment(samples,pangenome_folder, collection_dir, thr
             gene_id = re.sub(r'\W+', '', gene_id)
             gene_dir = os.path.join(alignment_dir, gene_id)
             # check if done before
-            gene_aln_file_zip= os.path.join(gene_dir, gene_id + '.fna.aln.gz')
-            if os.path.isfile(gene_aln_file_zip):
-                run_command('gunzip -c {} > {}'.format(gene_aln_file_zip,gene_aln_file_zip.replace('.gz','') ))
+            
             gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
             if not os.path.isfile(gene_aln_file):
                 #continue if gene is not aligned
                 continue
-            gene_prot_aln_file_zip = os.path.join(gene_dir, gene_id + '.faa.aln.gz')
-            if os.path.isfile(gene_prot_aln_file_zip):
-                run_command('gunzip -c {} > {}'.format(gene_prot_aln_file_zip,gene_prot_aln_file_zip.replace('.gz','') ))
+            
             gene_prot_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
             if not os.path.isfile(gene_prot_aln_file):
                 #continue if gene is not aligned
                 continue
-            #gene_aln_file_unzip = os.path.join(gene_dir, gene_id + '.fna.aln')
-            #gene_aln_file_unzip=gene_aln_file
-            #gene_prot_aln_file_unzip=gene_prot_aln_file
             rep_name=None
-            #cmd = f"gzip -dk -f {gene_aln_file}"
-            #run_command(cmd, timing_log
             rep_seq=None
             for sample in samples:
                 isFound=False
@@ -590,7 +565,7 @@ def runVCFCallingFromGeneAlignment(samples,pangenome_folder, collection_dir, thr
                         break
                 if isFound:
                     break
-            rep_seq.seq=rep_seq.seq.ungap('-')
+            rep_seq.seq=rep_seq.seq.replace('-','')
             rep_name=rep_seq.name
             ref_pan.append(rep_seq)
             # for seq in read_sequence_file(gene_aln_file):

@@ -10,22 +10,31 @@ def copy_file(source_file, dest_dir):
     dest_file = os.path.join(dest_dir, os.path.basename(source_file))
     shutil.copyfile(source_file, dest_file)
     return dest_file
+
 def prepareDataCollectionAnalysis(report,collection_dir):
     temp_folder = os.path.join(collection_dir, 'temp_data')
     #clean up the folder
     if not os.path.isdir(temp_folder):
         os.makedirs(temp_folder)
-
-    gff_dir=os.path.join(temp_folder,'gff')
-    #collect ffn files: annotation files should be named as <sample_id>.ffn
-    ffn_dir=os.path.join(temp_folder,'ffn')
-    faa_dir=os.path.join(temp_folder,'faa')
+    # gff_dir=os.path.join(temp_folder,'gff')
+    # #collect ffn files: annotation files should be named as <sample_id>.ffn
+    # ffn_dir=os.path.join(temp_folder,'ffn')
+    # faa_dir=os.path.join(temp_folder,'faa')
 
     for sample in report['samples']:
-        #print(sample)
-        copy_file(sample['annotation_gff'],gff_dir)
-        copy_file(sample['annotation_faa'],faa_dir)
-        copy_file(sample['annotation_ffn'],ffn_dir)
+        target_gff = os.path.join(temp_folder,sample['id'] + '.gff')
+        target_faa = os.path.join(temp_folder,sample['id'] + '.faa')
+        target_ffn = os.path.join(temp_folder,sample['id'] + '.ffn')
+
+        os.symlink(os.path.abspath(sample['annotation_gff']), target_gff)
+        os.symlink(os.path.abspath(sample['annotation_faa']), target_faa)
+        os.symlink(os.path.abspath(sample['annotation_ffn']), target_ffn)
+
+
+        # #print(sample)
+        # copy_file(sample['annotation_gff'],gff_dir)
+        # copy_file(sample['annotation_faa'],faa_dir)
+        # copy_file(sample['annotation_ffn'],ffn_dir)
 
     return temp_folder,gff_dir,ffn_dir,faa_dir
 
@@ -86,9 +95,9 @@ def pan_genome_analysis(samples, work_dir, collection_id, collection_name=None, 
     with open(sample_set_file, 'w') as fn:
         json.dump(dataset_sample_ids, fn)
     #report,genome_dir,gff_dir,ffn_dir,reference, base_dir='.', threads=0, memory=50
-    temp_folder,gff_dir,ffn_dir,faa_dir=prepareDataCollectionAnalysis(report,collection_dir)
+    #temp_folder,gff_dir,ffn_dir,faa_dir=prepareDataCollectionAnalysis(report,collection_dir)
 
-    report = wrapper.run_collection(report,gff_dir,ffn_dir,faa_dir,overwrite=overwrite,base_dir=collection_dir,progressive=progressive, threads=threads,timing_log=timing_log,method=method, rate_coverage=rate_coverage, genetree=genetree, tree=tree)
+    report = wrapper.run_collection(report,overwrite=overwrite,base_dir=collection_dir,progressive=progressive, threads=threads,timing_log=timing_log,method=method, rate_coverage=rate_coverage, genetree=genetree, tree=tree)
     with open(os.path.join(collection_dir, collection_id + '_dump.json'), 'w') as fn:
         json.dump(report, fn)
 

@@ -27,8 +27,6 @@ import amromics.libs.taxonomy as taxonomy
 import traceback
 from Bio import SeqIO
 import pandas as pd
-import json
-import gzip
 from datetime import datetime
 import amromics.libs.bioseq as bioseq
 import amromics.libs.pangenome as pangenome
@@ -49,9 +47,9 @@ def run_single_sample(sample, extraStep=False, sample_dir='.', assembly_method='
     sample_id = sample['id']
 
     sample['assembly'] = os.path.join(sample_dir,  sample_id+ '_assembly.fasta')
-    sample['annotation_gff'] = os.path.join(sample_dir,  sample_id+ '_annotation.gff')
-    sample['annotation_faa'] = os.path.join(sample_dir,  sample_id+ '_annotation.faa')
-    sample['annotation_ffn'] = os.path.join(sample_dir,  sample_id+ '_annotation.ffa')
+    sample['annotation_gff'] = os.path.join(sample_dir,  sample_id+ '.gff')
+    sample['annotation_faa'] = os.path.join(sample_dir,  sample_id+ '.faa')
+    sample['annotation_ffn'] = os.path.join(sample_dir,  sample_id+ '.ffn')
 
     if os.path.isfile(sample['assembly']):
         logger.info(f'Assembly for {sample_id} exist!')
@@ -161,7 +159,8 @@ def run_single_sample(sample, extraStep=False, sample_dir='.', assembly_method='
 
     sample['execution_end'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return sample
-def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progressive=False, overwrite=None,memory=50, timing_log=None,method='panta', rate_coverage=0.15,genetree=True, tree='fasttree'):
+
+def run_collection(report, base_dir='.',threads=8,progressive=False, overwrite=None,memory=50, timing_log=None,method='panta', rate_coverage=0.15,genetree=True, tree='fasttree'):
     try:
         starttime = datetime.now()
         if method=='roary':
@@ -170,7 +169,7 @@ def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progre
             elapsed = datetime.now() - stime
             logger.info(f'Roary -- time taken {str(elapsed)}')
             stime = datetime.now()
-            report['alignments'] = alignment.runGeneAlignment(report['pan'],14, ffn_dir,faa_dir,overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log,rate_alignment=rate_alignment)
+            report['alignments'] = alignment.runGeneAlignment(report['samples'], report['pan'],14,collection_dir=base_dir, threads=threads,timing_log=timing_log,rate_coverage=rate_coverage)
             elapsed = datetime.now() - stime
             logger.info(f'Alignment from roary -- time taken {str(elapsed)}')
         if method=='panta':

@@ -2,10 +2,7 @@ import os,shutil
 import logging
 import multiprocessing
 from Bio import SeqIO
-import csv
 import pandas as pd
-import json
-import gzip
 import re
 import amromics.libs.bioseq as bioseq
 from amromics.utils.command import run_command
@@ -96,9 +93,7 @@ def run_species_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrit
         logger.info('phylogeny tree exists and input has not changed, skip phylogeny analysis')
         return phylogeny_folder
 
-    aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln.gz')
-    if not os.path.isfile(aln_file):
-        aln_file = os.path.join(report['pan'], 'core_gene_alignment.aln.gz')
+    aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln')
     cmd = 'iqtree -s {alignment} --prefix {prefix} -B 1000 -T {threads} -czb -keep-ident'.format(
         alignment=aln_file, prefix=phylogeny_folder+'/core_gene_alignment', threads=threads)
     ret = run_command(cmd, timing_log)
@@ -106,6 +101,8 @@ def run_species_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrit
         #raise Exception('iqtree fail to create phylogeny tree from core gene alignment!')
         return None
     return phylogeny_folder
+
+
 def run_species_phylogeny_fastree(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Run iqtree to create phylogeny tree from core gene alignment. If the list of samples has
@@ -137,17 +134,10 @@ def run_species_phylogeny_fastree(pan_folder, collection_dir, threads=8, overwri
         logger.info('phylogeny tree exists and input has not changed, skip phylogeny analysis')
         return phylogeny_folder
 
-    aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln.gz')
-    if not os.path.isfile(aln_file):
-        aln_file = os.path.join(report['pan'], 'core_gene_alignment.aln.gz')
-    aln_file_unzip = aln_file.replace('.aln.gz','.aln')
-    op = open(aln_file_unzip,"w")
-    with gzip.open(aln_file,"rb") as ip_byte:
-        op.write(ip_byte.read().decode("utf-8"))
-    op.close()
-    aln_file_snp= aln_file_unzip.replace('.aln','.snp.aln')
+    aln_file = os.path.join(phylogeny_folder, 'core_gene_alignment.aln')
+    aln_file_snp= aln_file.replace('.aln','.snp.aln')
     cmd_snpsite='snp-sites -c -o {snp_file} {aln_file}'.format(
-        snp_file=aln_file_snp, aln_file=aln_file_unzip)
+        snp_file=aln_file_snp, aln_file=aln_file)
     ret = run_command(cmd_snpsite, timing_log)
     if ret != 0:
         return None
