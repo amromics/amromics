@@ -36,6 +36,7 @@ def single_genome_analysis(samples, work_dir, assembly_method='spades', overwrit
         sample_dir = os.path.join(work_dir, 'samples', sample_id)
         if not os.path.exists(sample_dir):
             os.makedirs(sample_dir)
+            
         wrapper.run_single_sample(
             sample, sample_dir=sample_dir, assembly_method=assembly_method, threads=threads, overwrite=overwrite,
             memory=memory,trim=sample['trim'], timing_log=timing_log)

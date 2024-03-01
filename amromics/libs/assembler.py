@@ -1,30 +1,21 @@
 import os
-from glob import glob
+
 import logging
 import multiprocessing
 from Bio import SeqIO
 import amromics.libs.bioseq as bioseq
 from amromics.utils.command import run_command
 from amromics.utils.utils import get_open_func
-from amromics.utils.utils import get_compress_type
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 logger = logging.getLogger(__name__)
 
 ###NGS assembly using SPAdes
-def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,overwrite=False, timing_log=None,trim=False,gsize=None, **kargs):
-    if threads == 0:
-        threads = NUM_CORES_DEFAULT
-
-    path_out = os.path.join(base_dir, prefix_name + '_spades')
-
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')    
+def assemble_spades(sample_id,reads, assembly_file, base_dir = '.', threads=4, memory=50, timing_log=None, **kargs):
+    
+    path_out = os.path.join(base_dir, sample_id + '_spades')    
     if not os.path.exists(path_out):
-        os.makedirs(path_out)
-    elif os.path.isfile(assembly_file) and (not overwrite):
-        logger.info(f'Assembly file {assembly_file} found, skip assembling')
-        return assembly_file
-   
-    #rename reads zip/unzip now move to preprocess.py
+        os.makedirs(path_out)    
+    
     #cmd = 'spades.py -m {memory} -t {threads} -k 77,99,127 --isolate --disable-gzip-output -o {path_out}'.format(
     cmd = 'spades.py -m {memory} -t {threads} --only-assembler --isolate --cov-cutoff auto -o {path_out}'.format(
         memory=int(memory), threads=threads, path_out=path_out)
@@ -32,41 +23,39 @@ def assemble_spades(prefix_name,reads, base_dir = '.', threads=0, memory=50,over
         cmd += ' -1 {pe1} -2 {pe2}'.format(pe1=reads['pe1'], pe2=reads['pe2'])
     if 'se' in reads:
         cmd += ' -s {se}'.format(se=reads['se'])
-
     ret = run_command(cmd, timing_log)
     if ret != 0:
-        return None
+        raise Exception(f'Fail to assemble sample {sample_id} with spades  ({ret})')
 
-    #remove intermediate sub-folder
-    #run_command('rm -rf ' + os.path.join(path_out,'corrected'))
-    run_command('rm -rf ' + os.path.join(path_out,'misc'))
-    run_command('rm -rf ' + os.path.join(path_out,'tmp'))    
-
+    
     # Read in list of contigs
     contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fasta'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
-    logger.info("Read in {} contigs".format(len(contigs)))
-    #assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
     with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
-            contig.id =prefix_name+'_C'+str(i)
+            contig.id =sample_id+'_C'+str(i)
             contig.description = ''
-            SeqIO.write(contig, f, "fasta")
-    return assembly_file
-
-
-def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, overwrite=False, timing_log=None, **kargs):
-    if threads == 0:
-        threads = NUM_CORES_DEFAULT
-    path_out = os.path.join(base_dir, prefix_name + '_skesa')
+            SeqIO.write(contig, f, "fasta")    
     
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
+    #remove intermediate sub-folder
+    run_command('rm -rf ' + os.path.join(path_out,'corrected'))
+    run_command('rm -rf ' + os.path.join(path_out,'misc'))
+    run_command('rm -rf ' + os.path.join(path_out,'tmp'))
 
+    if 'pe1' in reads and 'pe2' in reads:
+        os.remove(reads['pe1'])
+        os.remove(reads['pe2'])
+    if 'se' in reads:
+        os.remove(reads['se'])
+    #clean up
+
+
+
+def assemble_skesa(sample_id, reads, assembly_file, base_dir = '.', threads=4, memory=50, timing_log=None, **kargs):
+    
+    path_out = os.path.join(base_dir, sample_id + '_skesa')
     if not os.path.exists(path_out):
         os.makedirs(path_out)
-    elif os.path.isfile(assembly_file) and (not overwrite):
-        logger.info(f'Assembly file {assembly_file} found, skip assembling')
-        return assembly_file
 
     cmd = 'skesa --memory {memory} --cores {threads} --fastq '.format(
         memory=int(memory), threads=threads)
@@ -78,19 +67,26 @@ def assemble_skesa(prefix_name, reads,base_dir = '.', threads=0, memory=50, over
     cmd+=' >{output}'.format(output=assembly_file_raw)
     ret = run_command(cmd, timing_log)
     if ret != 0:
-        return None
+        raise Exception(f'Fail to assemble sample {sample_id} with SKESA ({ret})')
 
     # Read in list of contigs
     contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fasta'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
-    logger.info("Read in {} contigs".format(len(contigs)))
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
+    logger.info("Read in {} contigs".format(len(contigs)))    
     with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
-            contig.id =prefix_name+'_C'+str(i)
+            contig.id =sample_id+'_C'+str(i)
             contig.description = ''
             SeqIO.write(contig, f, "fasta")
-    return assembly_file
+    
+    if 'pe1' in reads and 'pe2' in reads:
+        os.remove(reads['pe1'])
+        os.remove(reads['pe2'])
+    if 'se' in reads:
+        os.remove(reads['se'])
+
+    #return assembly_file
+            
 
 def assemble_shovill(prefix_name, reads,base_dir, trim=False, threads=4, memory=50, overwrite=False, timing_log=None,gsize=None):
     """
@@ -139,43 +135,34 @@ def assemble_shovill(prefix_name, reads,base_dir, trim=False, threads=4, memory=
     run_command('gzip ' + os.path.join(path_out, 'shovill.log'))
     return assembly_file
 
-def get_assembly(prefix_name,assembly, base_dir, overwrite=False):
+def get_assembly(sample_id, assembly_input, assembly_file):
     """
-    Get the assembly from user input
+    Get the assembly from the input assembly to the target assembly
 
     Parameters
     ----------
-    sample:
-        a dictionary-like object containing various attributes for a sample
-    sample_dir: str
+    input_assembly:
+        
+    assembly: str
         the directory of the sample
     Returns
     -------
-        path to assembly file
+        None
     """
-
-    path_out = os.path.join(base_dir, prefix_name + '_assembly')
-    if not os.path.exists(path_out):
-        os.makedirs(path_out)
-
-    open_func = get_open_func(assembly)
-    with open_func(assembly, 'rt') as fn:
-        contigs = list(SeqIO.parse(fn, 'fasta'))
-
-    assembly_file = os.path.join(path_out,prefix_name + '_contigs.fasta')
-    if os.path.isfile(assembly_file) and (not overwrite):
-        logger.info(f'Not overwrite {assembly_file}')
-        return assembly_file
-
+    
+    logger.info(f'Get assembly {assembly_file} from {assembly_input} ')
+    open_func = get_open_func(assembly_input)
+    with open_func(assembly_input, 'rt') as fn:
+        contigs = list(SeqIO.parse(fn, 'fasta'))    
+    
     contigs = sorted(contigs, key=len, reverse=True)
     with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
-            contig.id = prefix_name + '_C' + str(i)
+            contig.id = sample_id + '_C' + str(i)
             contig.description = ''
-            SeqIO.write(contig, f, "fasta")
-    return assembly_file
-
-def get_assembly_from_gff(prefix_name,gff, base_dir, overwrite=False):
+            SeqIO.write(contig, f, "fasta")    
+    
+def get_assembly_from_gff(sample_id, gff, assembly_file, base_dir='.', overwrite=False):
     """
     Get the assembly from user input
 
@@ -190,56 +177,54 @@ def get_assembly_from_gff(prefix_name,gff, base_dir, overwrite=False):
         path to assembly file
     """
 
-    path_out = os.path.join(base_dir, prefix_name + '_assembly')
+    path_out = os.path.join(base_dir, sample_id + '_assembly')
     if not os.path.exists(path_out):
         os.makedirs(path_out)
 
     open_func = get_open_func(gff)
-    temp_asm=open(os.path.join(path_out,prefix_name+'_temp.fasta'),'w')
-    with open_func(gff, 'rt') as fn:
+    
+    #TODO: no write to temp file
+    temp_assembly = os.path.join(path_out,sample_id+'_temp.fasta')
+    with open_func(gff, 'rt') as fn, open(temp_assembly,'w') as t_out:
         start_fasta=False
         for line in fn:
             if start_fasta:
-                temp_asm.write(line)
+                t_out.write(line)
             if line.startswith('##FASTA'):
                 #Done reading gff, move on to reading fasta
                 start_fasta=True
-
-    temp_asm.close()
-    with open(os.path.join(path_out,prefix_name+'_temp.fasta'), 'rt') as fn:
+    
+    with open(temp_assembly) as fn:
         contigs = list(SeqIO.parse(fn, 'fasta'))
-
-    assembly_file = os.path.join(path_out,prefix_name + '_contigs.fasta')
-    if os.path.isfile(assembly_file) and (not overwrite):
-        logger.info(f'Not overwrite {assembly_file}')
-        return assembly_file
-
+    
     contigs = sorted(contigs, key=len, reverse=True)
     with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             #contig.id = prefix_name + '_C' + str(i)
             #contig.description = ''
             SeqIO.write(contig, f, "fasta")
-    return assembly_file
+    os.remove(temp_assembly)
+    
 
-def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite=False, timing_log=None, gsize=None):
+def assemble_flye(sample_id, reads, input_type, assembly_file, base_dir='.', threads=4, overwrite=False, timing_log=None, gsize=None):
     """
         Run assembly process for long reads input using flye
-        :param prefix_name: sample name, sample id, etc
+        :param sample_id: sample name, sample id, etc
         :param read: reads
         :param input_type: type of long reads
+        :assembly_file
         :param base_dir: working directory
-        :return: path to assembly file (normailized)
+        
     """
 
-    path_out = os.path.join(base_dir, prefix_name + '_flye')
-    assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
+    path_out = os.path.join(base_dir, sample_id + '_flye')
+    #assembly_file = os.path.join(path_out, sample_id + '_contigs.fasta')
 
-    if not os.path.exists(path_out):
-        os.makedirs(path_out)
-    elif os.path.isfile(assembly_file) and (not overwrite):
-        logger.info(f'Assembly file {assembly_file} found, skip assembling')
-        return assembly_file
+    #if not os.path.exists(path_out):
+    #    os.makedirs(path_out)
+    #elif os.path.isfile(assembly_file) and (not overwrite):
+    #    logger.info(f'Assembly file {assembly_file} found, skip assembling')
+    #    return assembly_file
 
     cmd = 'flye --threads {threads} --out-dir {path_out} --{input_type} {reads}'.format(
         threads=threads, path_out=path_out, input_type=input_type, reads=reads['long-read'])
@@ -255,7 +240,7 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     contigs = sorted(contigs, key=len, reverse=True)
     with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
-            contig.id =prefix_name+'_C'+str(i)
+            contig.id =sample_id+'_C'+str(i)
             contig.description = ''
             SeqIO.write(contig, f, "fasta")
 
@@ -271,5 +256,5 @@ def assemble_flye(prefix_name, reads, input_type, base_dir, threads=4, overwrite
     run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gv'))
     run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
     run_command('gzip ' + os.path.join(path_out, 'flye.log'))
-
-    return assembly_file
+    os.remove(reads['long-read'])
+    

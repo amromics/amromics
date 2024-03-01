@@ -39,27 +39,11 @@ def species_identification_kraken(prefix_name,assembly, db='db/kraken2/k2std', b
 ###Sequence typing using mlst
 
 
-def detect_mlst(prefix_name, assembly,  base_dir='.',timing_log=None, threads=0):
-    #TODO: include overwrite
-    if threads == 0:
-        threads = NUM_CORES_DEFAULT
-
-    path_out = os.path.join(base_dir, prefix_name+'_mlst' )
-    if not os.path.exists(path_out):
-        os.makedirs(path_out)
-    mlst_out = os.path.join(path_out, prefix_name + '_mlst.tsv')
-    if os.path.isfile(mlst_out):
-        return mlst_out
-    
-    m = mlst.find_mlst(assembly)
-    with open(mlst_out, 'w') as f:
+def detect_mlst(sample):
+    m = mlst.find_mlst(sample['assembly'])
+    with open(sample['mlst'], 'w') as f:
         f.write("%s\t%s\t%s"%(m['file'],m['scheme'],m['st']))
         for gene in m['profile']:
             f.write("\t%s"%gene)
         f.write("\n")
-
-    # cmd = 'mlst --quiet --threads {threads} --nopath {infile} > {outfile}'.format(threads=threads,infile=read_data['assembly'],outfile=mlst_out)
-    # cmd = "bash -c '{}'".format(cmd)
-    # if run_command(cmd) != 0:
-    #     return None
-    return mlst_out
+        

@@ -11,7 +11,7 @@ import amromics.libs.mlst as mlst
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 
-def detect_amr_abricate(prefix_name, assembly, base_dir='.', threads=8, overwrite=False, timing_log=None):
+def detect_amr_abricate(sample, threads=8, timing_log=None):
     """
     Run abricate to identify resistant genes
 
@@ -31,19 +31,16 @@ def detect_amr_abricate(prefix_name, assembly, base_dir='.', threads=8, overwrit
     -------
         path to resistant gene file
     """
-    path_out = os.path.join(base_dir,   prefix_name+'_abricate')
-    if not os.path.exists(path_out):
-        os.makedirs(path_out)
-    # TODO: replace by consensus db later
-    amr_out = os.path.join(path_out, prefix_name+ '_resistome.tsv')
-    if os.path.isfile(amr_out) and (not overwrite):
-        logger.info('Resistome for {} exists, skip analysis'.format(prefix_name))
-        return amr_out
+
+    assembly = sample['assembly']
+    resistome_fn = sample['resistome']
+    prefix = resistome_fn[:-4]
     dbs=['ncbi','megares','ecoh','argannot','card','resfinder']
+
     numError=0
     outputfiles=[]
     for db in dbs:
-        outfile= os.path.join(path_out,prefix_name + '_'+db+'.tsv')
+        outfile= prefix + '_'+db+'.tsv'
         cmd = 'abricate --quiet --threads {threads} --nopath --db {db} {infile} > {outfile}'.format(
             threads=threads,
             db=db,
@@ -53,14 +50,14 @@ def detect_amr_abricate(prefix_name, assembly, base_dir='.', threads=8, overwrit
             numError=numError+1
         else:
             outputfiles.append(outfile)
+
     if numError==len(dbs):
         raise Exception('Error running amr')
+    
     combined_tsv = pd.concat([pd.read_csv(f,sep='\t') for f in outputfiles ])
     combined_tsv.sort_values(['SEQUENCE','START'],ascending=[True, True],inplace=True)
-    combined_tsv.to_csv(amr_out, index=False,sep='\t', encoding='utf-8-sig')
-    #sample['updated'] = True
-    return amr_out
-
+    combined_tsv.to_csv(resistome_fn, index=False,sep='\t', encoding='utf-8-sig')
+    
 
 def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,species=None,  base_dir='.', db='db/amrfinderplus/data/latest', timing_log=None, threads=0):
     """
@@ -197,65 +194,17 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
     return amr_out,point_out,virulen_out
 
 ###Virulome profiling using abricate with VFDB
-def detect_virulome(prefix_name,assembly, base_dir='.', threads=0, timing_log=None):
+def detect_virulome(sample, threads=4):
     """
-    Run in-house script to identify virulent genes using VFDB
-
-    Parameters
-    ----------
-    prefix_name:
-        name to attach to output
-    assembly: str
-        input sequence
-    threads: int
-        number of threads to use
-    overwrite:bool
-        whether to overwrite the existing result
-    timing_log: str
-        log file
-    Returns
-    -------
-        path to virulent gene file
+    Run in-house script to identify virulent genes using VFDB    
     """
-
-    #TODO: to include overwrite
-    if threads == 0:
-        threads = NUM_CORES_DEFAULT
-
-    path_out = os.path.join(base_dir,  prefix_name+'_element_finder' )
-    if not os.path.exists(path_out):
-        os.makedirs(path_out)
-
-    vir_out = os.path.join(path_out, prefix_name + '_virulome.tsv')
-    if os.path.isfile(vir_out):
-        return vir_out
-    element_finder.search_virulome(sample=assembly,output=vir_out,threads=threads)    
-    return vir_out
+    element_finder.search_virulome(sample['assembly'], sample['virulome'],threads=threads)
+    
 
 ###Find plasmid's origin of replication using abricate with plasmidfinder db
-def detect_plasmid(prefix_name,assembly,  base_dir='.', threads=0, timing_log=None):
-    if threads == 0:
-        threads = NUM_CORES_DEFAULT
-
-    path_out = os.path.join(base_dir,  prefix_name+'_element_finder')
-    if not os.path.exists(path_out):
-        os.makedirs(path_out)
-
-    #Plasmid finder
-    oriREP_out = os.path.join(path_out,prefix_name + '_plasmid.tsv')
-    if os.path.isfile(oriREP_out):
-        return oriREP_out
-
-    # cmd = 'abricate --quiet --threads {threads} --nopath --db plasmidfinder {infile} > {outfile}'.format(threads=threads,infile=read_data['assembly'],outfile=oriREP_out)
-    # cmd = "bash -c '{}'".format(cmd)
-    # if run_command(cmd) != 0:
-    #     return None
-    element_finder.search_plasmid(sample=assembly,output=oriREP_out,threads=threads)
-    # if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
-    #     os.remove(os.path.join(path_out,prefix_name+'.fasta'))
-
-    return oriREP_out
-
+def detect_plasmid(sample, threads=1):
+    element_finder.search_plasmid(sample['assembly'], sample['plasmid'],threads=threads)
+    
 
 def detect_pmlst(prefix_name,assembly,  base_dir='.', threads=0):
     if threads == 0:
