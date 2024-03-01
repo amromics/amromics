@@ -42,11 +42,11 @@ def assemble_spades(sample_id,reads, assembly_file, base_dir = '.', threads=4, m
     run_command('rm -rf ' + os.path.join(path_out,'misc'))
     run_command('rm -rf ' + os.path.join(path_out,'tmp'))
 
-    if 'pe1' in reads and 'pe2' in reads:
-        os.remove(reads['pe1'])
-        os.remove(reads['pe2'])
-    if 'se' in reads:
-        os.remove(reads['se'])
+    # if 'pe1' in reads and 'pe2' in reads:
+    #     os.remove(reads['pe1'])
+    #     os.remove(reads['pe2'])
+    # if 'se' in reads:
+    #     os.remove(reads['se'])
     #clean up
 
 
@@ -79,11 +79,11 @@ def assemble_skesa(sample_id, reads, assembly_file, base_dir = '.', threads=4, m
             contig.description = ''
             SeqIO.write(contig, f, "fasta")
     
-    if 'pe1' in reads and 'pe2' in reads:
-        os.remove(reads['pe1'])
-        os.remove(reads['pe2'])
-    if 'se' in reads:
-        os.remove(reads['se'])
+    # if 'pe1' in reads and 'pe2' in reads:
+    #     os.remove(reads['pe1'])
+    #     os.remove(reads['pe2'])
+    # if 'se' in reads:
+    #     os.remove(reads['se'])
 
     #return assembly_file
             
@@ -256,5 +256,5 @@ def assemble_flye(sample_id, reads, input_type, assembly_file, base_dir='.', thr
     run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gv'))
     run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
     run_command('gzip ' + os.path.join(path_out, 'flye.log'))
-    os.remove(reads['long-read'])
+    # os.remove(reads['long-read'])
     
