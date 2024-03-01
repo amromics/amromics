@@ -1,12 +1,11 @@
 import os
-from glob import glob
+
 import logging
 import multiprocessing
 from Bio import SeqIO
 import amromics.libs.bioseq as bioseq
 from amromics.utils.command import run_command
 from amromics.utils.utils import get_open_func
-from amromics.utils.utils import get_compress_type
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 logger = logging.getLogger(__name__)
 
@@ -28,22 +27,28 @@ def assemble_spades(sample_id,reads, assembly_file, base_dir = '.', threads=4, m
     if ret != 0:
         raise Exception(f'Fail to assemble sample {sample_id} with spades  ({ret})')
 
-    #remove intermediate sub-folder
-    #run_command('rm -rf ' + os.path.join(path_out,'corrected'))
-    run_command('rm -rf ' + os.path.join(path_out,'misc'))
-    run_command('rm -rf ' + os.path.join(path_out,'tmp'))    
-
+    
     # Read in list of contigs
     contigs = list(SeqIO.parse(os.path.join(path_out, 'contigs.fasta'), "fasta"))
     contigs = sorted(contigs, key=len, reverse=True)
-    logger.info("Read in {} contigs".format(len(contigs)))
-    #assembly_file = os.path.join(path_out, prefix_name + '_contigs.fasta')
     with open(assembly_file, 'w') as f:
         for i, contig in enumerate(contigs):
             contig.id =sample_id+'_C'+str(i)
             contig.description = ''
-            SeqIO.write(contig, f, "fasta")
-    #return assembly_file
+            SeqIO.write(contig, f, "fasta")    
+    
+    #remove intermediate sub-folder
+    run_command('rm -rf ' + os.path.join(path_out,'corrected'))
+    run_command('rm -rf ' + os.path.join(path_out,'misc'))
+    run_command('rm -rf ' + os.path.join(path_out,'tmp'))
+
+    if 'pe1' in reads and 'pe2' in reads:
+        os.remove(reads['pe1'])
+        os.remove(reads['pe2'])
+    if 'se' in reads:
+        os.remove(reads['se'])
+    #clean up
+
 
 
 def assemble_skesa(sample_id, reads, assembly_file, base_dir = '.', threads=4, memory=50, timing_log=None, **kargs):
@@ -73,7 +78,15 @@ def assemble_skesa(sample_id, reads, assembly_file, base_dir = '.', threads=4, m
             contig.id =sample_id+'_C'+str(i)
             contig.description = ''
             SeqIO.write(contig, f, "fasta")
+    
+    if 'pe1' in reads and 'pe2' in reads:
+        os.remove(reads['pe1'])
+        os.remove(reads['pe2'])
+    if 'se' in reads:
+        os.remove(reads['se'])
+
     #return assembly_file
+            
 
 def assemble_shovill(prefix_name, reads,base_dir, trim=False, threads=4, memory=50, overwrite=False, timing_log=None,gsize=None):
     """
@@ -149,7 +162,6 @@ def get_assembly(sample_id, assembly_input, assembly_file):
             contig.description = ''
             SeqIO.write(contig, f, "fasta")    
     
-
 def get_assembly_from_gff(sample_id, gff, assembly_file, base_dir='.', overwrite=False):
     """
     Get the assembly from user input
@@ -244,4 +256,5 @@ def assemble_flye(sample_id, reads, input_type, assembly_file, base_dir='.', thr
     run_command('gzip ' + os.path.join(path_out, 'assembly_graph.gv'))
     run_command('gzip ' + os.path.join(path_out, 'assembly_info.txt'))
     run_command('gzip ' + os.path.join(path_out, 'flye.log'))
-    #return assembly_file
+    os.remove(reads['long-read'])
+    
