@@ -1,16 +1,11 @@
 import os
-import shutil
-import csv
 import logging
-import multiprocessing
-import gzip
 from amromics.utils.command import run_command
 from amromics.libs.bioseq import read_sequence_file
 from amromics.utils.utils import get_compress_type
 logger = logging.getLogger(__name__)
-NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 
-def trim_trimmomatic(prefix_name, reads,threads=0, base_dir='.', overwrite=False, timing_log=None, **kargs):
+def trim_trimmomatic(prefix_name, reads,threads=4, base_dir='.', overwrite=False, timing_log=None, **kargs):
     """
     read_data is a dictionary with field `sample_id`
     :param read_data:
@@ -19,8 +14,6 @@ def trim_trimmomatic(prefix_name, reads,threads=0, base_dir='.', overwrite=False
     :param kargs:
     :return:
     """
-    if threads <= 0:
-        threads = NUM_CORES_DEFAULT
 
     out_dir = os.path.join(base_dir, 'trimmomatic')
     out_p1 = os.path.join(out_dir, prefix_name + '_R1.fastq.gz')
@@ -59,7 +52,7 @@ def trim_trimmomatic(prefix_name, reads,threads=0, base_dir='.', overwrite=False
         raise Exception('ERROR: Trimmomatic only for Illumina PE or SE!')
 
 
-def trim_fastp(prefix_name, reads,threads=0, base_dir='.', overwrite=False, timing_log=None, **kargs):
+def trim_fastp(prefix_name, reads,threads=4, base_dir='.', overwrite=False, timing_log=None, **kargs):
     """
     read_data is a dictionary with field `sample_id`
     :param read_data:
@@ -68,8 +61,6 @@ def trim_fastp(prefix_name, reads,threads=0, base_dir='.', overwrite=False, timi
     :param kargs:
     :return:
     """
-    if threads <= 0:
-        threads = NUM_CORES_DEFAULT
 
     out_dir = os.path.join(base_dir, 'fastp')
     out_p1 = os.path.join(out_dir, prefix_name + '_R1.fastq.gz')
@@ -115,13 +106,11 @@ def trim_fastp(prefix_name, reads,threads=0, base_dir='.', overwrite=False, timi
     else:
         raise Exception('ERROR: Fastp only for Illumina PE or SE!')
 
-def estimate_gsize_mash(prefix_name, reads, overwrite=False, threads=0, base_dir='.', timing_log=None,**kargs):
+def estimate_gsize_mash(prefix_name, reads, overwrite=False, threads=4, base_dir='.', timing_log=None,**kargs):
     ##estimate genome size
     #gsize=$(mash sketch -p 8 -o /dev/null -k 21 -m 5 -r fastp/SRR1616936_1.fastq.gz 2>&1 | awk -F: '/Estimated genome size/{printf("%d",$2)}')
     
-    if threads == 0:
-        threads = NUM_CORES_DEFAULT
-
+    
     mash_log = os.path.join(base_dir, prefix_name + '_mash.log')
     
     ret=0
@@ -173,18 +162,6 @@ def rename_reads(reads):
 
 
 def subsample_seqtk(prefix_name, reads, expect_depth=100, threads=8, base_dir='.', overwrite=False, timing_log=None, gsize=None,**kargs):
-
-    ##orig_depth=total_basas/gsize
-    #expect_depth=100 #100X
-    #factor=$(awk -v gsize=${gsize} -v edepth=${expect_depth} -F: '$1~/after_filtering/{flag=1}$1~/total_bases/&&flag{printf("%.2f",edepth/($2/gsize)); exit}' fastp/fastp.json)
-
-    #if (( $(echo "$factor < 1" |bc -l) )) ; then
-    #	    seqtk sample fastp/SRR1616936_1.fastq.gz $factor | pigz --fast -c -p 8 > subsample/SRR1616936_1.fastq.gz
-    #	    seqtk sample fastp/SRR1616936_2.fastq.gz $factor | pigz --fast -c -p 8 > subsample/SRR1616936_2.fastq.gz
-    #else
-    #	    ln -s $(realpath fastp/SRR1616936_1.fastq.gz) subsample
-    #	    ln -s $(realpath fastp/SRR1616936_2.fastq.gz) subsample
-    #fi
     if gsize==None:
         return reads
     totBases=0

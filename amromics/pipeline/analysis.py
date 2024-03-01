@@ -36,7 +36,7 @@ def prepareDataCollectionAnalysis(report,collection_dir):
         # copy_file(sample['annotation_faa'],faa_dir)
         # copy_file(sample['annotation_ffn'],ffn_dir)
 
-    return temp_folder,gff_dir,ffn_dir,faa_dir
+    return temp_folder
 
 def single_genome_analysis(samples, work_dir, assembly_method='spades', overwrite=False, threads=0, memory=8, timing_log=None):
     # TODO: move the analysis in single_genome_analysis_func here
