@@ -166,7 +166,7 @@ def run_collection(report,gff_dir,ffn_dir,faa_dir, base_dir='.',threads=8,progre
         starttime = datetime.now()
         if method=='roary':
             stime = datetime.now()
-            report['pan'] = pangenome.run_roary(gff_dir, threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
+            report['pan'] = pangenome.run_roary(report['samples'], threads=threads, base_dir=base_dir,overwrite=overwrite,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Roary -- time taken {str(elapsed)}')
             stime = datetime.now()

@@ -8,8 +8,8 @@ from datetime import datetime
 
 from amromics.utils.command import run_command
 logger = logging.getLogger(__name__)
-NUM_CORES_DEFAULT = multiprocessing.cpu_count()
-def run_roary(samples, overwrite=False,threads=0, base_dir='.', timing_log=None):
+
+def run_roary(samples, overwrite=False,threads=4, base_dir='.', timing_log=None):
     """
         Run roay make pangeome analysis (using prokka results in previous step)
         :param read_data: result holder
