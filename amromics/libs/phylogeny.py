@@ -202,7 +202,7 @@ def run_gene_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrite=F
                 continue
 
             gene_aln_file_roary = os.path.join(pan_folder,'pan_genome_sequences', gene_id + '.fa.aln')
-            gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln.gz')
+            gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
             if os.path.isfile(gene_aln_file_roary):
                 shutil.move(gene_aln_file_roary,gene_aln_file)
             if not os.path.isfile(gene_aln_file):
@@ -220,6 +220,76 @@ def run_gene_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrite=F
             #        SeqIO.write(new_record, fh, 'fasta')
             #cmd = f"iqtree -s {protein_aln_file} --prefix {gene_dir+'/'+gene_id} -m LG -quiet -T 1"
             #cmd = f"fasttree -nt -gtr -quiet {gene_aln_file} > {gene_dir+'/'+gene_id+'.treefile'} && echo '{gen_list_string}' > {gene_list_json}"
+            cmds.write(cmd + '\n')
+
+    cmd = f"parallel --bar -j {threads} -a {cmds_file}"
+    ret = run_command(cmd, timing_log)
+
+
+
+    return alignment_dir
+def run_gene_phylogeny_fasttree(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
+    """
+    Run phylogenetic analysis of gene clusters. If the list of samples has not changed, and
+    none of the samples has changed, the existing tree will be kept unless overwrite is
+    set to True
+    Parameters
+    ----------
+    report: object
+        A report object
+    collection_dir: str
+        working directory of the collection
+    threads: int
+        number of threads to use
+    overwrite: bool
+        whether to overwrite existing result even if input did not change
+    timing_log: str
+        file to log timing
+    Returns
+        report object
+    -------
+    """
+    alignment_dir = os.path.join(collection_dir, 'alignments')
+    gene_cluster_file = pan_folder + '/gene_presence_absence.Rtab'
+    gene_df = pd.read_csv(gene_cluster_file, sep='\t', index_col='Gene')
+    gene_df.fillna('', inplace=True)
+
+    cmds_file = os.path.join(alignment_dir,"phylo_cmds")
+    with open(cmds_file,'w') as cmds:
+        for gene_id, row in gene_df.iterrows():
+            # Only analyse if there are at least 3 genes
+            if row.sum() < 3:
+                continue
+
+            gene_id = re.sub(r'\W+', '', gene_id)
+            gene_dir = os.path.join(alignment_dir, gene_id)
+            if not os.path.exists(gene_dir):
+                os.makedirs(gene_dir)
+            # check if done before
+            fasttree_output = os.path.join(gene_dir, gene_id + '.treefile')
+            if (not overwrite) and os.path.isfile(fasttree_output):
+                 continue
+            gene_aln_file_roary = os.path.join(pan_folder,'pan_genome_sequences', gene_id + '.fa.aln')
+            gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
+            if os.path.isfile(gene_aln_file_roary):
+                shutil.move(gene_aln_file_roary,gene_aln_file)
+            if not os.path.isfile(gene_aln_file):
+                logger.info('{} does not exist'.format(gene_aln_file))
+                continue
+
+            cmd = 'fasttree -quiet -gtr -boot 100 -nt  {alignment} > {treefile}'.format(
+                alignment=gene_aln_file, treefile=fasttree_output)
+
+            #anslate to protein alignment
+            #protein_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
+            #with open(protein_aln_file, 'w') as fh:
+            #    for record in SeqIO.parse(gene_aln_file, 'fasta'):
+            #        trans = translate_dna(str(record.seq))
+            #        new_record = SeqRecord(Seq(trans), id=record.id,)
+            #        SeqIO.write(new_record, fh, 'fasta')
+            #cmd = f"iqtree -s {protein_aln_file} --prefix {gene_dir+'/'+gene_id} -m LG -quiet -T 1"
+            #cmd = f"fasttree -nt -gtr -quiet {gene_aln_file} > {gene_dir+'/'+gene_id+'.treefile'} && echo '{gen_list_string}' > {gene_list_json}"
+
             cmds.write(cmd + '\n')
 
     cmd = f"parallel --bar -j {threads} -a {cmds_file}"
