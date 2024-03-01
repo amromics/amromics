@@ -9,9 +9,9 @@ Revision history:
 
 """
 from __future__ import division, print_function, absolute_import
-import subprocess
 import os, shutil, glob
 import re
+
 def find_mlst(query_file,num_threads=1,blastdb='db/mlst/blast/mlst.fa',mlstdb='db/mlst/pubmlst',identity=95,mincov=10,minscore=50,scheme='',exclude='ecoli_2,abaumannii'):
     """
     Call blastn with params

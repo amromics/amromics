@@ -37,88 +37,128 @@ logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 
 
-def run_single_sample(sample,extraStep=False, sample_dir='.', assembly_method='spades', threads=0, memory=50, trim=False, overwrite=None, timing_log=None):
+def run_single_sample(sample, extraStep=False, sample_dir='.', assembly_method='spades', threads=0, memory=50, trim=False, overwrite=None, timing_log=None):
+    
+    #Assuming sample_dir exists
+    
+
     #handle assembly input, ignore spades and bwa:
     sample['execution_start'] =  datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     reads=None
+
+    sample_id = sample['id']
+
+    sample['assembly'] = os.path.join(sample_dir,  sample_id+ '_assembly.fasta')
+    sample['annotation_gff'] = os.path.join(sample_dir,  sample_id+ '_annotation.gff')
+    sample['annotation_faa'] = os.path.join(sample_dir,  sample_id+ '_annotation.faa')
+    sample['annotation_ffn'] = os.path.join(sample_dir,  sample_id+ '_annotation.ffa')
+
+    if os.path.isfile(sample['assembly']):
+        logger.info(f'Assembly for {sample_id} exist!')
+    else:
+        # Get assembly
+        if sample['input_type'] in ['asm', 'assembly']:
+            logger.info(f'Getting assembly for sample {sample_id} from assembly')
+            assembler.get_assembly(sample_id, sample['files'], sample['assembly'])            
+        elif sample['input_type'] in ['pacbio-raw', 'pacbio-hifi', 'pacbio-corr','nano-raw', 'nano-hq', 'nano-corr']:
+            read_file = sample['files'].split(';')
+            if len(read_file) > 1:
+                raise Exception('All reads should be put in one file only')
+            reads={}
+            reads['long-read'] = read_file[0]   
+            logger.info(f'Assembling sample {sample_id} with flye')                                 
+            assembler.assemble_flye(sample_id, reads, input_type=sample['input_type'], assembly_file=sample['assembly'],base_dir=sample_dir, threads=threads,timing_log=timing_log,gsize=sample['gsize'])            
+        elif sample['input_type'] in ['Illumina paired-end', 'Illumina single-end', 'Illumina']:
+            pe_files = sample['files'].split(';')
+            reads={}
+            if len(pe_files) == 1:
+                reads['se']=pe_files[0]
+            elif len(pe_files) == 2:
+                reads['pe1']=pe_files[0]
+                reads['pe2']=pe_files[1]
+            else:
+                raise Exception('There should be one or two input files')
+            #preprocesing
+            preprocess.rename_reads(reads)
+            #TODO: get the number of bases from fastq json file. If not trim, iterate through the read file to count the number of bases
+            if trim:
+                if 'pe1' in reads and 'pe2' in reads:
+                    reads['pe1'],reads['pe2'] = preprocess.trim_fastp(sample['id'],reads, overwrite=overwrite, base_dir=sample_dir, timing_log=timing_log,threads=threads)
+                elif 'se' in reads:
+                    reads['se'] = preprocess.trim_fastp(sample['id'],reads,
+                            base_dir=sample_dir, overwrite=overwrite, timing_log=timing_log,threads=threads)
+            #estimate gsize if not provided
+            if sample['gsize']==None:
+                sample['gsize'] = preprocess.estimate_gsize_mash(sample['id'], reads,
+                        base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory,timing_log=timing_log)
+                logger.info('Genome size of {sample_id} is estimated to be {gsize}'.format(sample_id=sample['id'],gsize=sample['gsize']))
+            #subsampling to 100X if needed
+            #TODO: by now, we should know the genome size and the coverage. If genome size is not known use the upper bound= 8M
+            reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
+            #run assembly by spades
+            if assembly_method=='spades':
+                logger.info(f'Assembling sample {sample_id} with spades')
+                assembler.assemble_spades(sample['id'], reads, sample['assembly'], base_dir=sample_dir, threads=threads, memory=memory, timing_log=timing_log)
+            elif assembly_method=='skesa':
+                logger.info(f'Assembling sample {sample_id} with skesa')
+                assembler.assemble_skesa(sample['id'], reads, sample['assembly'], base_dir=sample_dir, threads=threads, memory=memory,overwrite=overwrite, timing_log=timing_log)
+            else:
+                raise Exception(f'Unknown assembly method {assembly_method}')
+            #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
+        elif sample['input_type'] in ['gff']:
+            logger.info(f'Getting assembly for sample {sample_id} from gff')
+            annotation.parseGFF(sample,sample['files'])
+            #sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna']=
+            #assembler.get_assembly_from_gff(sample['id'], sample['files'], sample['assembly'], base_dir=sample_dir)    
     
-    if sample['input_type'] in ['asm', 'assembly']:
-        sample['assembly'] = assembler.get_assembly(sample['id'], sample['files'],base_dir=sample_dir)
-    elif sample['input_type'] in ['pacbio-raw', 'pacbio-hifi', 'pacbio-corr','nano-raw', 'nano-hq', 'nano-corr']:
-        read_file = sample['files'].split(';')
-        if len(read_file) > 1:
-            raise Exception('All reads should be put in one file only')
-        reads={}
-        reads['long-read'] = read_file[0]
-        sample['assembly'] = assembler.assemble_flye(sample['id'],reads, input_type=sample['input_type'], base_dir=sample_dir, threads=threads,timing_log=timing_log,gsize=sample['gsize'])
-    elif sample['input_type'] in ['Illumina paired-end', 'Illumina single-end', 'Illumina']:
-        pe_files = sample['files'].split(';')
-        reads={}
-        if len(pe_files) == 1:
-            reads['se']=pe_files[0]
-        elif len(pe_files) == 2:
-            reads['pe1']=pe_files[0]
-            reads['pe2']=pe_files[1]
-        else:
-            raise Exception('There should be one or two input files')
-        #preprocesing
-        preprocess.rename_reads(reads)
-        #TODO: get the number of bases from fastq json file. If not trim, iterate through the read file to count the number of bases
-        if trim:
-            if 'pe1' in reads and 'pe2' in reads:
-                reads['pe1'],reads['pe2'] = preprocess.trim_fastp(sample['id'],reads, overwrite=overwrite, base_dir=sample_dir, timing_log=timing_log,threads=threads)
-            elif 'se' in reads:
-                reads['se'] = preprocess.trim_fastp(sample['id'],reads,
-                        base_dir=sample_dir, overwrite=overwrite, timing_log=timing_log,threads=threads)
-        #estimate gsize if not provided
-        if sample['gsize']==None:
-            sample['gsize'] = preprocess.estimate_gsize_mash(sample['id'], reads,
-                    base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory,timing_log=timing_log)
-            logger.info('Genome size of {sample_id} is estimated to be {gsize}'.format(sample_id=sample['id'],gsize=sample['gsize']))
-        #subsampling to 100X if needed
-        #TODO: by now, we should know the genome size and the coverage. If genome size is not known use the upper bound= 8M
-        reads=preprocess.subsample_seqtk(sample['id'], reads, base_dir=sample_dir, overwrite=overwrite, threads=threads, memory=memory, gsize=sample['gsize'], timing_log=timing_log)
-        #run assembly by spades
-        if assembly_method=='spades':
-            sample['assembly'] = assembler.assemble_spades(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,overwrite=overwrite, timing_log=timing_log)
-        elif assembly_method=='skesa':
-            sample['assembly'] = assembler.assemble_skesa(sample['id'], reads, base_dir=sample_dir, threads=threads, memory=memory,overwrite=overwrite, timing_log=timing_log)
-        else:
-            raise Exception(f'Unknown assembly method {assembly_method}')
-        #sample['assembly'] = assembler.assemble_shovill(sample['id'],reads, base_dir=sample_dir, threads=0, memory=memory,trim=trim,timing_log=timing_log,gsize=sample['gsize'])
-    elif sample['input_type'] in ['gff']:
-        sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna']=annotation.parseGFF(sample['id'],sample['files'],base_dir=sample_dir, overwrite=overwrite)
-        sample['assembly'] = assembler.get_assembly_from_gff(sample['id'], sample['files'],base_dir=sample_dir)
-    # if extraStep and not reads==None :
-    #     sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)
-    if extraStep and not reads==None:
-        sample['qc'] =qc.qc_reads(sample['id'],reads, base_dir=sample_dir, threads=0, timing_log=timing_log)
-    #QUAST to check quality
-    # if extraStep:
-    #     sample['quast']=qc.assembly_eval(sample['id'],sample['assembly'], base_dir=sample_dir, threads=0, timing_log=timing_log)
-    if extraStep:
-        sample['taxonomy']=taxonomy.species_identification_kraken(sample['id'],sample['assembly'], base_dir=sample_dir, timing_log=timing_log,threads=threads)
-    #QUAST to check quantity
-    #FastQC, + MultiQC
-    if not 'gram' in sample.keys():
-        sample['gram']=None
-    if not 'annotation_gff' in sample.keys() or sample['annotation_gff']==None:
-        sample['annotation_gff'],sample['annotation_faa'],sample['annotation_ffn'],sample['annotation_fna'],sample['annotation_gbk'] = annotation.annotate_prokka(sample['id'],sample['assembly'],sample['genus'],sample['species'],sample['strain'],sample['gram'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
-    sample['mlst']  = taxonomy.detect_mlst(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
+    if (os.path.isfile(sample['annotation_gff']) and os.path.isfile(sample['annotation_faa']) and os.path.isfile(sample['annotation_ffn'])):
+        logger.info(f'Annotations for {sample_id} exists')
+    else:
+        if not 'gram' in sample.keys():
+            sample['gram']=None        
+        logger.info(f'Annotating sample {sample_id} with prokka')
+        annotation.annotate_prokka(sample, base_dir=sample_dir,timing_log=timing_log, threads=threads)
+        
+    sample['mlst'] = os.path.join(sample_dir,  sample_id+ '_mlst.tsv')
+    if os.path.isfile(sample['mlst']):
+        logger.info(f'MLST for sample {sample_id} exists')
+    else:        
+        logger.info(f'Detecing MLST for sample {sample_id}')
+        taxonomy.detect_mlst(sample) 
+    
+    sample['virulome'] = os.path.join(sample_dir,  sample_id+ '_virulome.tsv')
+    if os.path.isfile(sample['virulome']):
+        logger.info(f'Virulome for sample {sample_id} exists')
+    else:        
+        logger.info(f'Detecing virulome for sample {sample_id}')
+        amr.detect_virulome(sample)
+    
+    sample['plasmid'] = os.path.join(sample_dir,  sample_id+ '_plasmid.tsv')
+    if os.path.isfile(sample['plasmid']):
+        logger.info(f'Plasmid for sample {sample_id} exists')
+    else:        
+        logger.info(f'Detecing plasmids for sample {sample_id}')
+        amr.detect_plasmid(sample) 
+    
+    sample['resistome'] = os.path.join(sample_dir,  sample_id+ '_resistome.tsv')
+    if os.path.isfile(sample['resistome']):
+        logger.info(f'Resistome for sample {sample_id} exists')
+    else:        
+        logger.info(f'Detecing resistome for sample {sample_id}')
+        amr.detect_amr_abricate(sample)
+
     if extraStep:
         sample['resistome'],sample['point'],sample['virulome'] = amr.detect_amr_amrfinder(sample['id'],sample['annotation_faa'],sample['annotation_fna'],sample['annotation_gff'],sample['genus'],sample['species'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
-    else:
-        sample['resistome'] = amr.detect_amr_abricate(
-        sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads, timing_log=timing_log)
-    sample['virulome'] = amr.detect_virulome(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
-    sample['plasmid']  = amr.detect_plasmid(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
-    if extraStep:
         sample['pmlst']=amr.detect_pmlst(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
-    # if extraStep:
-    #     sample['is']=amr.detect_insertion_sequence(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
-    # if extraStep:
-    #     sample['integron']=amr.detect_integron(sample['id'],sample['assembly'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
-    #sample=detect_prophage(sample, base_dir=base_dir, threads=threads)
+        sample['taxonomy']=taxonomy.species_identification_kraken(sample['id'],sample['assembly'], base_dir=sample_dir, timing_log=timing_log,threads=threads)
+        #sample['is']=amr.detect_insertion_sequence(sample['id'],sample['assembly'], base_dir=sample_dir, threads=threads)
+        #sample['quast']=qc.assembly_eval(sample['id'],sample['assembly'], base_dir=sample_dir, threads=0, timing_log=timing_log)
+        #sample['integron']=amr.detect_integron(sample['id'],sample['assembly'], base_dir=sample_dir,timing_log=timing_log, threads=threads)
+        #sample=detect_prophage(sample, base_dir=base_dir, threads=threads)
+        #if reads:
+        #    sample['qc'] =qc.qc_reads(sample['id'],reads, base_dir=sample_dir, threads=0, timing_log=timing_log)    
+        #    sample['se_bam']=qc.map_reads_to_assembly_bwamem(sample['id'],sample['assembly'],reads, base_dir=sample_dir, threads=0, memory=memory,timing_log=timing_log)     
+
     sample['execution_end'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return sample
 
