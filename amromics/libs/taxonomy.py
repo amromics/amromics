@@ -4,7 +4,6 @@ import shutil
 import csv
 import logging
 import multiprocessing
-import gzip
 from amromics.utils.command import run_command
 import amromics.libs.mlst as mlst
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
@@ -40,7 +39,7 @@ def species_identification_kraken(prefix_name,assembly, db='db/kraken2/k2std', b
 ###Sequence typing using mlst
 
 
-def detect_mlst(prefix_name,assembly,  base_dir='.',timing_log=None, threads=0):
+def detect_mlst(prefix_name, assembly,  base_dir='.',timing_log=None, threads=0):
     #TODO: include overwrite
     if threads == 0:
         threads = NUM_CORES_DEFAULT
@@ -51,25 +50,16 @@ def detect_mlst(prefix_name,assembly,  base_dir='.',timing_log=None, threads=0):
     mlst_out = os.path.join(path_out, prefix_name + '_mlst.tsv')
     if os.path.isfile(mlst_out):
         return mlst_out
-
-    gunzip_fna= assembly
-    if assembly.endswith('.gz'):
-        #FIXME: check if this is needed
-        gunzip_fna =os.path.join(path_out,prefix_name+'.fasta')
-        cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fna)
-        run_command(cmd)
-    m=mlst.find_mlst(gunzip_fna)
+    
+    m = mlst.find_mlst(assembly)
     with open(mlst_out, 'w') as f:
         f.write("%s\t%s\t%s"%(m['file'],m['scheme'],m['st']))
         for gene in m['profile']:
             f.write("\t%s"%gene)
         f.write("\n")
+
     # cmd = 'mlst --quiet --threads {threads} --nopath {infile} > {outfile}'.format(threads=threads,infile=read_data['assembly'],outfile=mlst_out)
     # cmd = "bash -c '{}'".format(cmd)
     # if run_command(cmd) != 0:
     #     return None
-    if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
-        os.remove(os.path.join(path_out,prefix_name+'.fasta'))
-
-
     return mlst_out

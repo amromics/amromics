@@ -1,9 +1,6 @@
 import os
 from glob import glob
-import shutil
-import csv
 import logging
-import gzip
 import multiprocessing
 from Bio import SeqIO
 import amromics.libs.bioseq as bioseq

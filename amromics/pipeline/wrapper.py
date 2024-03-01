@@ -28,7 +28,6 @@ import traceback
 from Bio import SeqIO
 import pandas as pd
 import json
-import gzip
 from datetime import datetime
 import amromics.libs.bioseq as bioseq
 import amromics.libs.pangenome as pangenome

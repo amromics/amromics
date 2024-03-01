@@ -3,7 +3,6 @@ import shutil
 import csv
 import logging
 import multiprocessing
-import gzip
 import pandas as pd
 import amromics.libs.bioseq as bioseq
 import amromics.libs.element_finder as element_finder
@@ -230,18 +229,6 @@ def detect_virulome(prefix_name,assembly, base_dir='.', threads=0, timing_log=No
     vir_out = os.path.join(path_out, prefix_name + '_virulome.tsv')
     if os.path.isfile(vir_out):
         return vir_out
-
-    # cmd = 'abricate --quiet --threads {threads} --nopath --db vfdb {infile} > {outfile}'.format(threads=threads,infile=read_data['assembly'],outfile=vir_out)
-    # cmd = "bash -c '{}'".format(cmd)
-    # if run_command(cmd) != 0:
-    #     return None
-
-    # gunzip_fna = assembly
-    # if assembly.endswith('.gz'):
-    #     #FIXME: review this step
-    #     gunzip_fna =os.path.join(path_out,prefix_name+'.fasta')
-    #     cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fna)
-    #     run_command(cmd)
     element_finder.search_virulome(sample=assembly,output=vir_out,threads=threads)    
     return vir_out
 
@@ -286,25 +273,15 @@ def detect_pmlst(prefix_name,assembly,  base_dir='.', threads=0):
     # cmd = 'abricate --quiet --threads {threads} --nopath --db plasmidfinder {infile} > {outfile}'.format(threads=threads,infile=read_data['assembly'],outfile=oriREP_out)
     # cmd = "bash -c '{}'".format(cmd)
     # if run_command(cmd) != 0:
-    #     return None
-    gunzip_fna = assembly
-    if assembly.endswith('.gz'):
-        #FIXME: review this
-        gunzip_fna =os.path.join(path_out,prefix_name+'.fasta')
-        cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fna)
-        run_command(cmd)
-    m=mlst.find_mlst(query_file=gunzip_fna,blastdb='db/pmlst/blast/pmlst.fa',mlstdb='db/pmlst/pubmlst',num_threads=threads)
+    #     return None    
+
+    m=mlst.find_mlst(query_file=assembly,blastdb='db/pmlst/blast/pmlst.fa',mlstdb='db/pmlst/pubmlst',num_threads=threads)
     with open(pmlst_out, 'w') as f:
         f.write("%s\t%s\t%s"%(m['file'],m['scheme'],m['st']))
         for gene in m['profile']:
             f.write("\t%s"%gene)
-        f.write("\n")
-    # cmd = 'mlst --quiet --threads {threads} --nopath {infile} > {outfile}'.format(threads=threads,infile=read_data['assembly'],outfile=mlst_out)
-    # cmd = "bash -c '{}'".format(cmd)
-    # if run_command(cmd) != 0:
-    #     return None
-    if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
-        os.remove(os.path.join(path_out,prefix_name+'.fasta'))
+        f.write("\n")        
+    
     return pmlst_out
 
 def detect_insertion_sequence(prefix_name,assembly,  base_dir='.', threads=0):
@@ -324,19 +301,11 @@ def detect_insertion_sequence(prefix_name,assembly,  base_dir='.', threads=0):
 
     isescan_out = os.path.join(path_out, prefix_name + '_is.tsv')
     if os.path.isfile(isescan_out):
-        return isescan_out
-
-    gunzip_fna = assembly
-    if assembly.endswith('.gz'):
-        #FIXME: this step is not needed
-        gunzip_fna =os.path.join(path_out,prefix_name+'.fasta')
-        cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fna)
-        run_command(cmd)
-    #Plasmid finder
+        return isescan_out 
 
     cmd = 'isescan.py --nthread {threads} --seqfile {asm} --output {output}  '.format(
         threads=threads,
-        asm=gunzip_fna,
+        asm=assembly,
         output=path_out
     )
     if run_command(cmd) != 0:
@@ -351,9 +320,7 @@ def detect_insertion_sequence(prefix_name,assembly,  base_dir='.', threads=0):
             if name.endswith('.raw'):
                 isout=os.path.join(root, name)
     #if os.path.exists('prediction'):
-    #    shutil.rmtree('prediction')
-    if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
-        os.remove(os.path.join(path_out,prefix_name+'.fasta'))
+    #    shutil.rmtree('prediction')    
     return isout
 
 
@@ -370,21 +337,8 @@ def detect_integron(prefix_name,assembly, base_dir='.', timing_log=None,threads=
 
     if os.path.isfile(integron_out):
         return integron_out
-
-    gunzip_fna= assembly;
-    if assembly.endswith('.gz'):
-        #FIXME: this step may not be necessary
-        gunzip_fna =os.path.join(path_out,prefix_name+'.fasta')
-        cmd = 'gunzip -c {} > {}'.format(assembly, gunzip_fna)
-        run_command(cmd)
-
-    # cmd = 'integron_finder {sequence} --func-annot --local-max --mute --outdir {outdir}'.format(sequence=read_data['assembly'],outdir=path_out)
-    # cmd = "bash -c '{}'".format(cmd)
-    # if run_command(cmd,timing_log) != 0:
-    #     return None
-    element_finder.search_integrall(sample=gunzip_fna,output=integron_out,threads=threads)
-    if os.path.exists(os.path.join(path_out,prefix_name+'.fasta')):
-        os.remove(os.path.join(path_out,prefix_name+'.fasta'))
+    
+    element_finder.search_integrall(sample=assembly, output=integron_out,threads=threads)    
     return integron_out
 
 
@@ -400,19 +354,7 @@ def detect_prophage(prefix_name,faa_file, base_dir='.', timing_log=None,threads=
     #Plasmid finder
     prophage_out = os.path.join(path_out,prefix_name + '_prophage.tsv')
     if os.path.isfile(prophage_out):
-        return prophage_out
-    # cmd = 'abricate --quiet --threads {threads} --nopath --db plasmidfinder {infile} > {outfile}'.format(threads=threads,infile=read_data['assembly'],outfile=oriREP_out)
-    # cmd = "bash -c '{}'".format(cmd)
-    # if run_command(cmd) != 0:
-    #     return None
-    #Plasmid finder
-    gunzip_faa= faa_file;
-    if faa_file.endswith('.gz'):
-        gunzip_faa =os.path.join(path_out,prefix_name+'.faa')
-        cmd = 'gunzip -c {} > {}'.format(faa_file, gunzip_faa)
-        run_command(cmd)
-    element_finder.search_prophage(sample=gunzip_faa,output=prophage_out,threads=threads)
-    if os.path.exists(os.path.join(path_out,prefix_name+'.faa')):
-        os.remove(os.path.join(path_out,prefix_name+'.faa'))
-
+        return prophage_out   
+        
+    element_finder.search_prophage(sample=faa_file,output=prophage_out,threads=threads)    
     return prophage_out

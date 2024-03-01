@@ -104,6 +104,7 @@ def export_file(sample,db,result,output):
             str(r['GAPS'])+'\t'+str(r['%COVERAGE'])+'\t'+str(r['%IDENTITY'])+'\t'+r['DATABASE']+'\t'+r['ACCESSION']+\
             '\t'+r['PRODUCT']+'\t'+r['RESISTANCE']+'\n')
     f.close()
+
 def blast(sample,db,output, identity=90, threads=1, mincov=0,dbtype='nucl'):
     """
     Call blastn with params
@@ -123,7 +124,6 @@ def blast(sample,db,output, identity=90, threads=1, mincov=0,dbtype='nucl'):
         identity=identity,
         db=db,
         threads=threads
-
     )
 
     if dbtype=='prot':
