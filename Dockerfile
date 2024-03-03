@@ -8,7 +8,13 @@ LABEL \
 
 # Set Environment Variables
 #ENV PATH=$PATH:/opt/conda/bin
-
+USER root
+RUN apt update -y && apt install -y --no-install-recommends \
+    time \
+    && \
+    apt-get clean && \
+    rm -rf /var/cache/apt/* /var/lib/apt/lists/*
+USER mambauser
 # Install amromics via micromamba
 WORKDIR /tmp
 RUN micromamba create -y -c conda-forge -c defaults --name amromics python=3.10 git && \
