@@ -24,7 +24,7 @@ AMRomics is written in python, it includes the followings dependencies:
  * fasttree
 
 ## Installation
-
+### Conda
 The simplest method is installed via conda:
 
 0. Make sure a conda version is installed in the computer. If not done already, download and install the appropriate conda, such as anaconda from 
@@ -48,7 +48,19 @@ Alternatively, you can update the latest database by running the following comma
 ```
 ./amr-analysis.py download_db
 ```
-
+### Docker
+The pipeline can be installed via Docker as well.
+```bash
+git clone --recursive https://github.com/amromics/amromics.git
+cd amromics
+docker built -t amromics .
+```
+The working directory from the container is `/tmp/amromics/`, user can run amromics commands by mounting the host working directory (where the git cloned into, e.g. `~/workspace/amromics/`) into this folder (by using `-v`). For example, if user want to update the latest database into `~/workspace/amromics/` 
+```bash
+chmod 777 ~/workspace/amromics
+docker run -v ~/workspace/amromics/:/tmp/amromics/ amromics amr-analysis.py download_db
+```
+Note that from the container working directory, a `db` is already available by unzipping the file `db.tar.gz` before hand.
 ## Usage
 
 ### Input preparation
@@ -133,7 +145,31 @@ to the web-app for visualization:
 ```bash
 ./amr-analysis.py pg --time-log k24_time.log  -t 7 -m 25 -c KpClinicalGRBZ -i examples/Kp24/Kp24.tsv --work-dir data/work  -n "Collection of 24 clinical isolates from Greek and Brazil"
 ```
+or if using docker image `amromics` built as above:
+```bash
+docker run -v ~/workspace/amromics/examples/Kp24:/tmp/amromics/examples/Kp24 amromics amr-analysis.py pg --time-log examples/Kp24/k24_time.log  -t 16 -m 25 -c KpClinicalGRBZ -i examples/Kp24/config_Kp24.tsv --work-dir examples/Kp24/data/work  -n "Collection of 24 clinical isolates from Greek and Brazil"
+```
 #### Run with progressive mode:
 ```bash
 ./amr-analysis.py pg --time-log k24_time.log  -t 7 -m 25 -c KpClinicalGRBZ --progressive True -i examples/Kp89/Kp89.tsv --work-dir data/work  -n "Collection of 24+89 clinical isolates from Greek and Brazil"
 ```
+### Output
+Output from the pipeline is generated under the directory specified by `--work-dir`. 
+The results include 2 sub-folders corresponding to 2 parts of the pipeline: `samples/` for isolate analysis output of each sample and `collections/` for pan-genome analysis results.
+```
+work-dir
+├── samples
+│   ├── sample1/
+│   ├── sample2/
+│   ├── ...
+├── collections
+│   ├── alignments/
+│   ├── pangenome/
+│   ├── phylogeny/
+│   ├── VCFs/
+│   ├── sample_set.json
+```
+#### Output for isolate analysis
+
+#### Output for pangenome analysis
+
