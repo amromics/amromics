@@ -55,7 +55,7 @@ git clone --recursive https://github.com/amromics/amromics.git
 cd amromics
 docker built -t amromics .
 ```
-The working directory from the container is `/tmp/amromics/`, user can run amromics commands by mounting the host working directory (where the git cloned into, e.g. `~/workspace/amromics/`) into this folder (by using `-v`). For example, if user want to update the latest database into `~/workspace/amromics/` 
+The working directory from the container is `/tmp/amromics`, user can run amromics commands by mounting the host working directory (where the git cloned into, e.g. `~/workspace/amromics`) into this destination (by using `-v`). For example, if user want to update the latest database: 
 ```bash
 chmod 777 ~/workspace/amromics
 docker run -v ~/workspace/amromics/:/tmp/amromics/ amromics amr-analysis.py download_db
