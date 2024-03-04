@@ -157,12 +157,12 @@ docker run -v ~/workspace/amromics/examples/Kp24:/tmp/amromics/examples/Kp24 amr
 Output from the pipeline is generated under the directory specified by `--work-dir`. 
 The results include 2 output sub-folders corresponding to 2 stages of the pipeline: `samples/` for isolate analysis of each individual sample and `collections/` for pan-genome analysis results of the whole collection.
 ```
-work-dir
-├── samples
+work-dir/
+├── samples/
 │   ├── sample1/
 │   ├── sample2/
 │   ├── ...
-├── collections
+├── collections/<col_name>/
 │   ├── alignments/
 │   ├── pangenome/
 │   ├── phylogeny/
@@ -170,9 +170,28 @@ work-dir
 │   ├── sample_set.json
 ```
 #### Individual samples
-
+Results for each sample are written in its dedicated sub-folder, e.g. `sample1/` as below.
+It stores final output from various modules, such as assembly, MLST, annotation, resistome/virolome detection using different databases:
+```
+sample1/
+├── sample1_assembly.fasta
+├── sample1_dump.json
+├── sample1.faa
+├── sample1.ffn
+├── sample1.gff
+├── sample1_mlst.tsv
+├── sample1_plasmid.tsv
+├── sample1_resistome_argannot.tsv
+├── sample1_resistome_card.tsv
+├── sample1_resistome_ecoh.tsv
+├── sample1_resistome_megares.tsv
+├── sample1_resistome_ncbi.tsv
+├── sample1_resistome_resfinder.tsv
+├── sample1_resistome.tsv
+├── sample1_virulome.tsv
+```
 #### Collection pangenome
-
+Analysis for the collection from AMRomics returns the pangenome from `panta`, alignments of each gene cluster, phylogeny for the core genes and especially variant calling for SNP analysis with the introduction of pan-reference.
 ## Feedback
 
 ## License
