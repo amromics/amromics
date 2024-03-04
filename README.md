@@ -173,3 +173,10 @@ work-dir
 
 #### Output for pangenome analysis
 
+## Feedback
+
+## License
+
+## Citations
+
+## Authors
