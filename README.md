@@ -155,7 +155,7 @@ docker run -v ~/workspace/amromics/examples/Kp24:/tmp/amromics/examples/Kp24 amr
 ```
 ### Output
 Output from the pipeline is generated under the directory specified by `--work-dir`. 
-The results include 2 sub-folders corresponding to 2 parts of the pipeline: `samples/` for isolate analysis output of each sample and `collections/` for pan-genome analysis results.
+The results include 2 output sub-folders corresponding to 2 stages of the pipeline: `samples/` for isolate analysis of each individual sample and `collections/` for pan-genome analysis results of the whole collection.
 ```
 work-dir
 ├── samples
@@ -169,9 +169,9 @@ work-dir
 │   ├── VCFs/
 │   ├── sample_set.json
 ```
-#### Output for isolate analysis
+#### Individual samples
 
-#### Output for pangenome analysis
+#### Collection pangenome
 
 ## Feedback
 
