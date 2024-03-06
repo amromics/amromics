@@ -191,8 +191,12 @@ sample1/
 ├── sample1_virulome.tsv
 ```
 #### Collection pangenome
-Analysis for the collection from AMRomics returns the pangenome from `panta`, alignments of each gene cluster, phylogeny for the core genes and especially variant calling for SNP analysis with the introduction of pan-reference.
-## Feedback
+Analysis for the collection from AMRomics returns output in sub-folders below:
+- `pangenome/`: results from `panta`
+- `alignments/`: alignments of each gene cluster from the pangenome
+- `phylogeny`: core gene alignment and the corresponding phylogenetic tree
+- `VCFs`: variant calling for SNP analysis with the introduction of pan-reference.
+
 
 ## License
 
