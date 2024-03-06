@@ -192,10 +192,11 @@ sample1/
 ```
 #### Collection pangenome
 Analysis for the collection from AMRomics returns output in sub-folders below:
-- `pangenome/`: results from `panta`
-- `alignments/`: alignments of each gene cluster from the pangenome
-- `phylogeny`: core gene alignment and the corresponding phylogenetic tree
-- `VCFs`: variant calling for SNP analysis with the introduction of pan-reference.
+- `pangenome/`: results from `panta` or `roary`
+- `alignments/`: alignments of each gene cluster from the generated pangenome
+- `phylogeny/`: core gene alignment and the corresponding phylogenetic tree
+- `VCFs/`: variant calling for each sample from the pangenome (DNA and protein).
+A pangenome reference, `pangenome_reference.fasta`, is built by concatenation of representative sequences for each and every gene clusters. This reference is used to generate variant profile for each sample, which is the concatenation of the variations of all its genes, in a VCF file.
 
 
 ## License
