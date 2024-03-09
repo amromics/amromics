@@ -200,9 +200,9 @@ A pangenome reference, `pangenome_reference.fasta`, is built by concatenation of
 
 
 ## License
-
+[MIT License](https://github.com/amromics/amromics/blob/master/LICENSE)
 ## Citations
-
+(added soon)
 ## Authors
 - Duc Quang Le <quangld@huce.edu.vn>
 - Minh Duc Cao <minhduc.cao@gmail.com>
