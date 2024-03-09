@@ -192,7 +192,7 @@ sample1/
 ```
 #### Collection pangenome
 Analysis for the collection from AMRomics returns output in sub-folders below:
-- `pangenome/`: results from `panta` or `roary`
+- `pangenome/`: pangenome results from `panta` or `roary` (gene clusters, representative sequences, gene presence/absence matrix...)
 - `alignments/`: alignments of each gene cluster from the generated pangenome
 - `phylogeny/`: core gene alignment and the corresponding phylogenetic tree
 - `VCFs/`: variant calling for each sample from the pangenome (DNA and protein).
@@ -204,3 +204,7 @@ A pangenome reference, `pangenome_reference.fasta`, is built by concatenation of
 ## Citations
 
 ## Authors
+- Duc Quang Le <quangld@huce.edu.vn>
+- Minh Duc Cao <minhduc.cao@gmail.com>
+- Son Hoang Nguyen <dr.sonhoangnguyen@gmail.com>
+
