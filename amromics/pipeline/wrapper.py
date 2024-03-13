@@ -50,7 +50,7 @@ def run_single_sample(sample, extraStep=False, sample_dir='.', assembly_method='
     sample['annotation_gff'] = os.path.join(sample_dir,  sample_id+ '.gff')
     sample['annotation_faa'] = os.path.join(sample_dir,  sample_id+ '.faa')
     sample['annotation_ffn'] = os.path.join(sample_dir,  sample_id+ '.ffn')
-
+    sample['annotation_gbk'] = os.path.join(sample_dir,  sample_id+ '.gb')
     if os.path.isfile(sample['assembly']):
         logger.info(f'Assembly for {sample_id} exist!')
     else:
