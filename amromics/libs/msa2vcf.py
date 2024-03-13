@@ -5,7 +5,7 @@ import csv
 import os
 import re
 import sys
-
+import traceback
 from operator import itemgetter
 from itertools import groupby
 
@@ -264,6 +264,6 @@ def go(msa,refname,output_dir,keep_n=False):
                         map_gene_vcf[name]=gene_vcf_file
 
     except Exception as ex:
-        
+        traceback.print_exc()
         print('Error call vcf '+msa+":"+str(ex))
     return map_gene_vcf

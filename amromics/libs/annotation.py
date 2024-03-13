@@ -8,6 +8,7 @@ from Bio.Seq import Seq
 import shutil
 from amromics.utils.command import run_command
 from amromics.utils.utils import get_open_func
+from BCBio import GFF
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 
@@ -17,17 +18,17 @@ def annotate_prokka(sample, base_dir='.', timing_log=None, threads=4):
         :param read_data: result holder
         :param base_dir: working directory
         :return: path to output file in result holder
-    """    
+    """
     sample_id = sample['id']
 
     path_out = os.path.join(base_dir, sample_id+'_prokka' )
     if not os.path.exists(path_out):
         os.makedirs(path_out)
-    
+
     annotation_gff = os.path.join(path_out,  sample_id +'.gff')
     annotation_faa = os.path.join(path_out,  sample_id +'.faa')
     annotation_ffn = os.path.join(path_out,  sample_id +'.ffn')
-    
+    annotation_gbk = os.path.join(path_out,  sample_id +'.gbk')
     cmd = 'prokka --force --cpus {threads} --addgenes --mincontiglen 200'.format(threads=threads)
     cmd += ' --prefix {sample_id} --locus {sample_id} --outdir {path} '.format(sample_id=sample_id, path=path_out)
     if sample['genus']:
@@ -47,20 +48,20 @@ def annotate_prokka(sample, base_dir='.', timing_log=None, threads=4):
     ret = run_command(cmd, timing_log)
     if ret != 0:
         raise Exception('Command {} returns non-zero ()!'.format(cmd, ret))
-    
+
     shutil.move(annotation_gff, sample['annotation_gff'])
     shutil.move(annotation_faa, sample['annotation_faa'])
     shutil.move(annotation_ffn, sample['annotation_ffn'])
-
+    shutil.move(annotation_gbk, sample['annotation_gbk'])
     shutil.rmtree(path_out)
-    
+
     #return annotation_gff,annotation_faa,annotation_ffn,annotation_fna,annotation_gbk
 
 
 def parseGFF(sample, gff_file_in):
 
     sample_id = sample['id']
-    annotation_gff, annotation_faa, annotation_ffn = sample['annotation_gff'], sample['annotation_faa'], sample['annotation_ffn']
+    annotation_gff, annotation_faa, annotation_ffn,annotation_gbk = sample['annotation_gff'], sample['annotation_faa'], sample['annotation_ffn'], sample['annotation_gbk']
     assemply_file = sample['assembly']
 
     found_fasta = False
@@ -163,9 +164,57 @@ def parseGFF(sample, gff_file_in):
 
     with open(annotation_faa, 'w') as faa_fh:
         SeqIO.write(protein_seqs, faa_fh, 'fasta')
-
+    #convert gff to gbk
+    convertGFF2Genbank(annotation_gbk,annotation_gff,assemply_file)
     # for file_name in glob.glob(os.path.join(path_out, '*')):
     #     ext = file_name[-3:]
     #     if ext in ['fna']: # fna?
     #         run_command('gzip {}'.format(file_name))
     #return annotation_gff,annotation_faa,annotation_ffn,annotation_fna
+def convertGFF2Genbank(genbank_file, gff_file, fasta_file=None, molecule_type="DNA"):
+
+    if fasta_file:
+        fasta_input = SeqIO.to_dict(SeqIO.parse(fasta_file, "fasta"))
+    else:
+        fasta_input = {}
+    gff_iter = GFF.parse(gff_file, fasta_input)
+    SeqIO.write(_check_gff(_fix_ncbi_id(gff_iter), molecule_type), genbank_file, "genbank")
+def _fix_ncbi_id(fasta_iter):
+    """GenBank identifiers can only be 16 characters; try to shorten NCBI.
+    """
+    for rec in fasta_iter:
+        if len(rec.name) > 16 and rec.name.find("|") > 0:
+            new_id = [x for x in rec.name.split("|") if x][-1]
+            print("Warning: shortening NCBI name %s to %s" % (rec.id, new_id))
+            rec.id = new_id
+            rec.name = new_id
+        yield rec
+
+
+def _check_gff(gff_iterator, molecule_type):
+    """Check GFF files before feeding to SeqIO to be sure they have sequences.
+    """
+    for rec in gff_iterator:
+        if "molecule_type" not in rec.annotations:
+            rec.annotations["molecule_type"] = molecule_type
+        yield _flatten_features(rec)
+
+
+def _flatten_features(rec):
+    """Make sub_features in an input rec flat for output.
+
+    GenBank does not handle nested features, so we want to make
+    everything top level.
+    """
+    out = []
+    for f in rec.features:
+        cur = [f]
+        while len(cur) > 0:
+            nextf = []
+            for curf in cur:
+                out.append(curf)
+                if len(curf.sub_features) > 0:
+                    nextf.extend(curf.sub_features)
+            cur = nextf
+    rec.features = out
+    return rec
