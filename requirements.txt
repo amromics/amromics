@@ -54,4 +54,5 @@ fastp
 #aspera-connect
 fasttree==2.1.11
 snp-sites==2.5.1
+bcbio-gff==0.7.1
 roary
