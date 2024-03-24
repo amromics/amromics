@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
 
 
-def run_phylogeny_parsnp(base_dir,ref_genome, genome_dir='.',threads=0):
+def run_phylogeny_parsnp(base_dir,ref_genome, genome_dir='.',threads=0, timing_log=None):
     """
         Run parsnp to create phylogeny tree
         :param read_data: result holder
@@ -56,7 +56,7 @@ def run_phylogeny_parsnp(base_dir,ref_genome, genome_dir='.',threads=0):
         ' '.join(sample_list),
         phylogeny_folder, threads)
     print(myCmd)
-    et = run_command(myCmd, timing_log)
+    ret = run_command(myCmd, timing_log)
     if ret != 0:
         raise Exception('Error running parsnp')
     run_command('gzip {}'.format(os.path.join(phylogeny_folder, 'parsnp.xmfa')))
