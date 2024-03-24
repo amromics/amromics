@@ -127,9 +127,9 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
             cmd = 'amrfinder -d {database} -p {faa_file} -O {organism}  -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile} -a prokka'\
             .format(
                 database=db,
-                faa_file=gunzip_faa,
+                faa_file=faa_file,
                 organism=organism,
-                fna_file=gunzip_fna,
+                fna_file=fna_file,
                 gff_file=temp_gff_file,
                 threads=threads,
                 outfile=ret_out
@@ -138,8 +138,8 @@ def detect_amr_amrfinder(prefix_name,faa_file,fna_file,gff_file,genus=None,speci
             cmd = 'amrfinder -d {database} -p {faa_file} -n {fna_file} -g {gff_file} --plus --threads {threads} -o {outfile} -a prokka'\
             .format(
                 database=db,
-                faa_file=gunzip_faa,
-                fna_file=gunzip_fna,
+                faa_file=faa_file,
+                fna_file=fna_file,
                 gff_file=temp_gff_file,
                 threads=threads,
                 outfile=ret_out

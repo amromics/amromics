@@ -8,6 +8,8 @@ import amromics.libs.bioseq as bioseq
 from amromics.utils.command import run_command
 logger = logging.getLogger(__name__)
 NUM_CORES_DEFAULT = multiprocessing.cpu_count()
+
+
 def run_phylogeny_parsnp(base_dir,ref_genome, genome_dir='.',threads=0):
     """
         Run parsnp to create phylogeny tree
@@ -60,8 +62,9 @@ def run_phylogeny_parsnp(base_dir,ref_genome, genome_dir='.',threads=0):
     run_command('gzip {}'.format(os.path.join(phylogeny_folder, 'parsnp.xmfa')))
     run_command('gzip {}'.format(os.path.join(phylogeny_folder, 'parsnp.ggr')))
     shutil.rmtree(temp_folder)
-
     return phylogeny_folder
+
+
 def run_species_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Run iqtree to create phylogeny tree from core gene alignment. If the list of samples has
@@ -214,10 +217,9 @@ def run_gene_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrite=F
 
     cmd = f"parallel --bar -j {threads} -a {cmds_file}"
     ret = run_command(cmd, timing_log)
-
-
-
     return alignment_dir
+
+
 def run_gene_phylogeny_fasttree(pan_folder, collection_dir, threads=8, overwrite=False, timing_log=None):
     """
     Run phylogenetic analysis of gene clusters. If the list of samples has not changed, and
@@ -284,7 +286,4 @@ def run_gene_phylogeny_fasttree(pan_folder, collection_dir, threads=8, overwrite
 
     cmd = f"parallel --bar -j {threads} -a {cmds_file}"
     ret = run_command(cmd, timing_log)
-
-
-
     return alignment_dir
