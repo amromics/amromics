@@ -39,8 +39,9 @@ def readfq(fp): # this is a generator function
             if last: # reach EOF before reading enough quality
                 yield name, seq, None # yield a fasta record instead
                 break
-def iupac_to_base(base):
 
+
+def iupac_to_base(base):
     lookup_iupac = { 'R' : ['A', 'G'],
                      'Y' : ['C', 'T'],
                      'S' : ['G', 'C'],
@@ -54,40 +55,34 @@ def iupac_to_base(base):
 
     if lookup_iupac.get(base):
         return lookup_iupac.get(base)
-
     else:
         return base
 
 
-
 def get_ref_seq(msa, refname):
-
     with open(msa) as f:
         for name, seq, qual in readfq(f):
             if name == refname:
                 return seq.upper()
                 break
 
+
 def group_dels(dels):
-
     grouped_dels = []
-
     for k,g in groupby(enumerate(dels),lambda x:x[0]-x[1]):
         group = (map(itemgetter(1),g))
         group = list(map(int,group))
         grouped_dels.append((group[0] - 1 ,len(group) + 1))
-
     return grouped_dels
+
 
 def group_ins(ins):
     res =  [(el - 1, ins.count(el) + 1) for el in ins]
-
     return set(res)
 
+
 def fix_complex_vars(all_vars, rseq, qseq):
-
     positions = [i[2] for i in all_vars]
-
     duplicate_positions = set([x for x in positions if positions.count(x) > 1])
 
     for pos in duplicate_positions:
@@ -109,11 +104,10 @@ def fix_complex_vars(all_vars, rseq, qseq):
                 variant[4] -= 1
                 variant[3] = rseq[variant[4]]
                 variant[1] = rseq[variant[4]:variant[4]+variant[5]]
-
     return all_vars
 
-def update_snps(qseq, rseq):
 
+def update_snps(qseq, rseq):
     dels = []
     ins = []
     snps = []
@@ -169,16 +163,13 @@ def update_snps(qseq, rseq):
          for var in fixed_vars:
              deconvolute_IUPAC(var)
              #print(var)
-
          fixed_vars_s = sorted(fixed_vars, key=lambda x: x[2])
-
          return fixed_vars_s
-
     else:
         return None
 
-def deconvolute_IUPAC(var):
 
+def deconvolute_IUPAC(var):
     num_alts = 1
 
     for base in var[3]:
@@ -189,9 +180,7 @@ def deconvolute_IUPAC(var):
             var[3] = ','.join(no_iupac)
 
     var.append(round(1 / num_alts, 2))
-
     return var
-
 
 
 def make_vcf(snps, qname, rname, keep_n):
@@ -225,10 +214,7 @@ def make_vcf(snps, qname, rname, keep_n):
 
          if vcf_line:
              vcflines.append(vcf_line)
-
-
     return vcflines
-
 
 
 def write_vcf(vcflines, qname,output_dir):
@@ -238,8 +224,10 @@ def write_vcf(vcflines, qname,output_dir):
             f.write(line+"\n")
     return filename
 
+
 def remove_terminal_gapns(seq):
     return re.sub(r'(N|-)*$', '', seq)
+
 
 def go(msa,refname,output_dir,keep_n=False):
     map_gene_vcf={}
