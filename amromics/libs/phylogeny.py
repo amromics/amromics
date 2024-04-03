@@ -199,7 +199,7 @@ def run_gene_phylogeny_iqtree(pan_folder, collection_dir, threads=8, overwrite=F
             if os.path.isfile(gene_aln_file_roary):
                 shutil.move(gene_aln_file_roary,gene_aln_file)
             if not os.path.isfile(gene_aln_file):
-                logger.info('{} does not exist'.format(gene_aln_file))
+                #TODO logger.info('{} does not exist'.format(gene_aln_file))
                 continue
 
             cmd = f"iqtree -s {gene_aln_file} --prefix {gene_dir+'/'+gene_id} -m GTR -quiet -T 1 -B 1000 2> /dev/null"
@@ -266,7 +266,7 @@ def run_gene_phylogeny_fasttree(pan_folder, collection_dir, threads=8, overwrite
             if os.path.isfile(gene_aln_file_roary):
                 shutil.move(gene_aln_file_roary,gene_aln_file)
             if not os.path.isfile(gene_aln_file):
-                logger.info('{} does not exist'.format(gene_aln_file))
+                #TODO logger.info('{} does not exist'.format(gene_aln_file))
                 continue
 
             cmd = 'fasttree -quiet -gtr -boot 100 -nt  {alignment} > {treefile}'.format(

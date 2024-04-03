@@ -151,7 +151,7 @@ def run_protein_alignment(pan_folder, collection_dir, threads=8, overwrite=False
 
             gene_seq_file = os.path.join(gene_dir, gene_id + '.faa')
             if not os.path.isfile(gene_seq_file):
-                logger.info('{} does not exist'.format(gene_aln_file))
+                #TODO logger.info('{} does not exist'.format(gene_aln_file))
                 continue
 
             cmd = f"mafft --auto --quiet --thread 1 {gene_seq_file} > {gene_aln_file}"
@@ -207,7 +207,7 @@ def create_nucleotide_alignment(pan_folder, collection_dir, threads=8, overwrite
 
         protein_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
         if not os.path.isfile(protein_aln_file):
-            logger.info('{} does not exist'.format(protein_aln_file))
+            #TODO: logger.info('{} does not exist'.format(protein_aln_file))
             continue
         protein_dict = {}
         with open(protein_aln_file) as fh:
@@ -290,7 +290,7 @@ def create_core_gene_alignment(pan_folder, collection_dir, threads=8, overwrite=
 
         nucleotide_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
         if not os.path.isfile(nucleotide_aln_file):
-            logger.info('{} does not exist'.format(nucleotide_aln_file))
+            #TODO logger.info('{} does not exist'.format(nucleotide_aln_file))
             continue
         cluster_dict = {}
         with open(nucleotide_aln_file, 'rt') as fh:

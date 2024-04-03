@@ -252,6 +252,7 @@ def go(msa,refname,output_dir,keep_n=False):
                         map_gene_vcf[name]=gene_vcf_file
 
     except Exception as ex:
-        traceback.print_exc()
-        print('Error call vcf '+msa+":"+str(ex))
+        #TODO traceback.print_exc()
+        #print('Error call vcf '+msa+":"+str(ex))
+        pass
     return map_gene_vcf
