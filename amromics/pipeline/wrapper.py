@@ -184,7 +184,7 @@ def run_collection(report, base_dir='.',threads=8,progressive=False, overwrite=N
             elapsed = datetime.now() - stime
             logger.info(f'Gene alignment -- time taken {str(elapsed)}')
             stime = datetime.now()
-            report['alignments']=alignment.runVCFCallingFromGeneAlignment(report['samples'],report['pan'],overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
+            report['vcf']=alignment.runVCFCallingFromGeneAlignment(report['samples'],report['pan'],overwrite=overwrite,collection_dir=base_dir, threads=threads,timing_log=timing_log)
             elapsed = datetime.now() - stime
             logger.info(f'Call VCF -- time taken {str(elapsed)}')
         if genetree:

@@ -348,7 +348,7 @@ def get_gene_sequences(samples, pan_folder,sample_col, collection_dir):
     logger.info('Getting sequences of gene clusters')
     gene_cluster_file = pan_folder + '/gene_presence_absence.csv'
     dict_nucleotide = {}
-    
+
     ffn_files = [sample['annotation_ffn'] for sample in samples]
     for ffn_file_path in ffn_files:
         ffn_binfile_path=ffn_file_path.replace('.ffn','.bin')
@@ -402,7 +402,7 @@ def get_gene_sequences(samples, pan_folder,sample_col, collection_dir):
         # check if done before
         protein_seq_file = os.path.join(gene_dir, gene_id + '.faa')
         nucleotide_seq_file = os.path.join(gene_dir, gene_id + '.fna')
-        
+
         gene_list = []
         for sample_column in sample_columns:
             if row[sample_column]:
@@ -521,8 +521,9 @@ def runVCFCallingFromGeneAlignment(samples,pangenome_folder, collection_dir, thr
     -------
     """
     alignment_dir = os.path.join(collection_dir, 'alignments')
+    vcf_dir = os.path.join(collection_dir, 'VCFs')
     try:
-        vcf_dir = os.path.join(collection_dir, 'VCFs')
+
         if not os.path.exists(vcf_dir):
             os.makedirs(vcf_dir)
         gene_cluster_file =pangenome_folder + '/gene_presence_absence.Rtab'
@@ -538,12 +539,12 @@ def runVCFCallingFromGeneAlignment(samples,pangenome_folder, collection_dir, thr
             gene_id = re.sub(r'\W+', '', gene_id)
             gene_dir = os.path.join(alignment_dir, gene_id)
             # check if done before
-            
+
             gene_aln_file = os.path.join(gene_dir, gene_id + '.fna.aln')
             if not os.path.isfile(gene_aln_file):
                 #continue if gene is not aligned
                 continue
-            
+
             gene_prot_aln_file = os.path.join(gene_dir, gene_id + '.faa.aln')
             if not os.path.isfile(gene_prot_aln_file):
                 #continue if gene is not aligned
@@ -606,7 +607,7 @@ def runVCFCallingFromGeneAlignment(samples,pangenome_folder, collection_dir, thr
     #cmd = f"parallel --bar -j {threads} -a {cmds_file}"
     #ret = run_command(cmd, timing_log)
     #report['alignments'] = alignment_dir
-    return alignment_dir
+    return vcf_dir
 def createSampleVcfDict(map_vcf,dict,vcf_dir):
     for g in map_vcf.keys():
         if '-' in g:
