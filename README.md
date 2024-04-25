@@ -125,22 +125,21 @@ cd examples/Kp24/raw
 cd ../../
 ```
 
-To download the 24 sample collection
+To download the 24 samples collection
 ```bash
 cd examples/Kp24/raw
 ./download_kp24.sh
 cd ../../
 ```
 
-To download the 90 sample collection
+To download the 100 samples collection
 ```bash
-cd examples/Kp24/raw
-./download_kp24.sh
+cd examples/Kp100/raw
+./download.sh
 cd ../../
 ```
 
-The following command will run that 24 samples through the pipeline, and import the results
-to the web-app for visualization:
+The following command will run that 24 samples through the pipeline:
 
 ```bash
 ./amr-analysis.py pg --time-log k24_time.log  -t 7 -m 25 -c KpClinicalGRBZ -i examples/Kp24/Kp24.tsv --work-dir data/work  -n "Collection of 24 clinical isolates from Greek and Brazil"
@@ -151,7 +150,7 @@ docker run -v ~/workspace/amromics/examples/Kp24:/tmp/amromics/examples/Kp24 amr
 ```
 #### Run with progressive mode:
 ```bash
-./amr-analysis.py pg --time-log k24_time.log  -t 7 -m 25 -c KpClinicalGRBZ --progressive True -i examples/Kp89/Kp89.tsv --work-dir data/work  -n "Collection of 24+89 clinical isolates from Greek and Brazil"
+./amr-analysis.py pg --time-log k24plus89_time.log  -t 7 -m 25 -c KpClinicalGRBZ --progressive True -i examples/Kp89/Kp89.tsv --work-dir data/work  -n "Collection of 24+89 clinical isolates from Greek and Brazil"
 ```
 ### Output
 Output from the pipeline is generated under the directory specified by `--work-dir`. 
