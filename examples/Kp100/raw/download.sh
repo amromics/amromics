@@ -1,5 +1,13 @@
 #!/bin/bash
-source activate amromics
+#Install IBM aspera-connect 4.1.3 (note that latest version doesn't work):
+if [ ! -f ~/.aspera/connect/bin/ascp ] || [ ! -f ~/.aspera/connect/etc/asperaweb_id_dsa.openssh ]
+then
+  wget https://ak-delivery04-mul.dhe.ibm.com/sar/CMA/OSA/0adrj/0/ibm-aspera-connect_4.1.3.93_linux.tar.gz
+  tar zxvf ibm-aspera-connect_4.1.3.93_linux.tar.gz
+  bash ibm-aspera-connect_4.1.3.93_linux.sh && rm ibm-aspera-connect_4.1.3.93_linux.*
+fi
+export PATH=~/.aspera/connect/bin/:$PATH
+KEYPATH=~/.aspera/connect/etc/asperaweb_id_dsa.openssh
 if [ ! -f GCF_000240185.1_ASM24018v2_genomic.fna.gz ]; then
     wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/240/185/GCF_000240185.1_ASM24018v2/GCF_000240185.1_ASM24018v2_genomic.fna.gz
 fi
@@ -17,8 +25,7 @@ awk -F"," '/Pacbio|ONT/{print $1}' acc_list.csv| parallel -j 16 'curl -X GET "ht
 sed 's/;/\t/g' sra_short.ftp.txt | sed 's/ftp.sra.ebi.ac.uk\//era-fasp@fasp.sra.ebi.ac.uk:/g' > sra_short.ascp.txt
 totN=$(cat sra_short.ascp.txt|wc -l)
 curN=0
-KEYPATH="${CONDA_PREFIX}"/opt/aspera/connect/etc/asperaweb_id_dsa.openssh
-while read s r1 r2
+while read r1 r2 s
 do
 	curN=$((curN + 1))
 	echo "Downloading $s...($curN/$totN) short-reads data:"
@@ -31,7 +38,7 @@ done < sra_short.ascp.txt
 sed 's/;/\t/g' sra_long.ftp.txt | sed 's/ftp.sra.ebi.ac.uk\//era-fasp@fasp.sra.ebi.ac.uk:/g' > sra_long.ascp.txt
 totN=$(cat sra_long.ascp.txt|wc -l)
 curN=0
-while read s r
+while read r s
 do
 	curN=$((curN + 1))
 	echo "Downloading $s...($curN/$totN) long-reads data:"
