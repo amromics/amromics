@@ -139,10 +139,16 @@ cd examples/Kp100/raw
 cd ../../
 ```
 
+The following command will analyze the miniature dataset
+```bash
+./amr-analysis.py pg  -t 7 -m 25 -c Kp4 -i examples/Kp24/config_Kp4.tsv --work-dir data/work  -n "Collection of 4 clinical isolates"
+```
+
+
 The following command will run that 24 samples through the pipeline:
 
 ```bash
-./amr-analysis.py pg --time-log k24_time.log  -t 7 -m 25 -c KpClinicalGRBZ -i examples/Kp24/Kp24.tsv --work-dir data/work  -n "Collection of 24 clinical isolates from Greek and Brazil"
+./amr-analysis.py pg  -t 7 -m 25 -c KpClinicalGRBZ -i examples/Kp24/config_Kp24.tsv --work-dir data/work  -n "Collection of 24 clinical isolates from Greek and Brazil"
 ```
 or if using docker image `amromics` built as above:
 ```bash
