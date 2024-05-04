@@ -578,7 +578,7 @@ def runVCFCallingFromGeneAlignment(samples,pangenome_folder, collection_dir, thr
             map_gene_vcf=msa2vcf.go(gene_aln_file,rep_name,gene_dir)
             map_sample_vcf=createSampleVcfDict(map_gene_vcf,map_sample_vcf,vcf_dir)
 
-            map_gene_prot_vcf=msa2vcf.go(gene_prot_aln_file,rep_name,gene_dir)
+            map_gene_prot_vcf=msa2vcf.go(gene_prot_aln_file,rep_name,gene_dir,isProt=True)
             map_sample_prot_vcf=createSampleVcfDict(map_gene_prot_vcf,map_sample_prot_vcf,vcf_dir)
         #print(map_sample_vcf)
         #print("size of dict map sample and vcf : "+str(sys.getsizeof(map_sample_vcf)))

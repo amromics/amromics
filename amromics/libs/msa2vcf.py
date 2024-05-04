@@ -107,7 +107,7 @@ def fix_complex_vars(all_vars, rseq, qseq):
     return all_vars
 
 
-def update_snps(qseq, rseq):
+def update_snps(qseq, rseq,isProt=False):
     dels = []
     ins = []
     snps = []
@@ -158,13 +158,13 @@ def update_snps(qseq, rseq):
             all_vars.append(var)
 
     if len(all_vars) >= 1:
-         fixed_vars = fix_complex_vars(all_vars, rseq, qseq)
-
-         for var in fixed_vars:
-             deconvolute_IUPAC(var)
-             #print(var)
-         fixed_vars_s = sorted(fixed_vars, key=lambda x: x[2])
-         return fixed_vars_s
+        fixed_vars = fix_complex_vars(all_vars, rseq, qseq)
+        if not isProt:
+            for var in fixed_vars:
+                deconvolute_IUPAC(var)
+                #print(var)
+        fixed_vars_s = sorted(fixed_vars, key=lambda x: x[2])
+        return fixed_vars_s
     else:
         return None
 
@@ -176,6 +176,8 @@ def deconvolute_IUPAC(var):
         no_iupac = iupac_to_base(base)
         if isinstance(no_iupac, list):
             num_alts = len(no_iupac)
+            if var[1] not in no_iupac:
+                print(var[1])
             no_iupac.remove(var[1])
             var[3] = ','.join(no_iupac)
 
@@ -229,7 +231,7 @@ def remove_terminal_gapns(seq):
     return re.sub(r'(N|-)*$', '', seq)
 
 
-def go(msa,refname,output_dir,keep_n=False):
+def go(msa,refname,output_dir,isProt=False,keep_n=False):
     map_gene_vcf={}
     try:
         refseq = get_ref_seq(msa, refname)
@@ -244,15 +246,17 @@ def go(msa,refname,output_dir,keep_n=False):
                     continue
                 else:
                     #print(name)
-                    snps = update_snps(remove_terminal_gapns(seq.upper()), refseq)
+                    snps = update_snps(remove_terminal_gapns(seq.upper()), refseq,isProt)
 
                     if snps:
                         vcflines = make_vcf(snps, name, refname, keep_n)
-                        gene_vcf_file=write_vcf(vcflines, name,output_dir)
+                        if isProt:
+                            gene_vcf_file=write_vcf(vcflines, name+".prot",output_dir)
+                        else:
+                            gene_vcf_file=write_vcf(vcflines, name,output_dir)
                         map_gene_vcf[name]=gene_vcf_file
 
     except Exception as ex:
-        #TODO traceback.print_exc()
-        #print('Error call vcf '+msa+":"+str(ex))
-        pass
+        traceback.print_exc()
+        print('Error call vcf '+msa+":"+str(ex))
     return map_gene_vcf
