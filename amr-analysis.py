@@ -156,7 +156,7 @@ def single_genome_analysis_func(args):
             setup_minidb()
     # run single sample pipeline
     samples = input_file_to_samples(args.input)
-    single_genome_analysis(samples, work_dir, overwrite, threads, memory, timing_log)
+    single_genome_analysis(samples, work_dir,  assembly_method=args.assembly_method, overwrite=overwrite, threads=threads, memory=memory, timing_log=timing_log)
     return samples
 
 
@@ -248,6 +248,7 @@ def main(arguments=sys.argv[1:]):
     sg_cmd.add_argument('-t', '--threads', help='Number of threads to use, 0 for all', default=0, type=int)
     sg_cmd.add_argument('-m', '--memory', help='Amount of memory in Gb to use', default=30, type=float)
     sg_cmd.add_argument('-i', '--input', help='Input file', required=True, type=str)
+    sg_cmd.add_argument('--assembly-method', choices=['spades', 'skesa'], default='skesa', help='Short read assembly methods')
     sg_cmd.add_argument('--work-dir', help='Working directory', default='data/work')
     sg_cmd.add_argument('--overwrite', help='Force overwrite exist results', default=False,action='store_true')
     sg_cmd.add_argument('--time-log', help='Time log file', default=None, type=str)
